@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" prefHeight="250.0" prefWidth="400.0" spacing="30.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="old_dialogs.ProgressDialogController">
+   <JFXSpinner fx:id="spinner" prefHeight="80" prefWidth="80" radius="100" startingAngle="-40" />
+   <Label fx:id="label_content" style="-fx-font-size: 20" text="Content" />
+</VBox>

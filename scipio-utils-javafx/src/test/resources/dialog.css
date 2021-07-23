@@ -1,0 +1,15 @@
+.dialog-title{
+    -fx-font-size: 32;
+    -fx-font-weight: BOLD;
+}
+
+.dialog-content{
+    -fx-font-size: 18;
+}
+
+.dialog-jfx-button{
+    -jfx-button-type: FLAT; /*FLAT, RAISED*/
+    -fx-background-color: white;
+    -fx-text-fill: #66CCCC;
+    -fx-font-size: 20;
+}

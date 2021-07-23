@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="rootPane" prefHeight="600.0" prefWidth="800.0" stylesheets="/dialog.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="TestController">
+    <AnchorPane>
+        <Button layoutX="92.0" layoutY="102.0" mnemonicParsing="false" onMouseClicked="#click_showAlert" text="跳出AlertDialog" />
+        <Button layoutX="290.0" layoutY="102.0" mnemonicParsing="false" onMouseClicked="#click_invisibleNegativeBtn" text="隐藏取消按钮" />
+        <Button layoutX="420.0" layoutY="102.0" mnemonicParsing="false" onMouseClicked="#click_showNegativeBtn" text="显示取消按钮" />
+      <Button layoutX="307.0" layoutY="159.0" mnemonicParsing="false" onMouseClicked="#click_clearNegativeBtnAct" text="消除取消按钮的动作" />
+      <Button layoutX="92.0" layoutY="343.0" mnemonicParsing="false" onMouseClicked="#click_showProgress" text="显示ProgressDialog" />
+    </AnchorPane>
+</StackPane>
