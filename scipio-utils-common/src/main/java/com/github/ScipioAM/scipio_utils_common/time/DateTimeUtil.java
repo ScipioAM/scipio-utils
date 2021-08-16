@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common;
+package com.github.ScipioAM.scipio_utils_common.time;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

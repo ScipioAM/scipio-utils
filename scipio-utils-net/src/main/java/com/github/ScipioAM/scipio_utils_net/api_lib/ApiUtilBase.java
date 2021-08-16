@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.api_lib;
 
-import com.github.ScipioAM.scipio_utils_common.TypeHelper;
+import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
 import com.github.ScipioAM.scipio_utils_io.parser.GsonUtil;
 import com.github.ScipioAM.scipio_utils_net.http.HttpRequesterBuilder;
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtilBuilder;

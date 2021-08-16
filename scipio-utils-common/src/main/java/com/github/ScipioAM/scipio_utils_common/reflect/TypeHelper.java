@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common;
+package com.github.ScipioAM.scipio_utils_common.reflect;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
