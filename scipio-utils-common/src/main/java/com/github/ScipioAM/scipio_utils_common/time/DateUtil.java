@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common;
+package com.github.ScipioAM.scipio_utils_common.time;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

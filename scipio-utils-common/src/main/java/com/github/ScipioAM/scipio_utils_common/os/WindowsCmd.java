@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common;
+package com.github.ScipioAM.scipio_utils_common.os;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
