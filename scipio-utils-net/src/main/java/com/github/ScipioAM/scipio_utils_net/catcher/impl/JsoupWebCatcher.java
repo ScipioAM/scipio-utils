@@ -8,7 +8,6 @@ import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -33,7 +32,7 @@ public class JsoupWebCatcher extends WebCatcher {
     @Override
     public WebInfo singleCatch(String urlStr,
                                CatchListener catchListener,
-                               IOListener ioListener) throws IOException
+                               IOListener ioListener) throws Exception
     {
         URL url = new URL(urlStr);
         WebInfo webInfo = new WebInfo(url);
@@ -57,15 +56,15 @@ public class JsoupWebCatcher extends WebCatcher {
         return webInfo;
     }
 
-    public WebInfo singleCatch(String urlStr, IOListener ioListener) throws IOException {
+    public WebInfo singleCatch(String urlStr, IOListener ioListener) throws Exception {
         return singleCatch(urlStr,catchListener,ioListener);
     }
 
-    public WebInfo singleCatch(String urlStr) throws IOException {
+    public WebInfo singleCatch(String urlStr) throws Exception {
         return singleCatch(urlStr,catchListener,null);
     }
 
-    public WebInfo singleCatch(String url, String filePath, String fileName, String fileSuffix) throws IOException {
+    public WebInfo singleCatch(String url, String filePath, String fileName, String fileSuffix) throws Exception {
         FileIOListener fileIOListener = new FileIOListener(filePath,fileName,fileSuffix);
         return singleCatch(url,catchListener,fileIOListener);
     }

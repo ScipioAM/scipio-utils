@@ -331,7 +331,7 @@ public abstract class AbstractHttpBase {
             throws NoSuchAlgorithmException, KeyManagementException
     {
         //创建SSLContext对象，并使用我们指定的信任管理器初始化
-        TrustManager[] tm={new MyX509TrustManager()};
+        TrustManager[] tm={new EmptyX509TrustManager()};
         SSLContext sslContext=SSLContext.getInstance("SSL");
         sslContext.init(null, tm, new SecureRandom());
         //从上述SSLContext对象中得到SSLSocketFactory对象

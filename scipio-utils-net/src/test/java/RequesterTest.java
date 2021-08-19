@@ -11,8 +11,12 @@ public class RequesterTest {
     public void test0()
     {
         ApacheHttpRequester httpRequester = new ApacheHttpRequester();
-        ResponseResult response = httpRequester.get("https://www.baeldung.com/google-http-client");
-        System.out.println(response);
+        try {
+            ResponseResult response = httpRequester.get("https://www.baeldung.com/google-http-client");
+            System.out.println(response);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

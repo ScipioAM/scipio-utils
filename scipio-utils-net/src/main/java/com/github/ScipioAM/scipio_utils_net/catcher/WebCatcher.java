@@ -30,12 +30,12 @@ public abstract class WebCatcher {
      * @param ioListener    抓取数据保存的监听器
      * @return 网页信息（包括抓取结果）
      */
-    public abstract WebInfo singleCatch(String url, CatchListener catchListener, IOListener ioListener) throws IOException;
+    public abstract WebInfo singleCatch(String url, CatchListener catchListener, IOListener ioListener) throws Exception;
 
     /**
      * 单网页抓取 - 不做IO操作（保存数据）
      */
-    public WebInfo singleCatch(String url, CatchListener catchListener) throws IOException {
+    public WebInfo singleCatch(String url, CatchListener catchListener) throws Exception {
         return singleCatch(url, catchListener, null);
     }
 
@@ -50,7 +50,7 @@ public abstract class WebCatcher {
      * @param fileSuffix    结果集保存文件的后缀
      * @return 网页信息（包括抓取结果）
      */
-    public WebInfo singleCatch(String url, CatchListener catchListener, String filePath, String fileName, String fileSuffix) throws IOException {
+    public WebInfo singleCatch(String url, CatchListener catchListener, String filePath, String fileName, String fileSuffix) throws Exception {
         FileIOListener fileIOListener = new FileIOListener(filePath, fileName, fileSuffix);
         return singleCatch(url, catchListener, fileIOListener);
     }
@@ -64,7 +64,7 @@ public abstract class WebCatcher {
      * @return 响应结果
      * @throws IOException URL格式错误或响应码不是2xx
      */
-    public ResponseResult doHttpRequest(String urlStr) throws IOException {
+    public ResponseResult doHttpRequest(String urlStr) throws Exception {
         //准备HTTP请求工具（客户端工具）
         IHttpRequester httpRequester = buildRequester();
         System.out.println("httpRequester has been built: " + httpRequester);

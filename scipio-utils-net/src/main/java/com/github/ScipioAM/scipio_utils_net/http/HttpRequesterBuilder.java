@@ -5,13 +5,13 @@ package com.github.ScipioAM.scipio_utils_net.http;
  * @author alan scipio
  * @since 2021/6/9
  */
-public abstract class HttpRequesterBuilder {
+public interface HttpRequesterBuilder {
 
     /**
      * 创建HTTP请求工具
      * @return 一个新的HTTP请求工具实例
      */
-    public abstract IHttpRequester build();
+    IHttpRequester build();
 
     //=====================================================================================
 

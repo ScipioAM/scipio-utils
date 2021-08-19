@@ -210,7 +210,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * @param requestMethod http方法
      * @return 原始响应结果
      */
-    protected ResponseResult requestAndGetOriginResponse(IHttpRequester httpRequester, String url, RequestMethod requestMethod) {
+    protected ResponseResult requestAndGetOriginResponse(IHttpRequester httpRequester, String url, RequestMethod requestMethod) throws Exception {
         return (requestMethod == RequestMethod.GET ? httpRequester.get(url) : httpRequester.post(url));
     }
 

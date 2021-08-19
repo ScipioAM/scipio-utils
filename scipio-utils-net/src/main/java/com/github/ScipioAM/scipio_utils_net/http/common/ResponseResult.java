@@ -30,11 +30,17 @@ public class ResponseResult {
     //响应的数据长度
     private Integer contentLength;
 
+    //响应数据类型
+    private String contentType;
+
     //响应的连接对象
     private URLConnection connObj;
 
     //响应的输入流（只当responseDataMode为直接返回输入流时才set）
     private InputStream responseStream;
+
+    //异常信息
+    private String errorMsg;
 
     public ResponseResult() { }
 
@@ -44,15 +50,25 @@ public class ResponseResult {
 
     @Override
     public String toString() {
-        return "Response{" +
+        return "ResponseResult{" +
                 "responseCode=" + responseCode +
                 ", data='" + data + '\'' +
                 ", headers=" + headers +
                 ", contentEncoding='" + contentEncoding + '\'' +
                 ", contentLength=" + contentLength +
+                ", contentType='" + contentType + '\'' +
                 ", connObj=" + connObj +
                 ", responseStream=" + responseStream +
+                ", errorMsg='" + errorMsg + '\'' +
                 '}';
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 
     public Integer getResponseCode() {
@@ -148,5 +164,13 @@ public class ResponseResult {
 
     public void setContentLength(Integer contentLength) {
         this.contentLength = contentLength;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
 }

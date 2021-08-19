@@ -30,7 +30,7 @@ public class MailTest {
     public void testDefault() {
         MailSender sender = new DefaultMailSender();
         try {
-            MailSendResult result = sender.sendMail(initAccount(),initInfo());
+            MailSendResult result = sender.send(initAccount(),initInfo());
             result.print();
         }catch (Exception e) {
             e.printStackTrace();

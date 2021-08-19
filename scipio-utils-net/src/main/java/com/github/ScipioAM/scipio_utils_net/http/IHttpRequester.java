@@ -19,14 +19,14 @@ public interface IHttpRequester {
      * @param urlPath url路径
      * @return 响应数据
      */
-    ResponseResult get(String urlPath);
+    ResponseResult get(String urlPath) throws Exception;
 
     /**
      * POST请求
      * @param urlPath url路径
      * @return 响应数据
      */
-    ResponseResult post(String urlPath);
+    ResponseResult post(String urlPath) throws Exception;
 
     /**
      * POST请求(上传文件)
@@ -34,7 +34,7 @@ public interface IHttpRequester {
      * @param dataMode 响应数据的默认(默认|不需要响应体|直接返回响应的输入流)
      * @return 响应数据
      */
-    ResponseResult postFile(String urlPath, ResponseDataMode dataMode);
+    ResponseResult postFile(String urlPath, ResponseDataMode dataMode) throws Exception;
 
     //==================================================================================================================
 

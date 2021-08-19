@@ -8,7 +8,7 @@ package com.github.ScipioAM.scipio_utils_net.http;
  * @author alan scipio
  * @since 2021/6/9
  */
-public class HttpUtilBuilder extends HttpRequesterBuilder {
+public class HttpUtilBuilder implements HttpRequesterBuilder {
 
     private final HttpUtil httpUtil = new HttpUtil();
 

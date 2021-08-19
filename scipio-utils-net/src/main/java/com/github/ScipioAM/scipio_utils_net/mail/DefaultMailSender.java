@@ -129,7 +129,7 @@ public class DefaultMailSender implements MailSender {
     //==================================================================================================================
 
     @Override
-    public MailSendResult sendMail(MailAccount account, MailInfo mailInfo) throws Exception {
+    public MailSendResult send(MailAccount account, MailInfo mailInfo) throws Exception {
         Session session = getSession(account);
         MimeMessage message = createMimeMessage(session,mailInfo,account.getUsername());
         Transport transport = session.getTransport();

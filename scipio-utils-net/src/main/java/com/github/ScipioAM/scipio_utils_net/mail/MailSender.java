@@ -10,6 +10,6 @@ import javax.mail.internet.MimeMessage;
  */
 public interface MailSender {
 
-    MailSendResult sendMail(MailAccount account, MailInfo mailInfo) throws Exception;
+    MailSendResult send(MailAccount account, MailInfo mailInfo) throws Exception;
 
 }

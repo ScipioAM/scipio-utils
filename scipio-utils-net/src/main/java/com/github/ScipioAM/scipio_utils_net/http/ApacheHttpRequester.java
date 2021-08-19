@@ -1,10 +1,9 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_net.http.common.RequestMethod;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.*;
 import com.google.api.client.http.apache.v2.ApacheHttpTransport;
 
 import java.util.Map;
@@ -17,35 +16,79 @@ public class ApacheHttpRequester implements IHttpRequester{
 
     private final  ApacheHttpTransport httpTransport = new ApacheHttpTransport();
 
-    //TODO 有待进一步探索和改造，目前只是一个最低限度的test demo
     @Override
-    public ResponseResult get(String urlPath) {
+    public ResponseResult get(String urlPath) throws Exception {
+        return doRequest(RequestMethod.GET,urlPath);
+    }
+
+    @Override
+    public ResponseResult post(String urlPath) throws Exception {
+        return doRequest(RequestMethod.POST,urlPath);
+    }
+
+    @Override
+    public ResponseResult postFile(String urlPath, ResponseDataMode dataMode) throws Exception {
+        return null;
+    }
+
+    //==================================================================================================================
+
+    /**
+     * 构建请求对象（实际最终执行者）
+     * @param method http方法
+     * @param urlPath 请求的url
+     * @return 请求对象（实际最终执行者）
+     */
+    //TODO 待完成(组织头信息、请求体等)
+    private HttpRequest buildExecutor(RequestMethod method, String urlPath) throws Exception {
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
+        HttpRequest executor = requestFactory.buildGetRequest(new GenericUrl(urlPath));
+        return executor;
+    }
+
+    /**
+     * 执行请求
+     * @param method http方法
+     * @param urlPath 请求的url
+     * @return 响应结果
+     */
+    private ResponseResult doRequest(RequestMethod method, String urlPath) throws Exception {
+        //构建请求对象
+        HttpRequest executor;
         try {
-            HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(urlPath));
-            System.out.println(request);
-
-            ResponseResult response = new ResponseResult();
-
-            String rawResponse = request.execute().parseAsString();
-            response.setData(rawResponse);
-            System.out.println(rawResponse);
-            return response;
-        } catch (Exception e) {
+            executor = buildExecutor(method,urlPath);
+        }catch (Exception e) {
             e.printStackTrace();
-            return null;
+            throw e;
         }
+
+        ResponseResult response = new ResponseResult();
+        HttpResponse rawResponse;
+        try {
+            rawResponse = executor.execute();//发起请求
+            //成功后的响应处理（响应码为2xx）
+            response.setResponseCode(rawResponse.getStatusCode());
+            response.setData(rawResponse.parseAsString());
+            response.setContentEncoding(rawResponse.getContentEncoding());
+            response.setContentType(rawResponse.getContentType());
+        }catch (Exception e) {
+            //失败后的响应处理（响应码不是2xx）
+            if(e instanceof HttpResponseException) {
+                HttpResponseException hre = (HttpResponseException) e;
+                response.setResponseCode(hre.getStatusCode());
+                response.setErrorMsg(hre.getStatusMessage());
+                response.setData(hre.getContent());
+            }
+            else {
+                response.setResponseCode(-1);
+                response.setErrorMsg(e.toString());
+            }
+            e.printStackTrace();
+        }
+        return response;
     }
 
-    @Override
-    public ResponseResult post(String urlPath) {
-        return null;
-    }
-
-    @Override
-    public ResponseResult postFile(String urlPath, ResponseDataMode dataMode) {
-        return null;
-    }
+    //==================================================================================================================
 
     @Override
     public ApacheHttpRequester setRequestHeader(Map<String, String> headers) {
