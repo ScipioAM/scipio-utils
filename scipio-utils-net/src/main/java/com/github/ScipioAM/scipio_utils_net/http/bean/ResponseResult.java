@@ -1,4 +1,6 @@
-package com.github.ScipioAM.scipio_utils_net.http.common;
+package com.github.ScipioAM.scipio_utils_net.http.bean;
+
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -15,8 +17,13 @@ import java.util.Map;
  */
 public class ResponseResult {
 
+    //执行代码出现异常时的响应码
+    public static final int EXECUTE_ERR_CODE = -1;
+
     //HTTP响应码，为-1则代表运行时抛了异常
     private Integer responseCode;
+
+    private ResponseDataMode dataMode;
 
     //响应数据
     private String data;
@@ -24,7 +31,7 @@ public class ResponseResult {
     //响应头
     private Map<String, List<String>> headers;
 
-    //响应的字符编码
+    //响应的压缩编码
     private String contentEncoding;
 
     //响应的数据长度
@@ -52,6 +59,7 @@ public class ResponseResult {
     public String toString() {
         return "ResponseResult{" +
                 "responseCode=" + responseCode +
+                ", dataMode=" + dataMode +
                 ", data='" + data + '\'' +
                 ", headers=" + headers +
                 ", contentEncoding='" + contentEncoding + '\'' +
@@ -61,6 +69,14 @@ public class ResponseResult {
                 ", responseStream=" + responseStream +
                 ", errorMsg='" + errorMsg + '\'' +
                 '}';
+    }
+
+    public ResponseDataMode getDataMode() {
+        return dataMode;
+    }
+
+    public void setDataMode(ResponseDataMode dataMode) {
+        this.dataMode = dataMode;
     }
 
     public String getContentType() {

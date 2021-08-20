@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.http.listener;
 
-import java.net.URLConnection;
+import java.net.HttpURLConnection;
 
 /**
  * Interface: ResponseListener
@@ -15,19 +15,21 @@ public interface ResponseListener {
      * @param responseCode 响应码，只有200是成功的
      * @param conn 整个http连接对象
      */
-    void onSuccess(int responseCode, URLConnection conn);
+    default void onSuccess(int responseCode, HttpURLConnection conn) {}
 
     /**
      * 响应失败时的回调
      * @param responseCode 响应码，只有200是成功的
      * @param conn 整个http连接对象
      */
-    void onFailure(int responseCode, URLConnection conn);
+    default void onFailure(int responseCode, HttpURLConnection conn) {}
 
     /**
      * 响应期间抛出异常时的回调
      * @param e 异常对象
      */
-    void onError(Exception e);
+    default void onError(Exception e) {
+        e.printStackTrace();
+    }
 
 }

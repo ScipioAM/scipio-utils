@@ -2,11 +2,10 @@ package com.github.ScipioAM.scipio_utils_net.api_lib;
 
 import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
 import com.github.ScipioAM.scipio_utils_io.parser.GsonUtil;
-import com.github.ScipioAM.scipio_utils_net.http.HttpRequesterBuilder;
-import com.github.ScipioAM.scipio_utils_net.http.HttpUtilBuilder;
+import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.IHttpRequester;
-import com.github.ScipioAM.scipio_utils_net.http.common.RequestMethod;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +41,9 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
     protected ApiRequestListener apiRequestListener;
 
     /**
-     * HTTP请求工具建造者
+     * HTTP请求工具
      */
-    private HttpRequesterBuilder httpRequesterBuilder;
+    private IHttpRequester httpRequester;
 
     //==================================================================================================================
 
@@ -55,7 +54,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * @return 响应结果
      */
     public R getRequest(String url, Map<String, String> formData) throws Exception {
-        return doApiRequest(url, RequestMethod.GET,formData,null);
+        return doApiRequest(url, HttpMethod.GET,formData,null);
     }
 
     /**
@@ -68,7 +67,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
     public R getRequest(String url, String formKey, String formValue) throws Exception {
         Map<String,String> formData = new HashMap<>();
         formData.put(formKey,formValue);
-        return doApiRequest(url,RequestMethod.GET,formData,null);
+        return doApiRequest(url, HttpMethod.GET,formData,null);
     }
 
     /**
@@ -77,7 +76,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * @return 响应结果
      */
     public R getRequest(String url) throws Exception {
-        return doApiRequest(url,RequestMethod.GET,null,null);
+        return doApiRequest(url, HttpMethod.GET,null,null);
     }
 
     /**
@@ -87,7 +86,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * @return 响应结果
      */
     public R postRequest(String url, Map<String, String> formData) throws Exception {
-        return doApiRequest(url,RequestMethod.POST,formData,null);
+        return doApiRequest(url, HttpMethod.POST,formData,null);
     }
 
     /**
@@ -100,12 +99,12 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
     public R postRequest(String url, String formKey, String formValue) throws Exception {
         Map<String,String> formData = new HashMap<>();
         formData.put(formKey,formValue);
-        return doApiRequest(url,RequestMethod.POST,formData,null);
+        return doApiRequest(url, HttpMethod.POST,formData,null);
     }
 
     public R postRequest(String url, Object jsonBean) throws Exception {
         isJsonSubmit = true;
-        return doApiRequest(url,RequestMethod.POST,null,jsonBean);
+        return doApiRequest(url, HttpMethod.POST,null,jsonBean);
     }
 
     //==================================================================================================================
@@ -113,20 +112,20 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
     /**
      * 发起API请求
      * @param url 请求url
-     * @param requestMethod http方法
+     * @param httpMethod http方法
      * @param formData 请求参数，传统表单格式，可为null
      * @param jsonData 请求参数，json格式，可为null
      * @return api响应结果
      * @throws Exception 新建ApiResponse实例失败
      */
-    private R doApiRequest(String url, RequestMethod requestMethod, Map<String, String> formData, Object jsonData) throws Exception {
+    private R doApiRequest(String url, HttpMethod httpMethod, Map<String, String> formData, Object jsonData) throws Exception {
         //前期准备工作
-        IHttpRequester httpRequester = prepareHttpRequester(url,requestMethod,formData,jsonData);
+        IHttpRequester httpRequester = prepareHttpRequester(url, httpMethod,formData,jsonData);
         //发起请求
-        ResponseResult originResponse = requestAndGetOriginResponse(httpRequester,url,requestMethod);
+        ResponseResult originResponse = requestAndGetOriginResponse(httpRequester,url, httpMethod);
         //请求后的回调
         if(apiRequestListener!=null) {
-            apiRequestListener.afterRequest(httpRequester,requestMethod,url,originResponse);
+            apiRequestListener.afterRequest(httpRequester, httpMethod,url,originResponse);
         }
         //解析并组装响应对象
         R apiResponse = parseOriginResponse(originResponse);
@@ -151,21 +150,21 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * @return HTTP请求工具
      */
     private IHttpRequester buildHttpRequester() {
-        if(httpRequesterBuilder==null) {
-            httpRequesterBuilder = HttpUtilBuilder.builder();
+        if(httpRequester == null) {
+            httpRequester = new HttpUtil();
         }
-        return httpRequesterBuilder.build();
+        return httpRequester;
     }
 
     /**
      * 前期准备工作
      * @param url 请求url
-     * @param requestMethod http方法
+     * @param httpMethod http方法
      * @param formData 请求参数，传统表单格式，可为null
      * @param jsonData 请求参数，json格式，可为null
      * @return HTTP请求工具
      */
-    protected IHttpRequester prepareHttpRequester(String url, RequestMethod requestMethod, Map<String, String> formData, Object jsonData) {
+    protected IHttpRequester prepareHttpRequester(String url, HttpMethod httpMethod, Map<String, String> formData, Object jsonData) {
         IHttpRequester httpRequester = buildHttpRequester();
         //设置验证信息
         if((authenticationKey!=null && !"".equals(authenticationKey))) {
@@ -186,17 +185,17 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
             else if(finalFormData!=null) { //如果指定json提交，但jsonData为空，而formData不为空，则序列化formData
                 submitJson = GsonUtil.toJson(finalFormData);
             }
-            httpRequester.setRequestJsonData(submitJson);
+            httpRequester.setRequestJson(submitJson);
             submitData = submitJson;
         }
         //form提交下的请求参数准备
         else {
-            httpRequester.setRequestFormData(finalFormData);
+            httpRequester.setRequestForm(finalFormData);
             submitData = finalFormData;
         }
         //请求前的回调
         if(apiRequestListener!=null) {
-            if(!apiRequestListener.beforeRequest(httpRequester,requestMethod,url,isJsonSubmit,submitData)) {
+            if(!apiRequestListener.beforeRequest(httpRequester, httpMethod,url,isJsonSubmit,submitData)) {
                 return null;
             }
         }
@@ -207,11 +206,11 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      * 发起请求并获得原始响应结果
      * @param httpRequester http客户端工具
      * @param url 请求的url
-     * @param requestMethod http方法
+     * @param httpMethod http方法
      * @return 原始响应结果
      */
-    protected ResponseResult requestAndGetOriginResponse(IHttpRequester httpRequester, String url, RequestMethod requestMethod) throws Exception {
-        return (requestMethod == RequestMethod.GET ? httpRequester.get(url) : httpRequester.post(url));
+    protected ResponseResult requestAndGetOriginResponse(IHttpRequester httpRequester, String url, HttpMethod httpMethod) throws Exception {
+        return (httpMethod == HttpMethod.GET ? httpRequester.get(url) : httpRequester.post(url));
     }
 
     /**
@@ -281,8 +280,8 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
         return this.self();
     }
 
-    public S setHttpRequesterBuilder(HttpRequesterBuilder builder) {
-        this.httpRequesterBuilder = builder;
+    public S setHttpRequester(IHttpRequester requester) {
+        this.httpRequester = requester;
         return this.self();
     }
 

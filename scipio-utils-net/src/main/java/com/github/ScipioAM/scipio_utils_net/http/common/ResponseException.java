@@ -1,5 +1,7 @@
 package com.github.ScipioAM.scipio_utils_net.http.common;
 
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
+
 import java.io.IOException;
 
 /**

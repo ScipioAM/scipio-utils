@@ -1,8 +1,8 @@
 package com.github.ScipioAM.scipio_utils_net.api_lib;
 
 import com.github.ScipioAM.scipio_utils_net.http.IHttpRequester;
-import com.github.ScipioAM.scipio_utils_net.http.common.RequestMethod;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 
 import java.io.File;
@@ -73,13 +73,13 @@ public abstract class ApiUtilBaseEnhance<R extends ApiResponse, S extends ApiUti
      */
     private R doApiFileRequest(String url, ResponseDataMode responseDataMode, Map<String, String> formData, Object jsonData) throws Exception {
         //前期准备工作
-        IHttpRequester httpRequester = prepareHttpRequester(url, RequestMethod.POST,formData,jsonData);
-        httpRequester.setRequestFile(submitFileMap);
+        IHttpRequester httpRequester = prepareHttpRequester(url, HttpMethod.POST,formData,jsonData);
+        httpRequester.setUploadFile(submitFileMap);
         //发起请求
         ResponseResult originResponse = httpRequester.postFile(url,responseDataMode);
         //请求后的回调
         if(apiRequestListener!=null) {
-            apiRequestListener.afterRequest(httpRequester,RequestMethod.POST,url,originResponse);
+            apiRequestListener.afterRequest(httpRequester, HttpMethod.POST,url,originResponse);
         }
         //解析并组装响应对象
         R apiResponse = parseFileResponse(originResponse,responseDataMode);

@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 
 import java.io.File;
@@ -19,14 +19,22 @@ public interface IHttpRequester {
      * @param urlPath url路径
      * @return 响应数据
      */
-    ResponseResult get(String urlPath) throws Exception;
+    ResponseResult get(String urlPath, ResponseDataMode responseDataMode) throws Exception;
+
+    default ResponseResult get(String urlPath) throws Exception {
+        return get(urlPath,ResponseDataMode.DEFAULT);
+    }
 
     /**
      * POST请求
      * @param urlPath url路径
      * @return 响应数据
      */
-    ResponseResult post(String urlPath) throws Exception;
+    ResponseResult post(String urlPath, ResponseDataMode dataMode) throws Exception;
+
+    default ResponseResult post(String urlPath) throws Exception {
+        return post(urlPath,ResponseDataMode.DEFAULT);
+    }
 
     /**
      * POST请求(上传文件)
@@ -36,6 +44,19 @@ public interface IHttpRequester {
      */
     ResponseResult postFile(String urlPath, ResponseDataMode dataMode) throws Exception;
 
+    default ResponseResult postFile(String urlPath) throws Exception {
+        return postFile(urlPath,ResponseDataMode.DEFAULT);
+    }
+
+    /**
+     * 下载文件
+     * @param urlPath url路径
+     * @param downloadFileDir 下载文件的父路径
+     * @param fileName 下载文件的文件名
+     * @return 响应数据
+     */
+    ResponseResult download(String urlPath, String downloadFileDir, String fileName) throws Exception;
+
     //==================================================================================================================
 
     /**
@@ -43,7 +64,10 @@ public interface IHttpRequester {
      * @param headers 请求头参数
      * @return 调用链
      */
-    IHttpRequester setRequestHeader(Map<String,String> headers);
+    default IHttpRequester setRequestHeader(Map<String,String> headers) {
+        System.err.println("method[setRequestHeader] not override, nothing happened");
+        return this;
+    }
 
     /**
      * 自定义请求头 - 仅一对参数
@@ -62,8 +86,8 @@ public interface IHttpRequester {
      * @param requestJsonData 请求的json数据
      * @return 调用链
      */
-    default IHttpRequester setRequestJsonData(String requestJsonData) {
-        System.err.println("method[setRequestJsonData] not override, nothing happened");
+    default IHttpRequester setRequestJson(String requestJsonData) {
+        System.err.println("method[setRequestJson] not override, nothing happened");
         return this;
     }
 
@@ -72,8 +96,8 @@ public interface IHttpRequester {
      * @param formData 请求的参数本身
      * @return 调用链
      */
-    default IHttpRequester setRequestFormData(Map<String,String> formData) {
-        System.err.println("method[setRequestFormData] not override, nothing happened");
+    default IHttpRequester setRequestForm(Map<String,String> formData) {
+        System.err.println("method[setRequestForm] not override, nothing happened");
         return this;
     }
 
@@ -82,30 +106,76 @@ public interface IHttpRequester {
      * @param requestXmlData 请求的xml数据
      * @return 调用链
      */
-    default IHttpRequester setRequestXmlData(String requestXmlData) {
-        System.err.println("method[setRequestXmlData] not override, nothing happened");
+    default IHttpRequester setRequestXml(String requestXmlData) {
+        System.err.println("method[requestXmlData] not override, nothing happened");
+        return this;
+    }
+
+    default IHttpRequester setRequestText(String content) {
+        System.err.println("method[setRequestText] not override, nothing happened");
         return this;
     }
 
     /**
      * 设置要提交的文件
-     * @param requestFile 要提交的文件们
+     * @param uploadFiles 要提交的文件们
      * @return 调用链
      */
-    default IHttpRequester setRequestFile(Map<String, File> requestFile) {
+    default IHttpRequester setUploadFile(Map<String, File> uploadFiles) {
         System.err.println("method[setRequestFile] not override, nothing happened");
         return this;
     }
 
     /**
      * 设置要提交的文件 - 单个文件
-     * @param requestFile 要提交的文件(key固定为"file")
+     * @param uploadFile 要提交的文件(key固定为"file")
      * @return 调用链
      */
-    default IHttpRequester setRequestFile(File requestFile) {
+    default IHttpRequester setUploadFile(File uploadFile) {
         Map<String,File> fileMap = new HashMap<>();
-        fileMap.put("file",requestFile);
-        return setRequestFile(fileMap);
+        fileMap.put("file",uploadFile);
+        return setUploadFile(fileMap);
+    }
+
+    /**
+     * 设置上传文件缓冲区大小
+     */
+    default IHttpRequester setFileBufferSize(Integer fileBufferSize) {
+        System.err.println("method[setFileBufferSize] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置下载文件的全路径
+     */
+    default IHttpRequester setDownloadFilePath(String downloadFilePath) {
+        System.err.println("method[setDownloadFilePath] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置followRedirects参数
+     * <p>参数含义：是否关闭重定向以获取跳转后的真实地址</p>
+     */
+    default IHttpRequester setFollowRedirects(boolean followRedirects) {
+        System.err.println("method[followRedirects] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置userAgent
+     */
+    default IHttpRequester setUserAgent(String userAgent) {
+        System.err.println("method[setUserAgent] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置请求和响应的编码字符集
+     */
+    default IHttpRequester setCharset(String charset) {
+        System.err.println("method[setCharset] not override, nothing happened");
+        return this;
     }
 
 }

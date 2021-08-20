@@ -1,5 +1,5 @@
 import com.github.ScipioAM.scipio_utils_net.http.ApacheHttpRequester;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import org.junit.Test;
 
 /**

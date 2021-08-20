@@ -1,16 +1,14 @@
+import com.github.ScipioAM.scipio_utils_net.http.ApacheHttpRequester;
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
-import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.UploadListener;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 import org.junit.Test;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
-import java.io.IOException;
-import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 
 /**
@@ -33,7 +31,7 @@ public class HttpTest {
         HttpUtil httpUtil=new HttpUtil();
         httpUtil.setResponseListener(new ResponseListener() {
             @Override
-            public void onSuccess(int responseCode, URLConnection conn) {
+            public void onSuccess(int responseCode, HttpURLConnection conn) {
                 HttpsURLConnection httpsConn=(HttpsURLConnection)conn;
                 System.out.println("=================== success:"+responseCode+" ===================");
                 try {
@@ -43,12 +41,8 @@ public class HttpTest {
                 }
             }
             @Override
-            public void onFailure(int responseCode, URLConnection conn) {
+            public void onFailure(int responseCode, HttpURLConnection conn) {
                 System.out.println("=================== failed:"+responseCode+" ===================");
-            }
-            @Override
-            public void onError(Exception e) {
-                e.printStackTrace();
             }
         });
 
@@ -101,59 +95,36 @@ public class HttpTest {
         HashMap<String,File> fileParams=new HashMap<>();
         fileParams.put("image_file",new File(originalFilePath));
 
-        //文件上传的回调
-        httpUtil.setUploadListener(new UploadListener() {
-            @Override
-            public void onProcess(double uploadPercent) {//进行中
-                System.out.println("文件上传进度："+String.format("%.2f",(uploadPercent*100))+"%");
-            }
-            @Override
-            public void onCompleted() {//完成
-                System.out.println("文件上传完成");
-            }
-            @Override
-            public void onError(IOException e) {//异常时
-                e.printStackTrace();
-            }
-        });
-
-        //文件下载的回调
-        httpUtil.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloading(double downloadedPercent) {
-                System.out.println("下载进度："+String.format("%.2f",(downloadedPercent*100))+"%");
-            }
-            @Override
-            public void onFinished(boolean isSuccess, IOException e) {
-                System.out.println("下载完成");
-            }
-        });
-
         //响应后的回调
         httpUtil.setResponseListener(new ResponseListener() {
             @Override
-            public void onSuccess(int i, URLConnection urlConnection) {
+            public void onSuccess(int i, HttpURLConnection urlConnection) {
                 System.out.println("对方响应结果：成功！开始写入响应返回的文件到本地");
                 System.out.println("本地路径："+newFilePath);
             }
             @Override
-            public void onFailure(int i, URLConnection urlConnection) {
+            public void onFailure(int i, HttpURLConnection urlConnection) {
                 System.out.println("对方响应结果：失败");
-            }
-            @Override
-            public void onError(Exception e) {
-                e.printStackTrace();
             }
         });
 
         //发起请求的方法
         System.out.println("源文件："+originalFilePath);
         System.out.println("开始发起请求");
-        ResponseResult response = httpUtil.setRequestFormData(params)
-                .setRequestFile(fileParams)
+        ResponseResult response = httpUtil.setRequestForm(params)
+                .setUploadFile(fileParams)
                 .setDownloadFilePath(newFilePath)
                 .postFile(url);
         System.out.println("响应码："+response.getResponseCode());
+    }
+
+    @Test
+    public void testHttpClient() {
+        String url0 = "http://www.baidu.com";
+
+        ApacheHttpRequester requester = new ApacheHttpRequester();
+        ResponseResult result = requester.get(url0);
+        System.out.println(result);
     }
 
 }
