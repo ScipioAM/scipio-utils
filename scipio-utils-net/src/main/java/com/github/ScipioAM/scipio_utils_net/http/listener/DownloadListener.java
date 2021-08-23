@@ -30,7 +30,7 @@ public interface DownloadListener {
      * @param e 如果下载失败，则此项不为null
      */
     default void onFinished(boolean isSuccess, File outputFile, IOException e) {
-        System.out.println("Download finished, File: " + outputFile.getAbsolutePath());
+        System.out.println("Download finished, Success: " + isSuccess + ", File: " + outputFile.getAbsolutePath());
     }
 
 }

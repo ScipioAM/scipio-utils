@@ -2,7 +2,9 @@ package com.github.ScipioAM.scipio_utils_net.http;
 
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 
+import javax.net.ssl.TrustManager;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -175,6 +177,70 @@ public interface IHttpRequester {
      */
     default IHttpRequester setCharset(String charset) {
         System.err.println("method[setCharset] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置信任管理器（决定了信任哪些SSL证书）
+     */
+    default IHttpRequester setTrustManagers(TrustManager... managers) {
+        System.err.println("method[setTrustManagers] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置SSLContext创建者
+     */
+    default IHttpRequester setSSLContextInitializer(SSLContextInitializer sslContextInitializer) {
+        System.err.println("method[setSSLContextInitializer] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置上传监听器
+     */
+    default IHttpRequester setUploadListener(UploadListener uploadListener) {
+        System.err.println("method[setUploadListener] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置下载监听器
+     */
+    default IHttpRequester setDownloadListener(DownloadListener downloadListener) {
+        System.err.println("method[setDownloadListener] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置成功响应后的处理器（2xx的HTTP响应码）
+     */
+    default IHttpRequester setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        System.err.println("method[setResponseSuccessHandler] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置失败响应后的处理器（非2xx的HTTP响应码）
+     */
+    default IHttpRequester setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        System.err.println("method[setResponseFailureHandler] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置执行时抛出异常的处理器（通常是最外层catch）
+     */
+    default IHttpRequester setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        System.err.println("method[setExecuteErrorHandler] not override, nothing happened");
+        return this;
+    }
+
+    /**
+     * 设置开始执行请求前的监听器
+     */
+    default IHttpRequester setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        System.err.println("method[setStartExecuteListener] not override, nothing happened");
         return this;
     }
 

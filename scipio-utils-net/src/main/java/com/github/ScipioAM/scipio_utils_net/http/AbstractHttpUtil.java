@@ -9,6 +9,8 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,7 +34,6 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
     protected ResponseResult doRequest(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode)
             throws IOException, IllegalArgumentException
     {
-        ResponseResult result;//连接后获取的响应结果
         //确定contentType
         String contentType = null;
         if(requestContent != null) {
@@ -59,9 +60,11 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
         }
         //输出请求内容
         outputRequestContent(conn,httpMethod,requestContent);
-        //处理响应结果
+        //获取响应码
         int responseCode = conn.getResponseCode();//获取返回的状态码
-        result = handleResponse(conn,responseCode, responseDataMode);//获取返回的数据
+        //处理返回的数据
+        ResponseResult result = prepareResponseResult(urlPath,responseCode,httpMethod,conn);
+        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentEncoding());
         return result;
     }
 
@@ -78,8 +81,6 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
     @Override
     protected ResponseResult doFileRequest(String urlPath, Map<String,String> requestParams, Map<String,File> uploadFiles , ResponseDataMode responseDataMode )
             throws IOException, IllegalArgumentException {
-        //返回的响应结果
-        ResponseResult result;
         //Content-Type的定义
         String contentType = "multipart/form-data; boundary=" + BOUNDARY;
 
@@ -103,8 +104,38 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
         //获取响应码
         int responseCode = conn.getResponseCode();
         //处理返回的数据
-        result = super.handleResponse(conn,responseCode, responseDataMode);
+        ResponseResult result = prepareResponseResult(urlPath,responseCode,HttpMethod.POST,conn);
+        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentEncoding());
         return result;
+    }
+
+    private ResponseResult prepareResponseResult(String urlPath, int responseCode, HttpMethod httpMethod, HttpURLConnection conn) {
+        ResponseResult result = new ResponseResult();
+        result.setRequestUrl(urlPath);
+        result.setHttpMethod(httpMethod);
+        result.setResponseCode(responseCode);
+        result.setContentEncoding(conn.getContentEncoding());
+        result.setContentLength(conn.getContentLengthLong());
+        result.setContentType(conn.getContentType());
+        result.setHeaders(transformHeaders(conn.getHeaderFields()));
+        result.setConnObj(conn);
+        return result;
+    }
+
+    private Map<String,String> transformHeaders(Map<String, List<String>> originalHeaders) {
+        Map<String,String> finalHeaders = new HashMap<>();
+        for(Map.Entry<String,List<String>> header : originalHeaders.entrySet()) {
+            StringBuilder value = new StringBuilder();
+            List<String> headerValueList = header.getValue();
+            if(headerValueList != null && headerValueList.size() > 0) {
+                for(String f : headerValueList) {
+                    value.append(f).append(",");
+                }
+                value.deleteCharAt(value.length()-1);
+            }
+            finalHeaders.put(header.getKey(),value.toString());
+        }
+        return finalHeaders;
     }
 
 }

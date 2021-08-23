@@ -1,14 +1,10 @@
-import com.github.ScipioAM.scipio_utils_net.http.ApacheHttpRequester;
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 import org.junit.Test;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
-import java.net.HttpURLConnection;
 import java.util.HashMap;
 
 /**
@@ -17,7 +13,7 @@ import java.util.HashMap;
  * Author: Alan Min
  * Create Date: 2019/7/26
  */
-public class HttpTest {
+public class HttpUtilTest {
 
     /**
      * 监听器测试：请求后的回调
@@ -29,22 +25,7 @@ public class HttpTest {
         String httpsUrl="https://www.baidu.com/";
 
         HttpUtil httpUtil=new HttpUtil();
-        httpUtil.setResponseListener(new ResponseListener() {
-            @Override
-            public void onSuccess(int responseCode, HttpURLConnection conn) {
-                HttpsURLConnection httpsConn=(HttpsURLConnection)conn;
-                System.out.println("=================== success:"+responseCode+" ===================");
-                try {
-                    System.out.println(httpsConn.getContent());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-            @Override
-            public void onFailure(int responseCode, HttpURLConnection conn) {
-                System.out.println("=================== failed:"+responseCode+" ===================");
-            }
-        });
+        httpUtil.setHandleResponseForTest();
 
         ResponseResult response = httpUtil.get(httpsUrl);
         System.out.println("响应码："+response.getResponseCode());
@@ -96,17 +77,13 @@ public class HttpTest {
         fileParams.put("image_file",new File(originalFilePath));
 
         //响应后的回调
-        httpUtil.setResponseListener(new ResponseListener() {
-            @Override
-            public void onSuccess(int i, HttpURLConnection urlConnection) {
-                System.out.println("对方响应结果：成功！开始写入响应返回的文件到本地");
-                System.out.println("本地路径："+newFilePath);
-            }
-            @Override
-            public void onFailure(int i, HttpURLConnection urlConnection) {
-                System.out.println("对方响应结果：失败");
-            }
+        httpUtil.setResponseSuccessHandler((responseCode, result) -> {
+            System.out.println("对方响应结果：成功！开始写入响应返回的文件到本地");
+            System.out.println("本地路径："+newFilePath);
         });
+        httpUtil.setResponseFailureHandler((responseCode, result) ->
+                System.out.println("对方响应结果：失败")
+        );
 
         //发起请求的方法
         System.out.println("源文件："+originalFilePath);
@@ -116,18 +93,6 @@ public class HttpTest {
                 .setDownloadFilePath(newFilePath)
                 .postFile(url);
         System.out.println("响应码："+response.getResponseCode());
-    }
-
-    @Test
-    public void testHttpClient() {
-        String url0 = "https://www.baidu.com";
-
-        ApacheHttpRequester requester = new ApacheHttpRequester()
-                .setDefaultUserAgent();
-        ResponseResult result = requester.get(url0);
-        System.out.println("Response code: " + result.getResponseCode());
-        System.out.println("Error message: " + result.getErrorMsg());
-        System.out.println("Response data: " + result.getData());
     }
 
 }

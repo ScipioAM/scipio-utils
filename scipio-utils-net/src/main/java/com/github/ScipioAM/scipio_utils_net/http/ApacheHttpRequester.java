@@ -5,29 +5,36 @@ import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.RequestDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+import com.github.ScipioAM.scipio_utils_net.http.listener.ApacheSSLFactoryInitializer;
+import com.github.ScipioAM.scipio_utils_net.http.listener.SSLContextInitializer;
 import com.google.api.client.http.*;
 import com.google.api.client.http.apache.v2.ApacheHttpTransport;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Apache HttpClient的实现类
  * @author Alan Scipio
- * @since 2021/6/10
+ * @since 1.0.1-p1
+ * @date 2021/6/10
  */
 public class ApacheHttpRequester extends AbstractHttpBase{
 
+    //TODO 差一个uploadListener
+
     private ApacheHttpTransport httpTransport;
+
+    private ApacheSSLFactoryInitializer sslFactoryInitializer = ApacheSSLFactoryInitializer.DEFAULT;
 
     /** 执行者 */
     private HttpRequest executor;
@@ -41,21 +48,35 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     /** 执行者 */
     private HttpHeaders httpHeaders;
 
+    public ApacheHttpRequester() {
+        super();
+        super.sslContextInitializer = SSLContextInitializer.APACHE_DEFAULT;
+    }
+
     //==================================================================================================================
 
     /**
      * 检查并创建HttpTransport对象
      */
-    private void checkAndBuildHttpTransport() throws NoSuchAlgorithmException, KeyManagementException {
+    private void checkAndBuildHttpTransport() throws Exception {
         if(httpTransport != null) {
             return;
         }
-        HttpClientBuilder builder = ApacheHttpTransport.newDefaultHttpClientBuilder();
-        //创建默认的SSL工厂（如果像自定义则需通过setHttpTransport）
-        SSLContext sslContext = createSSLContext(null);
-        SSLConnectionSocketFactory factory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-        builder.setSSLSocketFactory(factory);
-        HttpClient httpClient = builder.build();
+        if(super.sslContextInitializer == null) {
+            super.sslContextInitializer = SSLContextInitializer.APACHE_DEFAULT;
+        }
+        if(sslFactoryInitializer == null) {
+            sslFactoryInitializer = ApacheSSLFactoryInitializer.DEFAULT;
+        }
+        HttpClientBuilder httpClientBuilder = ApacheHttpTransport.newDefaultHttpClientBuilder();
+        //创建SSL上下文（并指定证书）
+        SSLContext sslContext = sslContextInitializer.build(super.trustManagers);
+        //创建SSL工厂
+        SSLConnectionSocketFactory factory = sslFactoryInitializer.build(sslContext);
+        //绑定工厂
+        httpClientBuilder.setSSLSocketFactory(factory);
+        //构建HttpTransport对象
+        HttpClient httpClient = httpClientBuilder.build();
         httpTransport = new ApacheHttpTransport(httpClient);
     }
 
@@ -67,7 +88,7 @@ public class ApacheHttpRequester extends AbstractHttpBase{
      * @param uploadFiles 要上传文件
      * @return 请求对象（实际最终执行者）
      */
-    private HttpRequest buildExecutor(String urlPath, HttpMethod method, RequestContent requestContent, Map<String,File> uploadFiles) throws Exception {
+    private HttpRequest buildExecutor(String urlPath, HttpMethod method, RequestContent requestContent, Map<String,File> uploadFiles, ResponseDataMode responseDataMode) throws Exception {
         checkAndBuildHttpTransport();
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
         HttpRequest executor;
@@ -78,13 +99,13 @@ public class ApacheHttpRequester extends AbstractHttpBase{
             HttpContent content = transformContent(requestContent,uploadFiles);
             executor = requestFactory.buildPostRequest(new GenericUrl(urlPath), content);
         }
-        executor.setFollowRedirects(requestInfo.isFollowRedirects());
+        executor.setFollowRedirects(super.requestInfo.isFollowRedirects());
         executor.setNumberOfRetries(retries);
         executor.setWriteTimeout(ioTimeout);
         executor.setReadTimeout(ioTimeout);
 
-        if(requestInfo.getConnectTimeout() != null && requestInfo.getConnectTimeout() >= 0) {
-            executor.setConnectTimeout(requestInfo.getConnectTimeout());
+        if(super.requestInfo.getConnectTimeout() != null && super.requestInfo.getConnectTimeout() >= 0) {
+            executor.setConnectTimeout(super.requestInfo.getConnectTimeout());
         }
         if(httpEncoding != null) {
             executor.setEncoding(httpEncoding);
@@ -92,48 +113,99 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         if(httpHeaders != null) {
             executor.setHeaders(httpHeaders);
         }
-        //TODO 1.如果监听器不为null，则监听器需要绑定到对应的handler和interceptor上去。细化监听器？
-        //TODO 2.给SSL相关开放更便捷的set接口
+        //可以设置为返回原始InputStream
+        executor.setResponseReturnRawInputStream((responseDataMode == ResponseDataMode.STREAM_ONLY || responseDataMode == ResponseDataMode.DOWNLOAD_FILE));
+        //设置响应成功或失败的监听器
+        if(super.responseSuccessHandler != null || super.responseFailureHandler != null) {
+            executor.setResponseInterceptor((rawResponse) -> {
+                ResponseResult result = new ResponseResult();
+                result.setResponseCode(rawResponse.getStatusCode());
+                result.setContentEncoding(rawResponse.getContentEncoding());
+                result.setContentType(rawResponse.getContentType());
+                result.setData(rawResponse.parseAsString());
+                if(rawResponse.isSuccessStatusCode()) {
+                    //成功时的响应
+                    if(super.responseSuccessHandler != null) {
+                        super.responseSuccessHandler.handle(rawResponse.getStatusCode(), result);
+                    }
+                }
+                else {
+                    //失败时的响应
+                    if(super.responseFailureHandler != null) {
+                        result.setErrorMsg(rawResponse.getStatusMessage());
+                    }
+                }
+            });
+        }
+        //设置执行前的监听回调
+        if(super.startExecuteListener != null) {
+            executor.setInterceptor((httpRequest)->
+                    super.startExecuteListener.beforeExec(urlPath,method,requestInfo,requestContent,responseDataMode)
+            );
+        }
         return executor;
     }
 
     @Override
-    protected ResponseResult doRequest(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode) throws IllegalArgumentException {
+    protected ResponseResult doRequest(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode) throws IOException, IllegalArgumentException {
         if(executor == null) {
             //构建请求对象
             try {
-                executor = buildExecutor(urlPath,httpMethod,requestContent,null);
+                executor = buildExecutor(urlPath,httpMethod,requestContent,null,responseDataMode);
             }catch (Exception e) {
                 e.printStackTrace();
                 ResponseResult result = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
                 result.setErrorMsg(e.toString());
+                if(super.executeErrorHandler != null) {
+                    super.executeErrorHandler.handle(urlPath,httpMethod,e);
+                }
                 return result;
             }
         }
 
         ResponseResult response = new ResponseResult();
-        HttpResponse rawResponse;
+        InputStream in = null;
+        long contentLength = 0L;
+        String encoding = null;
+        HttpResponse rawResponse ;
         try {
             rawResponse = executor.execute();//发起请求
             //成功后的响应处理（响应码为2xx）
             response.setResponseCode(rawResponse.getStatusCode());
-            response.setData(rawResponse.parseAsString());
             response.setContentEncoding(rawResponse.getContentEncoding());
             response.setContentType(rawResponse.getContentType());
+            response.setHeaders(transformHeaders(rawResponse.getHeaders()));
+            encoding = rawResponse.getHeaders().getContentEncoding();
+            if(responseDataMode == ResponseDataMode.STREAM_ONLY || responseDataMode == ResponseDataMode.DOWNLOAD_FILE) {
+                in = rawResponse.getContent();
+                contentLength = rawResponse.getHeaders().getContentLength();
+                response.setResponseStream(in);
+            }
+            else {
+                response.setData(rawResponse.parseAsString());
+            }
         }catch (Exception e) {
+            e.printStackTrace();
             //失败后的响应处理（响应码不是2xx）
             if(e instanceof HttpResponseException) {
                 HttpResponseException hre = (HttpResponseException) e;
                 response.setResponseCode(hre.getStatusCode());
                 response.setErrorMsg(hre.getStatusMessage());
                 response.setData(hre.getContent());
+                response.setContentType(hre.getHeaders().getContentType());
+                response.setContentLength(hre.getHeaders().getContentLength());
+                response.setContentEncoding(hre.getHeaders().getContentEncoding());
+                response.setHeaders(transformHeaders(hre.getHeaders()));
             }
             else {
                 response.setResponseCode(ResponseResult.EXECUTE_ERR_CODE);
                 response.setErrorMsg(e.toString());
             }
-            e.printStackTrace();
+            if(super.executeErrorHandler != null) {
+                super.executeErrorHandler.handle(urlPath,httpMethod,e);
+            }
         }
+        response = super.handleResponse(response,response.getResponseCode(),responseDataMode, in, contentLength, encoding);
         return response;
     }
 
@@ -141,11 +213,14 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     protected ResponseResult doFileRequest(String urlPath, Map<String, String> requestParams, Map<String, File> uploadFiles, ResponseDataMode responseDataMode) throws IOException, IllegalArgumentException {
         //构建请求对象
         try {
-            executor = buildExecutor(urlPath,HttpMethod.POST,requestContent,uploadFiles);
+            executor = buildExecutor(urlPath,HttpMethod.POST,requestContent,uploadFiles,responseDataMode);
         }catch (Exception e) {
             e.printStackTrace();
             ResponseResult result = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
             result.setErrorMsg(e.toString());
+            if(super.executeErrorHandler != null) {
+                super.executeErrorHandler.handle(urlPath,HttpMethod.POST,e);
+            }
             return result;
         }
         return doRequest(urlPath,HttpMethod.POST,requestContent,responseDataMode);
@@ -175,7 +250,7 @@ public class ApacheHttpRequester extends AbstractHttpBase{
                 contentType = requestDataMode.contentType;
                 content = requestContent.getStrContent();
         }
-        return new ByteArrayContent(contentType,content.getBytes(requestInfo.getCharset()));
+        return new ByteArrayContent(contentType,content.getBytes(super.requestInfo.getCharset()));
     }
 
     private MultipartContent buildMultipartContent(RequestContent requestContent, Map<String, File> uploadFiles) {
@@ -206,6 +281,15 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         return content;
     }
 
+    private Map<String,String> transformHeaders(HttpHeaders originalHeaders) {
+        Map<String,String> finalHeaders = new HashMap<>();
+        for(Map.Entry<String,Object> header : originalHeaders.entrySet()) {
+            String value = (header.getValue() == null ? "" : header.getValue().toString());
+            finalHeaders.put(header.getKey(),value);
+        }
+        return finalHeaders;
+    }
+
     //==================================================================================================================
 
     public ApacheHttpRequester rebuildExecutor() {
@@ -223,6 +307,52 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         this.httpTransport = httpTransport;
         executor = null;
         return this;
+    }
+
+    public Integer getIoTimeout() {
+        return ioTimeout;
+    }
+
+    public ApacheHttpRequester setIoTimeout(Integer ioTimeout) {
+        this.ioTimeout = ioTimeout;
+        return this;
+    }
+
+    public Integer getRetries() {
+        return retries;
+    }
+
+    public ApacheHttpRequester setRetries(Integer retries) {
+        this.retries = retries;
+        return this;
+    }
+
+    public HttpEncoding getHttpEncoding() {
+        return httpEncoding;
+    }
+
+    public ApacheHttpRequester setHttpEncoding(HttpEncoding httpEncoding) {
+        this.httpEncoding = httpEncoding;
+        return this;
+    }
+
+    public ApacheHttpTransport getHttpTransport() {
+        return httpTransport;
+    }
+
+    @Override
+    public ApacheHttpRequester setTrustManagers(TrustManager... trustManagers) {
+        super.trustManagers = trustManagers;
+        return this;
+    }
+
+    public ApacheHttpRequester setSSLContextInitializer(SSLContextInitializer initializer) {
+        super.sslContextInitializer = initializer;
+        return this;
+    }
+
+    public void setSSLFactoryInitializer(ApacheSSLFactoryInitializer sslFactoryInitializer) {
+        this.sslFactoryInitializer = sslFactoryInitializer;
     }
 
     @Override
@@ -303,64 +433,37 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     @Override
     public ApacheHttpRequester setFileBufferSize(Integer fileBufferSize) {
-        requestInfo.setFileBufferSize(fileBufferSize);
+        super.requestInfo.setFileBufferSize(fileBufferSize);
         return this;
     }
 
     @Override
     public ApacheHttpRequester setDownloadFilePath(String downloadFilePath) {
-        requestInfo.setDownloadFilePath(downloadFilePath);
+        super.requestInfo.setDownloadFilePath(downloadFilePath);
         return this;
     }
 
     @Override
     public ApacheHttpRequester setFollowRedirects(boolean followRedirects) {
-        requestInfo.setFollowRedirects(followRedirects);
+        super.requestInfo.setFollowRedirects(followRedirects);
         return this;
     }
 
     @Override
     public ApacheHttpRequester setUserAgent(String userAgent) {
-        requestInfo.setUserAgent(userAgent);
+        super.requestInfo.setUserAgent(userAgent);
         return this;
     }
 
     /** 设置默认User-Agent */
     public ApacheHttpRequester setDefaultUserAgent() {
-        requestInfo.setUserAgent(getDefaultUserAgent());
+        super.requestInfo.setUserAgent(getDefaultUserAgent());
         return this;
     }
 
     @Override
     public ApacheHttpRequester setCharset(String charset) {
-        requestInfo.setCharset(charset);
-        return this;
-    }
-
-    public Integer getIoTimeout() {
-        return ioTimeout;
-    }
-
-    public ApacheHttpRequester setIoTimeout(Integer ioTimeout) {
-        this.ioTimeout = ioTimeout;
-        return this;
-    }
-
-    public Integer getRetries() {
-        return retries;
-    }
-
-    public ApacheHttpRequester setRetries(Integer retries) {
-        this.retries = retries;
-        return this;
-    }
-
-    public HttpEncoding getHttpEncoding() {
-        return httpEncoding;
-    }
-
-    public ApacheHttpRequester setHttpEncoding(HttpEncoding httpEncoding) {
-        this.httpEncoding = httpEncoding;
+        super.requestInfo.setCharset(charset);
         return this;
     }
 

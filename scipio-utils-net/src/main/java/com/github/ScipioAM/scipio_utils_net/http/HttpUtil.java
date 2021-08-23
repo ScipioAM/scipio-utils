@@ -1,11 +1,9 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
-import com.github.ScipioAM.scipio_utils_net.http.common.*;
-import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.UploadListener;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 
+import javax.net.ssl.TrustManager;
 import java.io.File;
 import java.net.*;
 import java.util.HashMap;
@@ -190,30 +188,39 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
         return this;
     }
 
-    /**
-     * 设置响应监听器
-     */
     @Override
-    public HttpUtil setResponseListener(ResponseListener responseListener) {
-        this.responseListener = responseListener;
+    public HttpUtil setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        this.responseSuccessHandler = responseSuccessHandler;
         return this;
     }
 
-    /**
-     * 设置上传监听器
-     */
+    @Override
+    public HttpUtil setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        this.responseFailureHandler = responseFailureHandler;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        this.executeErrorHandler = executeErrorHandler;
+        return this;
+    }
+
     @Override
     public HttpUtil setUploadListener(UploadListener uploadListener) {
         this.uploadListener = uploadListener;
         return this;
     }
 
-    /**
-     * 设置下载监听器
-     */
     @Override
     public HttpUtil setDownloadListener(DownloadListener downloadListener) {
         this.downloadListener = downloadListener;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        this.startExecuteListener = startExecuteListener;
         return this;
     }
 
@@ -235,6 +242,18 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
         return this;
     }
 
+    @Override
+    public HttpUtil setTrustManagers(TrustManager... trustManagers) {
+        super.trustManagers = trustManagers;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setSSLContextInitializer(SSLContextInitializer sslContextInitializer) {
+        super.sslContextInitializer = sslContextInitializer;
+        return this;
+    }
+
     //==================================================================================================================
 
     /**
@@ -242,15 +261,10 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
      */
     public void setHandleResponseForTest()
     {
-        setResponseListener(new ResponseListener() {
-            //成功时的处理
-            @Override
-            public void onSuccess(int responseCode, HttpURLConnection conn) {
-                System.out.println("=============== http request success:"+responseCode+" ===============");
-            }
-            //失败时的处理
-            @Override
-            public void onFailure(int responseCode, HttpURLConnection conn) {
+        setResponseSuccessHandler((responseCode, result) ->
+                System.out.println("=============== http request success:"+responseCode+" ===============")
+        );
+        setResponseFailureHandler((responseCode, result) -> {
                 switch (responseCode) {
                     case 400:
                         System.out.println("Error:400 bad request");
@@ -262,7 +276,6 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
                         System.out.println("Error:503 Server unavailable");
                     default:
                         System.out.println("Error:response code " + responseCode);
-                }
             }
         });
     }

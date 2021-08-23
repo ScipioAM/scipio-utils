@@ -5,9 +5,7 @@ import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestInfo;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.*;
-import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.UploadListener;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
@@ -20,9 +18,6 @@ import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -33,6 +28,8 @@ import java.util.regex.Pattern;
  * @date 2019/9/3
  */
 public abstract class AbstractHttpBase implements IHttpRequester{
+
+    //TODO [待完成]第一次自动下载服务器的SSL证书，存入cacerts里去
 
     //传输文件要用到
     protected final String END = "\r\n";
@@ -48,14 +45,23 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     /** 请求时上传的文件 */
     protected Map<String,File> uploadFiles;
 
-    /** 响应监听器（响应时的回调） */
-    protected ResponseListener responseListener;
+    /** SSLContext初始化者 */
+    protected SSLContextInitializer sslContextInitializer = SSLContextInitializer.DEFAULT;
 
-    /** 上传监听器 */
+    /** 信任管理器（决定了信任哪些SSL证书） */
+    protected TrustManager[] trustManagers = new TrustManager[]{new AllTrustX509TrustManager()};
+
     protected UploadListener uploadListener;
 
-    /** 下载监听器 */
     protected DownloadListener downloadListener;
+
+    protected ResponseSuccessHandler responseSuccessHandler;
+
+    protected ResponseFailureHandler responseFailureHandler;
+
+    protected ExecuteErrorHandler executeErrorHandler;
+
+    protected StartExecuteListener startExecuteListener;
 
     //==================================================================================================================
 
@@ -87,10 +93,15 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     protected ResponseResult execRequestAction(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode) {
         ResponseResult response;
         try {
+            //开始执行前的回调
+            if(startExecuteListener != null) {
+                startExecuteListener.beforeExec(urlPath,httpMethod,requestInfo,requestContent,responseDataMode);
+            }
+            //执行
             response = doRequest(urlPath, httpMethod, requestContent, responseDataMode);
         }catch (Exception e) {
-            if(responseListener!=null) {
-                responseListener.onError(e);
+            if(executeErrorHandler != null) {
+                executeErrorHandler.handle(urlPath,httpMethod,e);
             }
             response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
         }
@@ -107,10 +118,15 @@ public abstract class AbstractHttpBase implements IHttpRequester{
             if(requestContent != null) {
                 requestParams = requestContent.getFormContent();
             }
+            //开始执行前的回调
+            if(startExecuteListener != null) {
+                startExecuteListener.beforeExec(urlPath,HttpMethod.POST,requestInfo,requestContent,responseDataMode);
+            }
+            //执行
             response = doFileRequest(urlPath,requestParams,uploadFiles,responseDataMode);
         }catch (Exception e) {
-            if(responseListener!=null)
-                responseListener.onError(e);
+            if(executeErrorHandler != null)
+                executeErrorHandler.handle(urlPath,HttpMethod.POST,e);
             response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
         }
         return response;
@@ -378,9 +394,11 @@ public abstract class AbstractHttpBase implements IHttpRequester{
      * 清除所有监听器
      */
     public void clearListeners() {
-        responseListener = null;
         downloadListener = null;
         uploadListener = null;
+        responseSuccessHandler = null;
+        responseFailureHandler = null;
+        executeErrorHandler = null;
     }
 
     /**
@@ -438,37 +456,71 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         requestInfo.setFollowRedirects(false);
         requestInfo.setFileBufferSize(null);
         requestInfo.setDownloadFilePath(null);
-        responseListener = null;
-        uploadListener = null;
-        downloadListener = null;
+        clearListeners();
     }
 
-    /**
-     * 设置响应监听器
-     */
-    public AbstractHttpBase setResponseListener(ResponseListener responseListener) {
-        this.responseListener = responseListener;
+    public RequestInfo getRequestInfo() {
+        return requestInfo;
+    }
+
+    public void setRequestInfo(RequestInfo requestInfo) {
+        this.requestInfo = requestInfo;
+    }
+
+    public TrustManager[] getTrustManagers() {
+        return trustManagers;
+    }
+
+    @Override
+    public AbstractHttpBase setTrustManagers(TrustManager... trustManagers) {
+        this.trustManagers = trustManagers;
         return this;
     }
 
-    /**
-     * 设置上传监听器
-     */
+    @Override
+    public AbstractHttpBase setSSLContextInitializer(SSLContextInitializer sslContextInitializer) {
+        this.sslContextInitializer = sslContextInitializer;
+        return this;
+    }
+
+    public SSLContextInitializer getSslContextInitializer() {
+        return sslContextInitializer;
+    }
+
+    @Override
     public AbstractHttpBase setUploadListener(UploadListener uploadListener) {
         this.uploadListener = uploadListener;
         return this;
     }
 
-    /**
-     * 设置下载监听器
-     */
+    @Override
     public AbstractHttpBase setDownloadListener(DownloadListener downloadListener) {
         this.downloadListener = downloadListener;
         return this;
     }
 
-    public RequestInfo getRequestInfo() {
-        return requestInfo;
+    @Override
+    public AbstractHttpBase setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        this.responseSuccessHandler = responseSuccessHandler;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        this.responseFailureHandler = responseFailureHandler;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        this.executeErrorHandler = executeErrorHandler;
+        return this;
+    }
+
+    @Override
+    public IHttpRequester setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        this.startExecuteListener = startExecuteListener;
+        return this;
     }
 
     //==================================================================================================================
@@ -550,51 +602,35 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
     /**
      * 依据返回的状态码进行处理
-     * @param conn 连接对象
-     * @param responseCode 响应码
-     * @param responseDataMode 获取响应数据的模式
      */
-    protected ResponseResult handleResponse(HttpURLConnection conn, int responseCode, ResponseDataMode responseDataMode) throws IOException {
-        ResponseResult result = new ResponseResult();
-        result.setResponseCode(responseCode);
-        result.setContentEncoding(conn.getContentEncoding());
-        result.setContentLength(conn.getContentLength());
-        result.setContentType(conn.getContentType());
-        result.setHeaders(conn.getHeaderFields());
-        result.setConnObj(conn);
-
-        if(responseCode>=200 && responseCode<300) {
-            handleSuccess(result,responseCode,conn, responseDataMode);
+    protected ResponseResult handleResponse(ResponseResult result, int responseCode, ResponseDataMode responseDataMode, InputStream in, long contentLength, String encoding) throws IOException {
+        if(responseCode >= 200 && responseCode < 300) {
+            handleSuccess(result, responseDataMode, in, contentLength, encoding);
+            //成功后的响应回调
+            if(responseSuccessHandler != null) {
+                responseSuccessHandler.handle(responseCode,result);
+            }
         }
         else {
             //失败后的响应回调
-            if(responseListener!=null) {
-                responseListener.onFailure(responseCode,conn);
+            if(responseFailureHandler != null) {
+                responseFailureHandler.handle(responseCode,result);
             }
         }
         return result;
     }
 
     /**
-     * 响应成功时的处理（响应码:200）
-     * @param responseCode 响应码
-     * @param conn 连接对象
-     * @param responseDataMode 获取响应数据的模式
+     * 响应成功时的处理（响应码:2xx）
      */
-    private void handleSuccess(ResponseResult result, int responseCode, HttpURLConnection conn, ResponseDataMode responseDataMode)
+    protected void handleSuccess(ResponseResult result, ResponseDataMode responseDataMode, InputStream in, long contentLength, String encoding)
             throws IOException
     {
-        //成功后的响应回调
-        if(responseListener!=null) {
-            responseListener.onSuccess(responseCode,conn);
-        }
-
-        InputStream in = conn.getInputStream();
         if(responseDataMode == ResponseDataMode.DOWNLOAD_FILE) {
             if(requestInfo.getDownloadFilePath()==null || "".equals(requestInfo.getDownloadFilePath())) {
                 throw new IOException("argument [downloadFilePath] not set!");
             }
-            downloadFile(requestInfo.getDownloadFilePath(),in,conn.getContentLengthLong());
+            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength);
             return;
         }
         else if(responseDataMode == ResponseDataMode.STREAM_ONLY) {
@@ -607,8 +643,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
         String responseStrData;
         //解读响应的输入流
-        String encoding = conn.getContentEncoding();
-        if(encoding!=null && encoding.equals("gzip")) {//响应体是否为gzip压缩
+        if(encoding!=null && encoding.equalsIgnoreCase("gzip")) {//响应体是否为gzip压缩
             responseStrData = StreamParser.readStreamFromGZIP(in);
         }
         else {
@@ -617,33 +652,18 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         result.setData(responseStrData);
     }
 
-    protected SSLContext createSSLContext(TrustManager[] managers) throws KeyManagementException, NoSuchAlgorithmException {
-        //为空则创建信任所有证书的管理器
-        if(managers == null) {
-            managers = new TrustManager[]{new AllTrustX509TrustManager()};
-        }
-        //创建SSLContext对象，并使用指定的信任管理器初始化
-        SSLContext sslContext=SSLContext.getInstance("SSL");
-        sslContext.init(null, managers, new SecureRandom());
-        return sslContext;
-    }
-
     /**
      * 创建SSLSocket工厂以用于HTTPS连接
      */
-    protected SSLSocketFactory createSSLSocketFactory(TrustManager[] managers)
-            throws NoSuchAlgorithmException, KeyManagementException
+    protected SSLSocketFactory createSSLSocketFactory()
+            throws Exception
     {
-        //创建SSLContext对象
-        SSLContext sslContext = createSSLContext(managers);
+        if(sslContextInitializer == null) {
+            sslContextInitializer = SSLContextInitializer.DEFAULT;
+        }
+        SSLContext sslContext = sslContextInitializer.build(trustManagers);
         //从上述SSLContext对象中得到SSLSocketFactory对象
         return sslContext.getSocketFactory();
-    }
-
-    protected SSLSocketFactory createSSLSocketFactory()
-            throws NoSuchAlgorithmException, KeyManagementException
-    {
-        return createSSLSocketFactory(null);
     }
 
     /**
