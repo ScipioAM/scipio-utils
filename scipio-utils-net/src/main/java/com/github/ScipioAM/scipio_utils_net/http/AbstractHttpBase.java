@@ -323,6 +323,29 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     //==================================================================================================================
 
     /**
+     * 文件输出时判断Content-Type，这里仅用在输出的元信息里
+     * 注：用到第三方组件：jmimemagic
+     * @param file 要输出的文件
+     */
+    public String getContentTypeByFile(File file) {
+        String fileContentType = "application/octet-stream";
+        try {
+            MagicMatch match = Magic.getMagicMatch(file,false);
+            fileContentType=match.getMimeType();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return fileContentType;
+    }
+
+    /**
+     * 获取默认User-Agent
+     */
+    public String getDefaultUserAgent() {
+        return PresetUserAgent.UA_CHROME66_MAC;
+    }
+
+    /**
      * 获取当前设置的编码字符集
      */
     public String getCharset() {
@@ -594,34 +617,33 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         result.setData(responseStrData);
     }
 
+    protected SSLContext createSSLContext(TrustManager[] managers) throws KeyManagementException, NoSuchAlgorithmException {
+        //为空则创建信任所有证书的管理器
+        if(managers == null) {
+            managers = new TrustManager[]{new AllTrustX509TrustManager()};
+        }
+        //创建SSLContext对象，并使用指定的信任管理器初始化
+        SSLContext sslContext=SSLContext.getInstance("SSL");
+        sslContext.init(null, managers, new SecureRandom());
+        return sslContext;
+    }
+
     /**
-     * 创建SSL连接工程
+     * 创建SSLSocket工厂以用于HTTPS连接
      */
-    protected SSLSocketFactory createSSLSocketFactory()
+    protected SSLSocketFactory createSSLSocketFactory(TrustManager[] managers)
             throws NoSuchAlgorithmException, KeyManagementException
     {
-        //创建SSLContext对象，并使用我们指定的信任管理器初始化
-        TrustManager[] tm={new EmptyX509TrustManager()};
-        SSLContext sslContext=SSLContext.getInstance("SSL");
-        sslContext.init(null, tm, new SecureRandom());
+        //创建SSLContext对象
+        SSLContext sslContext = createSSLContext(managers);
         //从上述SSLContext对象中得到SSLSocketFactory对象
         return sslContext.getSocketFactory();
     }
 
-    /**
-     * 文件输出时判断Content-Type，这里仅用在输出的元信息里
-     * 注：用到第三方组件：jmimemagic
-     * @param file 要输出的文件
-     */
-    public String getContentTypeByFile(File file) {
-        String fileContentType = "application/octet-stream";
-        try {
-            MagicMatch match = Magic.getMagicMatch(file,false);
-            fileContentType=match.getMimeType();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return fileContentType;
+    protected SSLSocketFactory createSSLSocketFactory()
+            throws NoSuchAlgorithmException, KeyManagementException
+    {
+        return createSSLSocketFactory(null);
     }
 
     /**
@@ -702,7 +724,6 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         url += temp.substring(0, (temp.length() - 1));
         return url;
     }
-
 
     /**
      * 将参数对象转换成适应post提交的字符串

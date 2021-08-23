@@ -7,10 +7,17 @@ import com.github.ScipioAM.scipio_utils_net.http.common.RequestDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 import com.google.api.client.http.*;
 import com.google.api.client.http.apache.v2.ApacheHttpTransport;
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.HttpClientBuilder;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 /**
@@ -20,7 +27,7 @@ import java.util.Map;
  */
 public class ApacheHttpRequester extends AbstractHttpBase{
 
-    private final  ApacheHttpTransport httpTransport = new ApacheHttpTransport();
+    private ApacheHttpTransport httpTransport;
 
     /** 执行者 */
     private HttpRequest executor;
@@ -37,6 +44,22 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     //==================================================================================================================
 
     /**
+     * 检查并创建HttpTransport对象
+     */
+    private void checkAndBuildHttpTransport() throws NoSuchAlgorithmException, KeyManagementException {
+        if(httpTransport != null) {
+            return;
+        }
+        HttpClientBuilder builder = ApacheHttpTransport.newDefaultHttpClientBuilder();
+        //创建默认的SSL工厂（如果像自定义则需通过setHttpTransport）
+        SSLContext sslContext = createSSLContext(null);
+        SSLConnectionSocketFactory factory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        builder.setSSLSocketFactory(factory);
+        HttpClient httpClient = builder.build();
+        httpTransport = new ApacheHttpTransport(httpClient);
+    }
+
+    /**
      * 构建请求对象（实际最终执行者）
      * @param method http方法
      * @param urlPath 请求的url
@@ -45,6 +68,7 @@ public class ApacheHttpRequester extends AbstractHttpBase{
      * @return 请求对象（实际最终执行者）
      */
     private HttpRequest buildExecutor(String urlPath, HttpMethod method, RequestContent requestContent, Map<String,File> uploadFiles) throws Exception {
+        checkAndBuildHttpTransport();
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
         HttpRequest executor;
         if(method == HttpMethod.GET) {
@@ -58,6 +82,7 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         executor.setNumberOfRetries(retries);
         executor.setWriteTimeout(ioTimeout);
         executor.setReadTimeout(ioTimeout);
+
         if(requestInfo.getConnectTimeout() != null && requestInfo.getConnectTimeout() >= 0) {
             executor.setConnectTimeout(requestInfo.getConnectTimeout());
         }
@@ -67,8 +92,8 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         if(httpHeaders != null) {
             executor.setHeaders(httpHeaders);
         }
-        //TODO 1.SSL的问题要解决
-        //TODO 2.如果监听器不为null，则监听器需要绑定到对应的handler和interceptor上去。细化监听器？
+        //TODO 1.如果监听器不为null，则监听器需要绑定到对应的handler和interceptor上去。细化监听器？
+        //TODO 2.给SSL相关开放更便捷的set接口
         return executor;
     }
 
@@ -183,6 +208,23 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     //==================================================================================================================
 
+    public ApacheHttpRequester rebuildExecutor() {
+        executor = null;
+        return this;
+    }
+
+    public ApacheHttpRequester rebuildHttpTransport() {
+        httpTransport = null;
+        executor = null;
+        return this;
+    }
+
+    public ApacheHttpRequester setHttpTransport(ApacheHttpTransport httpTransport) {
+        this.httpTransport = httpTransport;
+        executor = null;
+        return this;
+    }
+
     @Override
     public ApacheHttpRequester setRequestHeader(Map<String, String> headers) {
         if(headers == null || headers.size() <= 0) {
@@ -280,6 +322,12 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     @Override
     public ApacheHttpRequester setUserAgent(String userAgent) {
         requestInfo.setUserAgent(userAgent);
+        return this;
+    }
+
+    /** 设置默认User-Agent */
+    public ApacheHttpRequester setDefaultUserAgent() {
+        requestInfo.setUserAgent(getDefaultUserAgent());
         return this;
     }
 

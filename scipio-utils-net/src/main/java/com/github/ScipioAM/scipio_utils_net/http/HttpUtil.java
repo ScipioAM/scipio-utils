@@ -143,7 +143,7 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
      * 设置默认userAgent
      */
     public HttpUtil setDefaultUserAgent() {
-        requestInfo.setUserAgent(PresetUserAgent.UA_CHROME66_MAC);
+        requestInfo.setUserAgent(getDefaultUserAgent());
         return this;
     }
 

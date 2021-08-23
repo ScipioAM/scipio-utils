@@ -120,11 +120,14 @@ public class HttpTest {
 
     @Test
     public void testHttpClient() {
-        String url0 = "http://www.baidu.com";
+        String url0 = "https://www.baidu.com";
 
-        ApacheHttpRequester requester = new ApacheHttpRequester();
+        ApacheHttpRequester requester = new ApacheHttpRequester()
+                .setDefaultUserAgent();
         ResponseResult result = requester.get(url0);
-        System.out.println(result);
+        System.out.println("Response code: " + result.getResponseCode());
+        System.out.println("Error message: " + result.getErrorMsg());
+        System.out.println("Response data: " + result.getData());
     }
 
 }
