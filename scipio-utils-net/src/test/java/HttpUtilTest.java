@@ -1,5 +1,8 @@
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
+import com.github.ScipioAM.scipio_utils_net.http.listener.FileUploadListener;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 import org.junit.Test;
@@ -59,23 +62,20 @@ public class HttpUtilTest {
     @Test
     public void fileTest()
     {
-        String originalFilePath="F:\\MyPicture\\壁纸\\游戏\\刺客信条\\Assassin's Creed (35).jpg";
-        String newFilePath="C:\\Users\\a\\Desktop\\removebg_test0.jpg";
+        String originalFilePath="D:\\图库\\car001.jpg";
+        String newFilePath="D:\\图库\\removebg_test0.png";
         String url="https://api.remove.bg/v1.0/removebg";
-        String removebg_apiKey="********";
-
-        HttpUtil httpUtil=new HttpUtil();
-        httpUtil.setFiddlerProxy();
+        String removebg_apiKey="821jUTZLnFSf6eeqWdzdoKV9";
 
         HashMap<String,String> headParams=new HashMap<>();
         headParams.put("X-Api-Key",removebg_apiKey);
-        httpUtil.setRequestHeader(headParams);
 
         HashMap<String,String> params=new HashMap<>();
         params.put("size","auto");
         HashMap<String,File> fileParams=new HashMap<>();
         fileParams.put("image_file",new File(originalFilePath));
 
+        HttpUtil httpUtil=new HttpUtil();
         //响应后的回调
         httpUtil.setResponseSuccessHandler((responseCode, result) -> {
             System.out.println("对方响应结果：成功！开始写入响应返回的文件到本地");
@@ -89,10 +89,15 @@ public class HttpUtilTest {
         System.out.println("源文件："+originalFilePath);
         System.out.println("开始发起请求");
         ResponseResult response = httpUtil.setRequestForm(params)
+                .setFiddlerProxy()
+                .setRequestHeader(headParams)
                 .setUploadFile(fileParams)
                 .setDownloadFilePath(newFilePath)
-                .postFile(url);
+                .setDownloadListener(DownloadListener.EMPTY_IMPL)
+                .setUploadListener(FileUploadListener.EMPTY_IMPL)
+                .postFile(url, ResponseDataMode.DOWNLOAD_FILE);
         System.out.println("响应码："+response.getResponseCode());
+        System.out.println("错误信息："+response.getErrorMsg());
     }
 
 }

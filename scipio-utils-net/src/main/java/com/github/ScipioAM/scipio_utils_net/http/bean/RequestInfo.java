@@ -1,5 +1,7 @@
 package com.github.ScipioAM.scipio_utils_net.http.bean;
 
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+
 import java.net.Proxy;
 import java.util.Map;
 
@@ -12,27 +14,38 @@ import java.util.Map;
 public class RequestInfo {
 
     /** 编码字符集，默认UTF-8 */
-    protected String charset = "UTF-8";
+    private String charset = "UTF-8";
 
-    protected String userAgent = null;
+    private String userAgent = null;
 
     /** 代理 */
-    protected Proxy proxy = null;
+    private Proxy proxy = null;
 
     /** 自定义请求头 */
-    protected Map<String,String> requestHeaders;
+    private Map<String,String> requestHeaders;
 
     /** 连接超时，单位毫米 */
-    protected Integer connectTimeout;
+    private Integer connectTimeout;
 
     /** 是否关闭重定向以获取跳转后的真实地址,默认false */
-    protected boolean isFollowRedirects = false;
+    private boolean isFollowRedirects = false;
 
     /** 上传文件时的缓冲区大小 */
-    protected Integer fileBufferSize;
+    private Integer fileBufferSize;
 
     /** 下载文件的全路径，如果不为空则代表需要下载 */
-    protected String downloadFilePath;
+    private String downloadFilePath;
+
+    /** 预期响应数据的默认 */
+    private ResponseDataMode responseDataMode;
+
+    public ResponseDataMode getResponseDataMode() {
+        return responseDataMode;
+    }
+
+    public void setResponseDataMode(ResponseDataMode responseDataMode) {
+        this.responseDataMode = responseDataMode;
+    }
 
     public String getCharset() {
         return charset;

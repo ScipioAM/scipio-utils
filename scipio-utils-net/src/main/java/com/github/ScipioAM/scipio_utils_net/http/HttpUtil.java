@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 
 import javax.net.ssl.TrustManager;
@@ -63,6 +64,12 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
     @Override
     public HttpUtil setUploadFile(Map<String,File> uploadFiles) {
         this.uploadFiles = uploadFiles;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setResponseDataMode(ResponseDataMode responseDataMode) {
+        requestInfo.setResponseDataMode(responseDataMode);
         return this;
     }
 

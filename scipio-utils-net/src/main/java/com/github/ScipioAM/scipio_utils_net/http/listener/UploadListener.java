@@ -2,44 +2,31 @@ package com.github.ScipioAM.scipio_utils_net.http.listener;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.Map;
 
 /**
- * Interface: UploadListener
- * Description: 文件上传时的监听器
- * Author: Alan Min
- * Create Date: 2019/9/3
+ * 上传监听器
+ * @author Alan Scipio
+ * @since 1.0.1-p1
+ * @date 2021/8/24
  */
 public interface UploadListener {
 
     /**
-     * 上传时（文件层面）
-     * @param totalFileCount 总文件数
-     * @param uploadedFileCount 已上传的文件数
-     */
-    default void onFilesUploading(int totalFileCount, int uploadedFileCount) {
-        System.out.println("File upload progress: " + uploadedFileCount + "/" + totalFileCount + " files");
-    }
-
-    /**
-     * 上传时（单个文件的字节层面）
-     * @param fileNo 第几个文件
-     * @param uploadFile 上传文件
+     * 上传中
      * @param totalBytes 总字节数
-     * @param uploadedBytes 已上传的字节数
-     * @param uploadedPercent 上传百分比（0-1）
+     * @param uploadedBytes 已上传字节数
+     * @param progress 进度百分比(0-100)
      */
-    default void onSingleUploading(int fileNo, File uploadFile, long totalBytes, long uploadedBytes, BigDecimal uploadedPercent) {
-        BigDecimal percent = uploadedPercent.multiply(new BigDecimal(100));//1-100的百分比
-        System.out.println("[" + fileNo + "] File(" + uploadFile.getName() + ") uploading: " + percent +"%");
+    default void onUploading(long totalBytes, long uploadedBytes, int progress) {
+        System.out.println("Upload progress: " + progress + "%" + ", bytes: " + uploadedBytes + "/" + totalBytes);
     }
 
     /**
      * 上传完成时
      */
-    default void onCompleted(Map<String,File> uploadFiles) {
-        System.out.println("File upload completed, total upload count: " + uploadFiles.size());
+    default void onCompleted(Map<String, File> uploadFiles) {
+        System.out.println("Upload completed, total upload count: " + uploadFiles.size());
     }
 
     /**
@@ -49,5 +36,23 @@ public interface UploadListener {
     default void onError(IOException e) {
         e.printStackTrace();
     }
+
+    /**
+     * 空实现
+     */
+    UploadListener EMPTY_IMPL = new UploadListener() {
+        @Override
+        public void onUploading(long totalBytes, long uploadedBytes, int progress) {
+            UploadListener.super.onUploading(totalBytes, uploadedBytes, progress);
+        }
+        @Override
+        public void onCompleted(Map<String, File> uploadFiles) {
+            UploadListener.super.onCompleted(uploadFiles);
+        }
+        @Override
+        public void onError(IOException e) {
+            UploadListener.super.onError(e);
+        }
+    };
 
 }

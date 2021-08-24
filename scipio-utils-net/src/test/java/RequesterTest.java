@@ -1,70 +1,17 @@
 import com.github.ScipioAM.scipio_utils_net.http.ApacheHttpRequester;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.EntityUtils;
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
+import com.github.ScipioAM.scipio_utils_net.http.listener.FileUploadListener;
 import org.junit.Test;
 
-import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.util.HashMap;
 
 /**
  * @since 2021/6/10
  */
 public class RequesterTest {
-
-    @Test
-    public void test0() {
-        try {
-            //Creating SSLContextBuilder object
-            SSLContextBuilder SSLBuilder = SSLContexts.custom();
-
-            //Loading the Keystore file
-            File file = new File("C:\\Program Files\\Java\\jdk1.8.0_162\\jre\\lib\\security\\cacerts.jks");
-            SSLBuilder = SSLBuilder.loadTrustMaterial(file,
-                    "changeit".toCharArray());
-
-            //Building the SSLContext usiong the build() method
-            SSLContext sslcontext = SSLBuilder.build();
-
-            //Creating SSLConnectionSocketFactory object
-            SSLConnectionSocketFactory sslConSocFactory = new SSLConnectionSocketFactory(sslcontext, new NoopHostnameVerifier());
-
-            //Creating HttpClientBuilder
-            HttpClientBuilder clientbuilder = HttpClients.custom();
-
-            //Setting the SSLConnectionSocketFactory
-            clientbuilder.setSSLSocketFactory(sslConSocFactory);
-
-            //Building the CloseableHttpClient
-            CloseableHttpClient httpclient = clientbuilder.build();
-
-            //Creating the HttpGet request
-            HttpGet httpget = new HttpGet("https://example.com/");
-
-            //Executing the request
-            HttpResponse httpresponse = httpclient.execute(httpget);
-
-            //printing the status line
-            System.out.println(httpresponse.getStatusLine());
-
-            //Retrieving the HttpEntity and displaying the no.of bytes read
-            HttpEntity entity = httpresponse.getEntity();
-            if (entity != null) {
-                System.out.println(EntityUtils.toByteArray(entity).length);
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Test
     public void testHttpClient() {
@@ -76,6 +23,46 @@ public class RequesterTest {
         System.out.println("Response code: " + result.getResponseCode());
         System.out.println("Error message: " + result.getErrorMsg());
         System.out.println("Response data: " + result.getData());
+    }
+
+    @Test
+    public void testFile() {
+        String originalFilePath="D:\\图库\\car001.jpg";
+        String newFilePath="D:\\图库\\removebg_test0.png";
+        String url="https://api.remove.bg/v1.0/removebg";
+        String removebg_apiKey="821jUTZLnFSf6eeqWdzdoKV9";
+
+        HashMap<String,String> headParams=new HashMap<>();
+        headParams.put("X-Api-Key",removebg_apiKey);
+
+        HashMap<String,String> params=new HashMap<>();
+        params.put("size","auto");
+        HashMap<String,File> fileParams=new HashMap<>();
+        fileParams.put("image_file",new File(originalFilePath));
+
+        ApacheHttpRequester requester = new ApacheHttpRequester();
+        //响应后的回调
+        requester.setResponseSuccessHandler((responseCode, result) -> {
+            System.out.println("对方响应结果：成功！开始写入响应返回的文件到本地");
+            System.out.println("本地路径："+newFilePath);
+        });
+        requester.setResponseFailureHandler((responseCode, result) ->
+                System.out.println("对方响应结果：失败")
+        );
+
+        //发起请求的方法
+        System.out.println("源文件："+originalFilePath);
+        System.out.println("开始发起请求");
+        ResponseResult response = requester.setRequestForm(params)
+                .setFiddlerProxy()
+                .setRequestHeader(headParams)
+                .setUploadFile(fileParams)
+                .setDownloadFilePath(newFilePath)
+                .setDownloadListener(DownloadListener.EMPTY_IMPL)
+                .setUploadListener(FileUploadListener.EMPTY_IMPL)
+                .postFile(url, ResponseDataMode.DOWNLOAD_FILE);
+        System.out.println("响应码："+response.getResponseCode());
+        System.out.println("错误信息："+response.getErrorMsg());
     }
 
 }

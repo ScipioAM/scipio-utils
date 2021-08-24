@@ -23,7 +23,7 @@ import java.util.List;
 public class ApacheSSLContextInitializer implements SSLContextInitializer{
 
     /** 寻找jre目录下的证书库 */
-    private boolean loadDefaultCerts = true;
+    private boolean loadDefaultCerts = false;
 
     /** 要加载的SSL证书（为null则可能尝试寻找jre的证书库，找不到就按默认创建者执行） */
     private List<SSLCertificateFile> certs = new ArrayList<>();

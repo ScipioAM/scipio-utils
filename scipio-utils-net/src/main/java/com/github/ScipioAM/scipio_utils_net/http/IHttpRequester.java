@@ -244,4 +244,12 @@ public interface IHttpRequester {
         return this;
     }
 
+    /**
+     * 设置预期的数据响应模式
+     */
+    default IHttpRequester setResponseDataMode(ResponseDataMode responseDataMode) {
+        System.err.println("method[setResponseDataMode] not override, nothing happened");
+        return this;
+    }
+
 }

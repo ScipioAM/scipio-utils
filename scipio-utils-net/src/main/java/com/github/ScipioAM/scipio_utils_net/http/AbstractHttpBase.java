@@ -13,8 +13,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import java.io.*;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -32,9 +30,11 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     //TODO [待完成]第一次自动下载服务器的SSL证书，存入cacerts里去
 
     //传输文件要用到
-    protected final String END = "\r\n";
+    protected final String NEWLINE = "\r\n";
     //边界符-传输文件要用到
-    protected final String BOUNDARY = "__END_OF_PART__";
+    protected final String BOUNDARY = "PART-BOUNDARY";
+    //传输文件要用到
+    protected final String TOW_HYPHENS = "--";
 
     /** 请求的各种参数信息 */
     protected RequestInfo requestInfo = new RequestInfo();
@@ -93,6 +93,9 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     protected ResponseResult execRequestAction(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode) {
         ResponseResult response;
         try {
+            if(responseDataMode == null) {
+                responseDataMode = requestInfo.getResponseDataMode();
+            }
             //开始执行前的回调
             if(startExecuteListener != null) {
                 startExecuteListener.beforeExec(urlPath,httpMethod,requestInfo,requestContent,responseDataMode);
@@ -104,6 +107,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
                 executeErrorHandler.handle(urlPath,httpMethod,e);
             }
             response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
+            response.setErrorMsg(e.toString());
         }
         return response;
     }
@@ -118,6 +122,9 @@ public abstract class AbstractHttpBase implements IHttpRequester{
             if(requestContent != null) {
                 requestParams = requestContent.getFormContent();
             }
+            if(responseDataMode == null) {
+                responseDataMode = requestInfo.getResponseDataMode();
+            }
             //开始执行前的回调
             if(startExecuteListener != null) {
                 startExecuteListener.beforeExec(urlPath,HttpMethod.POST,requestInfo,requestContent,responseDataMode);
@@ -128,6 +135,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
             if(executeErrorHandler != null)
                 executeErrorHandler.handle(urlPath,HttpMethod.POST,e);
             response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
+            response.setErrorMsg(e.toString());
         }
         return response;
     }
@@ -179,28 +187,47 @@ public abstract class AbstractHttpBase implements IHttpRequester{
      * @param in 连接里响应的输入流，文件数据在此流中
      * @param contentLength 响应的文件字节大小
      */
-    protected void downloadFile(String outputFilePath, InputStream in, long contentLength) {
+    protected void downloadFile(String outputFilePath, InputStream in, long contentLength, ResponseResult result) {
         IOException ioe = null;
         boolean isSuccess = false;
         File outputFile = new File(outputFilePath);
-        try (BufferedInputStream bis = new BufferedInputStream(in); FileOutputStream fos = new FileOutputStream(outputFile)) {
+        BufferedInputStream bis = null;
+        FileOutputStream fos = null;
+        try {
+            bis = new BufferedInputStream(in);
+            fos = new FileOutputStream(outputFile);
+
             int length;//每次读取的字节数
-            BigDecimal totalLength = new BigDecimal(contentLength);//总字节数
-            BigDecimal readLength = BigDecimal.ZERO;//总共已读取的字节数
+            long readLength = 0L;//总共已读取的字节数
             byte[] buffer = new byte[getFileBufferSize()];
             while ((length = bis.read(buffer)) != -1) {
                 fos.write(buffer,0,length);
                 //下载中的回调
                 if(downloadListener!=null) {
                     //计算下载进度
-                    readLength = readLength.add(new BigDecimal(length));
-                    BigDecimal downloadedPercent = readLength.divide(totalLength, RoundingMode.HALF_UP);
-                    downloadListener.onDownloading(contentLength,readLength.longValue(),downloadedPercent);
+                    readLength += length;
+                    int progress = (int) (100L * readLength / contentLength);
+                    downloadListener.onDownloading(contentLength,readLength,progress);
                 }
             }
             isSuccess = true;
         }catch (IOException e) {
             ioe = e;
+            result.setResponseCode(ResponseResult.EXECUTE_ERR_CODE);
+            result.setErrorMsg(e.toString());
+        } finally {
+            try {
+                if(bis != null) bis.close();
+                if(fos != null) fos.close();
+                if(!isSuccess) { //不成功就删除空的输出文件
+                    if(outputFile.exists()) {
+                        //noinspection ResultOfMethodCallIgnored
+                        outputFile.delete();
+                    }
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         //下载结束时的回调
         if(downloadListener!=null) {
@@ -224,7 +251,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         // 请求上传文件部分
         writeFiles(outputFiles, dos);
         // 请求结束标志
-        String endTarget = BOUNDARY + END;
+        String endTarget = TOW_HYPHENS + BOUNDARY + TOW_HYPHENS + NEWLINE;
         dos.writeBytes(endTarget);
         dos.flush();
         dos.close();
@@ -246,16 +273,19 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         StringBuilder params=new StringBuilder();
         for( Map.Entry<String,String> entry : outputParams.entrySet() ) {
             //每段开头
-            params.append(BOUNDARY).append(END);
+            params.append(TOW_HYPHENS).append(BOUNDARY).append(NEWLINE);
             //参数头
-            params.append("Content-Disposition: form-data; name=\"")
-                    .append(entry.getKey()).append("\"");
-            params.append(END);
-            params.append("Content-Type: text/plain; charset=").append(requestInfo.getCharset());
-            params.append(END);
-            params.append(END);// 参数头设置完以后需要两个换行，然后才是参数内容
-            params.append(entry.getValue());
-            params.append(END);
+            params.append("Content-Length: ").append(entry.getValue().length())
+                    .append(NEWLINE)
+                    .append("Content-Disposition: form-data; name=\"")
+                    .append(entry.getKey()).append("\"")
+                    .append(NEWLINE)
+                    .append("Content-Type: text/plain; charset=").append(requestInfo.getCharset())
+                    // 参数头设置完以后需要两个换行，然后才是参数内容
+                    .append(NEWLINE)
+                    .append(NEWLINE)
+                    .append(entry.getValue())
+                    .append(NEWLINE);
         }
         dos.writeBytes(params.toString());
         dos.flush();
@@ -273,12 +303,29 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         try {
             checkPostFile(uploadFiles);
 
+            FileUploadListener fileUploadListener = null;
+            long totalBytes = 0L;
+            long readBytes = 0L;
+            //统计总字节数，供普通上传监听器用
+            if(uploadListener != null) {
+                for (Map.Entry<String, File> entry : uploadFiles.entrySet()) {
+                    totalBytes += entry.getValue().length();
+                }
+                //转为FileUploadListener
+                if(uploadListener instanceof FileUploadListener) {
+                    fileUploadListener = (FileUploadListener) uploadListener;
+                }
+            }
+
             int loopCount = 1;
             for (Map.Entry<String, File> entry : uploadFiles.entrySet()) {
                 //单个文件的输出（上传）
-                writeSingleFile(loopCount, dos, entry.getKey(), entry.getValue());
-                if (uploadListener != null) {
-                    uploadListener.onFilesUploading(uploadFiles.size(), loopCount);
+                long singleReadBytes = writeSingleFile(loopCount, dos, entry.getKey(), entry.getValue(), fileUploadListener, totalBytes, readBytes);
+                if(uploadListener != null) {
+                    readBytes += singleReadBytes;
+                    if(fileUploadListener != null) {
+                        fileUploadListener.onFilesUploading(uploadFiles.size(), loopCount);
+                    }
                 }
                 loopCount++;
             }//end of for
@@ -301,39 +348,47 @@ public abstract class AbstractHttpBase implements IHttpRequester{
      * @param key 元信息里的name的值
      * @param file 要输出的文件
      */
-    private void writeSingleFile(int no, DataOutputStream dos, String key, File file)
+    private long writeSingleFile(int no, DataOutputStream dos, String key, File file, FileUploadListener fileUploadListener, long totalBytes, long readBytes)
             throws IOException
     {
-
-        String headParams = BOUNDARY + END +
-                "Content-Disposition: form-data; name=\"" +
-                key + "\"; filename=\"" +
-                file.getName() + "\"" +
-                END +
+        String headParams = TOW_HYPHENS + BOUNDARY + NEWLINE +
+                "Accept-Encoding: gzip" +
+                NEWLINE +
+                "Content-Length:" + file.length() +
+                NEWLINE +
+                "Content-Disposition: form-data; name=\"" + key + "\"; filename=\"" + file.getName() + "\"" +
+                NEWLINE +
                 "Content-Type:" +
                 getContentTypeByFile(file) +
-                END +
-                END;// 参数头设置完以后需要两个换行，然后才是参数内容
+                NEWLINE +
+                "content-transfer-encoding: binary" +
+                NEWLINE +
+                NEWLINE;// 参数头设置完以后需要两个换行，然后才是参数内容
         dos.writeBytes(headParams);
 
         FileInputStream fis = new FileInputStream(file);
         int len;
-        BigDecimal readLength = BigDecimal.ZERO;//已经读取的长度
-        BigDecimal fileLength = new BigDecimal(file.length());//文件总长度
+        long readLength = 0L;//已经读取的长度
+        long fileLength = file.length();//文件总长度
         //确定上传文件缓冲区的大小
         byte[] buffer = new byte[getFileBufferSize(file.length())];
         //开始上传
         while ((len = fis.read(buffer)) != -1) {
             dos.write(buffer, 0, len);
-            //上传进度的回调-针对单个上传文件
             if(uploadListener!=null) {
-                readLength = readLength.add(new BigDecimal(len));
-                BigDecimal uploadedPercent = readLength.divide(fileLength, RoundingMode.HALF_UP);
-                uploadListener.onSingleUploading(no, file, fileLength.longValue(), readLength.longValue(), uploadedPercent);
+                readLength += len;
+                int totalProgress = (int) ((readBytes / totalBytes) * 100);
+                if(fileUploadListener != null) { //针对单个上传文件
+                    int fileProgress = (int) (100L * readLength / fileLength);
+                    fileUploadListener.onSingleUploading(no, file, fileLength, readLength, fileProgress);
+                }
+                //总进度的回调
+                uploadListener.onUploading(totalBytes,(readBytes + readLength),totalProgress);
             }
         }
-        dos.writeBytes(END);
+        dos.writeBytes(NEWLINE);
         dos.flush();
+        return readLength;
     }
 
     //==================================================================================================================
@@ -518,8 +573,14 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     }
 
     @Override
-    public IHttpRequester setStartExecuteListener(StartExecuteListener startExecuteListener) {
+    public AbstractHttpBase setStartExecuteListener(StartExecuteListener startExecuteListener) {
         this.startExecuteListener = startExecuteListener;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setResponseDataMode(ResponseDataMode responseDataMode) {
+        requestInfo.setResponseDataMode(responseDataMode);
         return this;
     }
 
@@ -630,7 +691,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
             if(requestInfo.getDownloadFilePath()==null || "".equals(requestInfo.getDownloadFilePath())) {
                 throw new IOException("argument [downloadFilePath] not set!");
             }
-            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength);
+            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength,result);
             return;
         }
         else if(responseDataMode == ResponseDataMode.STREAM_ONLY) {

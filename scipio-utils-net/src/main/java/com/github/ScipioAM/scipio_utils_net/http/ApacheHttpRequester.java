@@ -1,5 +1,7 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_net.http.bean.ProgressFileContent;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ProgressMultipartContent;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
 import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
@@ -29,8 +31,6 @@ import java.util.Map;
  * @date 2021/6/10
  */
 public class ApacheHttpRequester extends AbstractHttpBase{
-
-    //TODO 差一个uploadListener
 
     private ApacheHttpTransport httpTransport;
 
@@ -167,7 +167,7 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         InputStream in = null;
         long contentLength = 0L;
         String encoding = null;
-        HttpResponse rawResponse ;
+        HttpResponse rawResponse;
         try {
             rawResponse = executor.execute();//发起请求
             //成功后的响应处理（响应码为2xx）
@@ -254,31 +254,33 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     }
 
     private MultipartContent buildMultipartContent(RequestContent requestContent, Map<String, File> uploadFiles) {
-        MultipartContent content = new MultipartContent().setMediaType(
-                new HttpMediaType("multipart/form-data")
-                        .setParameter("boundary", BOUNDARY));
+        ProgressMultipartContent allContent = new ProgressMultipartContent()
+                .setMediaType(new HttpMediaType("multipart/form-data")
+                .setParameter("boundary", BOUNDARY))
+                .setUploadListener(super.uploadListener);
         //添加参数
         Map<String,String> params = requestContent.getFormContent();
         if(params != null && params.size() > 0) {
             for (Map.Entry<String,String> param : params.entrySet()) {
-                MultipartContent.Part part = new MultipartContent.Part(
+                MultipartContent.Part paramsPart = new MultipartContent.Part(
                         new ByteArrayContent(null, param.getValue().getBytes()));
-                part.setHeaders(new HttpHeaders().set(
+                paramsPart.setHeaders(new HttpHeaders().set(
                         "Content-Disposition", String.format("form-data; name=\"%s\"", param.getKey())));
-                content.addPart(part);
+                allContent.addPart(paramsPart);
             }
         }
         //添加文件
         for(Map.Entry<String,File> fileEntry : uploadFiles.entrySet()) {
-            FileContent fileContent = new FileContent(
-                    getContentTypeByFile(fileEntry.getValue()), fileEntry.getValue());
-            MultipartContent.Part part = new MultipartContent.Part(fileContent);
-            part.setHeaders(new HttpHeaders().set(
+            ProgressFileContent fileSubContent = new ProgressFileContent(
+                    getContentTypeByFile(fileEntry.getValue()), fileEntry.getValue())
+                    .setUploadListener(super.uploadListener);
+            MultipartContent.Part filePart = new MultipartContent.Part(fileSubContent);
+            filePart.setHeaders(new HttpHeaders().set(
                     "Content-Disposition",
-                    String.format("form-data; name=\"content\"; filename=\"%s\"", fileEntry.getKey())));
-            content.addPart(part);
+                    String.format("form-data; name=\"%s\"; filename=\"%s\"", fileEntry.getKey(), fileEntry.getValue().getName())));
+            allContent.addPart(filePart);
         }
-        return content;
+        return allContent;
     }
 
     private Map<String,String> transformHeaders(HttpHeaders originalHeaders) {
@@ -292,12 +294,12 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     //==================================================================================================================
 
-    public ApacheHttpRequester rebuildExecutor() {
+    public ApacheHttpRequester resetExecutor() {
         executor = null;
         return this;
     }
 
-    public ApacheHttpRequester rebuildHttpTransport() {
+    public ApacheHttpRequester resetHttpTransport() {
         httpTransport = null;
         executor = null;
         return this;
@@ -464,6 +466,24 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     @Override
     public ApacheHttpRequester setCharset(String charset) {
         super.requestInfo.setCharset(charset);
+        return this;
+    }
+
+    @Override
+    public ApacheHttpRequester setResponseDataMode(ResponseDataMode responseDataMode) {
+        requestInfo.setResponseDataMode(responseDataMode);
+        return this;
+    }
+
+    /**
+     * 用Fiddler监听java的请求需要设置
+     */
+    public ApacheHttpRequester setFiddlerProxy()
+    {
+        System.out.println("============ Set default Fiddler setting for java application ============");
+        System.setProperty("proxyPort", "8888");
+        System.setProperty("proxyHost", "127.0.0.1");
+        System.setProperty("proxySet", "true");
         return this;
     }
 

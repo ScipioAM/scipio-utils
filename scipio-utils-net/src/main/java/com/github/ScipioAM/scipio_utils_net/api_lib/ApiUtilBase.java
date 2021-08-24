@@ -15,7 +15,8 @@ import java.util.Map;
  * @param <R> API响应的具体子类，取Response之意
  * @param <S> 本父类的子类，取Self之意
  * @author Alan Scipio
- * @since 2021/7/14
+ * @since 1.0.0
+ * @date 2021/7/14
  */
 public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R,S>> {
 
