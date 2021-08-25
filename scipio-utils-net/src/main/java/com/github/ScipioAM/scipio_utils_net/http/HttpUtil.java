@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.listener.*;
@@ -246,6 +247,19 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
     @Override
     public HttpUtil setDownloadFilePath(String downloadFilePath) {
         requestInfo.setDownloadFilePath(downloadFilePath);
+        if(StringUtil.isNotNull(downloadFilePath)) {
+            requestInfo.setResponseDataMode(ResponseDataMode.DOWNLOAD_FILE);
+        }
+        return this;
+    }
+
+    /**
+     * 下载时自动生成文件后缀（根据contentType进行截取）
+     * @param downloadAutoExtension 为true代表会自动生成（默认值为false）
+     */
+    @Override
+    public HttpUtil setDownloadAutoExtension(boolean downloadAutoExtension) {
+        super.setDownloadAutoExtension(downloadAutoExtension);
         return this;
     }
 

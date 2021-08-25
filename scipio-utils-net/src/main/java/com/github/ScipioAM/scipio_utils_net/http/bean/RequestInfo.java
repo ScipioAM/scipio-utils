@@ -39,6 +39,17 @@ public class RequestInfo {
     /** 预期响应数据的默认 */
     private ResponseDataMode responseDataMode;
 
+    /** 下载时自动生成文件后缀（根据contentType进行截取） */
+    private boolean downloadAutoExtension = false;
+
+    public boolean isDownloadAutoExtension() {
+        return downloadAutoExtension;
+    }
+
+    public void setDownloadAutoExtension(boolean downloadAutoExtension) {
+        this.downloadAutoExtension = downloadAutoExtension;
+    }
+
     public ResponseDataMode getResponseDataMode() {
         return responseDataMode;
     }

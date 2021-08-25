@@ -64,7 +64,7 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
         int responseCode = conn.getResponseCode();//获取返回的状态码
         //处理返回的数据
         ResponseResult result = prepareResponseResult(urlPath,responseCode,httpMethod,conn);
-        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentEncoding());
+        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentType(),conn.getContentEncoding());
         return result;
     }
 
@@ -105,7 +105,7 @@ public abstract class AbstractHttpUtil extends AbstractHttpBase {
         int responseCode = conn.getResponseCode();
         //处理返回的数据
         ResponseResult result = prepareResponseResult(urlPath,responseCode,HttpMethod.POST,conn);
-        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentEncoding());
+        result = super.handleResponse(result,responseCode,responseDataMode,conn.getInputStream(),conn.getContentLength(),conn.getContentType(),conn.getContentEncoding());
         return result;
     }
 

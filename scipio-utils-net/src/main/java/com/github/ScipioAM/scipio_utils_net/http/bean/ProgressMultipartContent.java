@@ -18,6 +18,9 @@ import java.util.Collection;
  */
 public class ProgressMultipartContent extends MultipartContent {
 
+    /** 过滤第一次输出(非真正上传) */
+    private boolean isFirstOut = true;
+
     private OutputStreamProgress outProgress;
 
     private long contentLength;
@@ -30,28 +33,27 @@ public class ProgressMultipartContent extends MultipartContent {
         super(boundary);
     }
 
-    //TODO 有问题，需要改
-
     @Override
     public void writeTo(OutputStream out) throws IOException {
         outProgress = new OutputStreamProgress(out);
-        //获取总长（用一个流去读取统计）
-//        contentLength = getLength();
         //准备装饰者
-//        if(uploadListener == null) {
-//            outProgress = new OutputStreamProgress(out);
-//        }
-//        else {
-//            outProgress = new OutputStreamProgress(out) {
-//                @Override
-//                public void afterProcess(int processedBytes) {
-//                    int progress = (int) (100L * this.getProcessedBytes() / contentLength);
-//                    uploadListener.onUploading(contentLength,this.getProcessedBytes(),progress);
-//                }
-//            };
-//        }
+        if(!isFirstOut && uploadListener == null) {
+            outProgress = new OutputStreamProgress(out);
+        }
+        else {
+            outProgress = new OutputStreamProgress(out) {
+                @Override
+                public void afterProcess(int processedBytes) {
+                    int progress = (this.getProcessedBytes() > contentLength) ? 100 : (int) (100L * this.getProcessedBytes() / contentLength);
+                    uploadListener.onUploading(contentLength,this.getProcessedBytes(),progress);
+                }
+            };
+        }
         //执行写入
-        super.writeTo(this.outProgress);
+        super.writeTo(outProgress);
+        if(isFirstOut) {
+            isFirstOut = false;
+        }
     }
 
     @Override
@@ -107,10 +109,14 @@ public class ProgressMultipartContent extends MultipartContent {
     }
 
     /**
-     * 获取要写入的字节总长度
+     * 要写入的字节总长度
      */
     public long getContentLength() {
         return contentLength;
+    }
+
+    public void setContentLength(long contentLength) {
+        this.contentLength = contentLength;
     }
 
     public ProgressMultipartContent setUploadListener(UploadListener uploadListener) {

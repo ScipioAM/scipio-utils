@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_io.parser.StreamParser;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestInfo;
@@ -94,7 +95,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
         ResponseResult response;
         try {
             if(responseDataMode == null) {
-                responseDataMode = requestInfo.getResponseDataMode();
+                responseDataMode = (requestInfo.getResponseDataMode() == null ? ResponseDataMode.DEFAULT : requestInfo.getResponseDataMode());
             }
             //开始执行前的回调
             if(startExecuteListener != null) {
@@ -123,7 +124,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
                 requestParams = requestContent.getFormContent();
             }
             if(responseDataMode == null) {
-                responseDataMode = requestInfo.getResponseDataMode();
+                responseDataMode = (requestInfo.getResponseDataMode() == null ? ResponseDataMode.DEFAULT : requestInfo.getResponseDataMode());
             }
             //开始执行前的回调
             if(startExecuteListener != null) {
@@ -149,7 +150,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
     @Override
     public ResponseResult get(String urlPath) {
-        return get(urlPath,ResponseDataMode.DEFAULT);
+        return get(urlPath,null);
     }
 
     @Override
@@ -159,7 +160,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
     @Override
     public ResponseResult post(String urlPath) {
-        return post(urlPath,ResponseDataMode.DEFAULT);
+        return post(urlPath,null);
     }
 
     @Override
@@ -169,7 +170,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
     @Override
     public ResponseResult postFile(String urlPath) {
-        return postFile(urlPath,ResponseDataMode.DEFAULT);
+        return postFile(urlPath,null);
     }
 
     @Override
@@ -187,10 +188,32 @@ public abstract class AbstractHttpBase implements IHttpRequester{
      * @param in 连接里响应的输入流，文件数据在此流中
      * @param contentLength 响应的文件字节大小
      */
-    protected void downloadFile(String outputFilePath, InputStream in, long contentLength, ResponseResult result) {
+    protected void downloadFile(String outputFilePath, InputStream in, long contentLength, String contentType, ResponseResult result) {
+        if(contentLength == 0L) {
+            result.setErrorMsg("Content-Length is 0 while download file");
+        }
+
+        String finalFilePath = outputFilePath;
+        //自动根据contentType生成后缀
+        if(requestInfo.isDownloadAutoExtension() && StringUtil.isNotNull(contentType)) {
+            System.out.println("Auto match file extension by Content-Type");
+            String extension;
+            if(contentType.contains("text/plain")) {
+                extension = ".txt";
+            }
+            else  if(contentType.contains(";")) {
+                String finalContentType = contentType.split(";")[0];
+                extension = finalContentType.split("/")[1];
+            }
+            else {
+                extension = contentType.split("/")[1];
+            }
+            finalFilePath = outputFilePath + "." + extension;
+        }
+        File outputFile = new File(finalFilePath);
+
         IOException ioe = null;
         boolean isSuccess = false;
-        File outputFile = new File(outputFilePath);
         BufferedInputStream bis = null;
         FileOutputStream fos = null;
         try {
@@ -206,7 +229,10 @@ public abstract class AbstractHttpBase implements IHttpRequester{
                 if(downloadListener!=null) {
                     //计算下载进度
                     readLength += length;
-                    int progress = (int) (100L * readLength / contentLength);
+                    int progress = 0;
+                    if(contentLength != 0L) { //contentLength已知时才计算进度
+                        progress = (int) (100L * readLength / contentLength);
+                    }
                     downloadListener.onDownloading(contentLength,readLength,progress);
                 }
             }
@@ -215,6 +241,7 @@ public abstract class AbstractHttpBase implements IHttpRequester{
             ioe = e;
             result.setResponseCode(ResponseResult.EXECUTE_ERR_CODE);
             result.setErrorMsg(e.toString());
+            e.printStackTrace();
         } finally {
             try {
                 if(bis != null) bis.close();
@@ -504,13 +531,12 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     /**
      * 重置各项配置
      */
-    public void resetConfig() {
-        requestInfo.setUserAgent(null);
-        requestInfo.setRequestHeaders(null);
-        requestInfo.setProxy(null);
-        requestInfo.setFollowRedirects(false);
-        requestInfo.setFileBufferSize(null);
-        requestInfo.setDownloadFilePath(null);
+    public void reset() {
+        requestInfo = new RequestInfo();
+        requestContent = null;
+        uploadFiles = null;
+        sslContextInitializer = SSLContextInitializer.DEFAULT;
+        trustManagers = new TrustManager[]{new AllTrustX509TrustManager()};
         clearListeners();
     }
 
@@ -524,6 +550,15 @@ public abstract class AbstractHttpBase implements IHttpRequester{
 
     public TrustManager[] getTrustManagers() {
         return trustManagers;
+    }
+
+    /**
+     * 下载时自动生成文件后缀（根据contentType进行截取）
+     * @param downloadAutoExtension 为true代表会自动生成（默认值为false）
+     */
+    public AbstractHttpBase setDownloadAutoExtension(boolean downloadAutoExtension) {
+        requestInfo.setDownloadAutoExtension(downloadAutoExtension);
+        return this;
     }
 
     @Override
@@ -664,9 +699,9 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     /**
      * 依据返回的状态码进行处理
      */
-    protected ResponseResult handleResponse(ResponseResult result, int responseCode, ResponseDataMode responseDataMode, InputStream in, long contentLength, String encoding) throws IOException {
+    protected ResponseResult handleResponse(ResponseResult result, int responseCode, ResponseDataMode responseDataMode, InputStream in, long contentLength, String contentType, String encoding) throws IOException {
         if(responseCode >= 200 && responseCode < 300) {
-            handleSuccess(result, responseDataMode, in, contentLength, encoding);
+            handleSuccess(result, responseDataMode, in, contentLength, contentType, encoding);
             //成功后的响应回调
             if(responseSuccessHandler != null) {
                 responseSuccessHandler.handle(responseCode,result);
@@ -684,14 +719,14 @@ public abstract class AbstractHttpBase implements IHttpRequester{
     /**
      * 响应成功时的处理（响应码:2xx）
      */
-    protected void handleSuccess(ResponseResult result, ResponseDataMode responseDataMode, InputStream in, long contentLength, String encoding)
+    protected void handleSuccess(ResponseResult result, ResponseDataMode responseDataMode, InputStream in, long contentLength, String contentType, String encoding)
             throws IOException
     {
         if(responseDataMode == ResponseDataMode.DOWNLOAD_FILE) {
             if(requestInfo.getDownloadFilePath()==null || "".equals(requestInfo.getDownloadFilePath())) {
                 throw new IOException("argument [downloadFilePath] not set!");
             }
-            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength,result);
+            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength,contentType,result);
             return;
         }
         else if(responseDataMode == ResponseDataMode.STREAM_ONLY) {

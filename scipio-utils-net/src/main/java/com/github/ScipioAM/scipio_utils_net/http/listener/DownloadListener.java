@@ -15,7 +15,7 @@ public interface DownloadListener {
      * 下载时
      * @param totalLength 总字节数
      * @param readLength 已下载字节数
-     * @param progress 下载进度(0-100)
+     * @param progress 下载进度(0-100)(Content-Length未知时，永远为0)
      */
     default void onDownloading(long totalLength, long readLength, int progress) {
         System.out.println("Download progress：" + progress + "%  bytes: " + readLength + "/" + totalLength);

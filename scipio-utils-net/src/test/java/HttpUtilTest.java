@@ -63,9 +63,9 @@ public class HttpUtilTest {
     public void fileTest()
     {
         String originalFilePath="D:\\图库\\car001.jpg";
-        String newFilePath="D:\\图库\\removebg_test0.png";
+        String newFilePath="D:\\图库\\removebg_test0";
         String url="https://api.remove.bg/v1.0/removebg";
-        String removebg_apiKey="821jUTZLnFSf6eeqWdzdoKV9";
+        String removebg_apiKey="***";
 
         HashMap<String,String> headParams=new HashMap<>();
         headParams.put("X-Api-Key",removebg_apiKey);
@@ -89,13 +89,14 @@ public class HttpUtilTest {
         System.out.println("源文件："+originalFilePath);
         System.out.println("开始发起请求");
         ResponseResult response = httpUtil.setRequestForm(params)
-                .setFiddlerProxy()
+//                .setFiddlerProxy()
                 .setRequestHeader(headParams)
                 .setUploadFile(fileParams)
-                .setDownloadFilePath(newFilePath)
+                .setDownloadFilePath(newFilePath)//设置downloadFilePath后会自动设定响应数据模式为DOWNLOAD_FILE
                 .setDownloadListener(DownloadListener.EMPTY_IMPL)
                 .setUploadListener(FileUploadListener.EMPTY_IMPL)
-                .postFile(url, ResponseDataMode.DOWNLOAD_FILE);
+                .setDownloadAutoExtension(true)//根据ContentType自动决定下载文件的扩展名
+                .postFile(url);
         System.out.println("响应码："+response.getResponseCode());
         System.out.println("错误信息："+response.getErrorMsg());
     }

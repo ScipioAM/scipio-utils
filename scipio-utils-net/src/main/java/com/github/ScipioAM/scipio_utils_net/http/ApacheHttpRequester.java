@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ProgressFileContent;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ProgressMultipartContent;
 import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
@@ -7,8 +8,7 @@ import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.RequestDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ApacheSSLFactoryInitializer;
-import com.github.ScipioAM.scipio_utils_net.http.listener.SSLContextInitializer;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 import com.google.api.client.http.*;
 import com.google.api.client.http.apache.v2.ApacheHttpTransport;
 import org.apache.http.client.HttpClient;
@@ -115,28 +115,6 @@ public class ApacheHttpRequester extends AbstractHttpBase{
         }
         //可以设置为返回原始InputStream
         executor.setResponseReturnRawInputStream((responseDataMode == ResponseDataMode.STREAM_ONLY || responseDataMode == ResponseDataMode.DOWNLOAD_FILE));
-        //设置响应成功或失败的监听器
-        if(super.responseSuccessHandler != null || super.responseFailureHandler != null) {
-            executor.setResponseInterceptor((rawResponse) -> {
-                ResponseResult result = new ResponseResult();
-                result.setResponseCode(rawResponse.getStatusCode());
-                result.setContentEncoding(rawResponse.getContentEncoding());
-                result.setContentType(rawResponse.getContentType());
-                result.setData(rawResponse.parseAsString());
-                if(rawResponse.isSuccessStatusCode()) {
-                    //成功时的响应
-                    if(super.responseSuccessHandler != null) {
-                        super.responseSuccessHandler.handle(rawResponse.getStatusCode(), result);
-                    }
-                }
-                else {
-                    //失败时的响应
-                    if(super.responseFailureHandler != null) {
-                        result.setErrorMsg(rawResponse.getStatusMessage());
-                    }
-                }
-            });
-        }
         //设置执行前的监听回调
         if(super.startExecuteListener != null) {
             executor.setInterceptor((httpRequest)->
@@ -165,24 +143,32 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
         ResponseResult response = new ResponseResult();
         InputStream in = null;
-        long contentLength = 0L;
         String encoding = null;
+        String contentType = null;
+        long contentLength = 0L;
         HttpResponse rawResponse;
         try {
             rawResponse = executor.execute();//发起请求
             //成功后的响应处理（响应码为2xx）
             response.setResponseCode(rawResponse.getStatusCode());
             response.setContentEncoding(rawResponse.getContentEncoding());
-            response.setContentType(rawResponse.getContentType());
             response.setHeaders(transformHeaders(rawResponse.getHeaders()));
+            contentType = rawResponse.getContentType();
+            Long cLength = rawResponse.getHeaders().getContentLength();
+            if(cLength != null) {
+                contentLength = cLength;
+                response.setContentLength(contentLength);
+            }
             encoding = rawResponse.getHeaders().getContentEncoding();
             if(responseDataMode == ResponseDataMode.STREAM_ONLY || responseDataMode == ResponseDataMode.DOWNLOAD_FILE) {
                 in = rawResponse.getContent();
-                contentLength = rawResponse.getHeaders().getContentLength();
-                response.setResponseStream(in);
             }
             else {
                 response.setData(rawResponse.parseAsString());
+            }
+            //成功时的响应
+            if(super.responseSuccessHandler != null) {
+                super.responseSuccessHandler.handle(rawResponse.getStatusCode(), response);
             }
         }catch (Exception e) {
             e.printStackTrace();
@@ -192,10 +178,10 @@ public class ApacheHttpRequester extends AbstractHttpBase{
                 response.setResponseCode(hre.getStatusCode());
                 response.setErrorMsg(hre.getStatusMessage());
                 response.setData(hre.getContent());
-                response.setContentType(hre.getHeaders().getContentType());
                 response.setContentLength(hre.getHeaders().getContentLength());
                 response.setContentEncoding(hre.getHeaders().getContentEncoding());
                 response.setHeaders(transformHeaders(hre.getHeaders()));
+                contentType = hre.getHeaders().getContentType();
             }
             else {
                 response.setResponseCode(ResponseResult.EXECUTE_ERR_CODE);
@@ -204,8 +190,13 @@ public class ApacheHttpRequester extends AbstractHttpBase{
             if(super.executeErrorHandler != null) {
                 super.executeErrorHandler.handle(urlPath,httpMethod,e);
             }
+            //失败时的响应
+            if(super.responseFailureHandler != null) {
+                super.responseFailureHandler.handle(response.getResponseCode(),response);
+            }
         }
-        response = super.handleResponse(response,response.getResponseCode(),responseDataMode, in, contentLength, encoding);
+        response.setContentType(contentType);
+        response = super.handleResponse(response,response.getResponseCode(),responseDataMode, in, contentLength, contentType, encoding);
         return response;
     }
 
@@ -255,31 +246,41 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     private MultipartContent buildMultipartContent(RequestContent requestContent, Map<String, File> uploadFiles) {
         ProgressMultipartContent allContent = new ProgressMultipartContent()
-                .setMediaType(new HttpMediaType("multipart/form-data")
-                .setParameter("boundary", BOUNDARY))
+                .setMediaType(new HttpMediaType("multipart/form-data").setParameter("boundary", BOUNDARY))
                 .setUploadListener(super.uploadListener);
+        long contentLength = 0L;//统计要上传字节总长度（包括参数和文件）
         //添加参数
         Map<String,String> params = requestContent.getFormContent();
         if(params != null && params.size() > 0) {
             for (Map.Entry<String,String> param : params.entrySet()) {
-                MultipartContent.Part paramsPart = new MultipartContent.Part(
-                        new ByteArrayContent(null, param.getValue().getBytes()));
+                String paramValue = param.getValue();
+                MultipartContent.Part paramsPart = new MultipartContent.Part(new ByteArrayContent(null, paramValue.getBytes()));
                 paramsPart.setHeaders(new HttpHeaders().set(
-                        "Content-Disposition", String.format("form-data; name=\"%s\"", param.getKey())));
+                        "Content-Disposition",
+                        String.format("form-data; name=\"%s\"", paramValue)
+                ));
                 allContent.addPart(paramsPart);
+                contentLength += paramValue.length();
             }
         }
+
         //添加文件
         for(Map.Entry<String,File> fileEntry : uploadFiles.entrySet()) {
-            ProgressFileContent fileSubContent = new ProgressFileContent(
-                    getContentTypeByFile(fileEntry.getValue()), fileEntry.getValue())
+            //准备FileContent
+            File file = fileEntry.getValue();
+            ProgressFileContent fileSubContent = new ProgressFileContent(getContentTypeByFile(fileEntry.getValue()), file)
                     .setUploadListener(super.uploadListener);
+            //构建Part
             MultipartContent.Part filePart = new MultipartContent.Part(fileSubContent);
             filePart.setHeaders(new HttpHeaders().set(
                     "Content-Disposition",
-                    String.format("form-data; name=\"%s\"; filename=\"%s\"", fileEntry.getKey(), fileEntry.getValue().getName())));
+                    String.format("form-data; name=\"%s\"; filename=\"%s\"", fileEntry.getKey(), file.getName())
+            ));
+            //加到总content里去
             allContent.addPart(filePart);
+            contentLength += file.length();
         }
+        allContent.setContentLength(contentLength);
         return allContent;
     }
 
@@ -294,15 +295,25 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     //==================================================================================================================
 
-    public ApacheHttpRequester resetExecutor() {
+    public void resetExecutor() {
         executor = null;
-        return this;
     }
 
-    public ApacheHttpRequester resetHttpTransport() {
+    public void resetHttpTransport() {
         httpTransport = null;
         executor = null;
-        return this;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        resetHttpTransport();
+        sslContextInitializer = SSLContextInitializer.APACHE_DEFAULT;
+        sslFactoryInitializer = ApacheSSLFactoryInitializer.DEFAULT;
+        ioTimeout = 0;
+        httpHeaders = null;
+        httpEncoding = null;
+        retries = HttpRequest.DEFAULT_NUMBER_OF_RETRIES;
     }
 
     public ApacheHttpRequester setHttpTransport(ApacheHttpTransport httpTransport) {
@@ -340,6 +351,16 @@ public class ApacheHttpRequester extends AbstractHttpBase{
 
     public ApacheHttpTransport getHttpTransport() {
         return httpTransport;
+    }
+
+    /**
+     * 下载时自动生成文件后缀（根据contentType进行截取）
+     * @param downloadAutoExtension 为true代表会自动生成（默认值为false）
+     */
+    @Override
+    public ApacheHttpRequester setDownloadAutoExtension(boolean downloadAutoExtension) {
+        super.setDownloadAutoExtension(downloadAutoExtension);
+        return this;
     }
 
     @Override
@@ -442,6 +463,9 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     @Override
     public ApacheHttpRequester setDownloadFilePath(String downloadFilePath) {
         super.requestInfo.setDownloadFilePath(downloadFilePath);
+        if(StringUtil.isNotNull(downloadFilePath)) {
+            super.requestInfo.setResponseDataMode(ResponseDataMode.DOWNLOAD_FILE);
+        }
         return this;
     }
 
@@ -473,6 +497,36 @@ public class ApacheHttpRequester extends AbstractHttpBase{
     public ApacheHttpRequester setResponseDataMode(ResponseDataMode responseDataMode) {
         requestInfo.setResponseDataMode(responseDataMode);
         return this;
+    }
+
+    @Override
+    public ApacheHttpRequester setUploadListener(UploadListener uploadListener) {
+        return (ApacheHttpRequester) super.setUploadListener(uploadListener);
+    }
+
+    @Override
+    public ApacheHttpRequester setDownloadListener(DownloadListener downloadListener) {
+        return (ApacheHttpRequester) super.setDownloadListener(downloadListener);
+    }
+
+    @Override
+    public ApacheHttpRequester setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        return (ApacheHttpRequester) super.setResponseSuccessHandler(responseSuccessHandler);
+    }
+
+    @Override
+    public ApacheHttpRequester setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        return (ApacheHttpRequester) super.setResponseFailureHandler(responseFailureHandler);
+    }
+
+    @Override
+    public ApacheHttpRequester setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        return (ApacheHttpRequester) super.setExecuteErrorHandler(executeErrorHandler);
+    }
+
+    @Override
+    public ApacheHttpRequester setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        return (ApacheHttpRequester) super.setStartExecuteListener(startExecuteListener);
     }
 
     /**
