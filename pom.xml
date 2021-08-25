@@ -6,7 +6,7 @@
 
     <groupId>com.github.ScipioAM</groupId>
     <artifactId>scipio-utils</artifactId>
-    <version>1.0.1-p1</version>
+    <version>1.0.1</version>
     <modules>
         <module>scipio-utils-common</module>
         <module>scipio-utils-io</module>
@@ -40,9 +40,9 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <common.version>1.0.1-p1</common.version>
-        <io.version>1.0.1-p1</io.version>
-        <crypto.version>1.0.1-p1</crypto.version>
+        <common.version>1.0.1</common.version>
+        <io.version>1.0.1</io.version>
+        <crypto.version>1.0.1</crypto.version>
 
         <google.libraries.version>20.6.0</google.libraries.version>
 
