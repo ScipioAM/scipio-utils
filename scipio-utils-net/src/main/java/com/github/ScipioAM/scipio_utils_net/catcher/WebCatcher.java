@@ -2,11 +2,10 @@ package com.github.ScipioAM.scipio_utils_net.catcher;
 
 import com.github.ScipioAM.scipio_utils_net.catcher.bean.WebInfo;
 import com.github.ScipioAM.scipio_utils_net.catcher.impl.FileIOListener;
-import com.github.ScipioAM.scipio_utils_net.http.HttpRequesterBuilder;
-import com.github.ScipioAM.scipio_utils_net.http.HttpUtilBuilder;
+import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.IHttpRequester;
-import com.github.ScipioAM.scipio_utils_net.http.common.RequestMethod;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import com.github.ScipioAM.scipio_utils_net.http.common.ResponseException;
 
 import java.io.IOException;
@@ -19,8 +18,8 @@ import java.io.IOException;
  */
 public abstract class WebCatcher {
 
-    protected HttpRequesterBuilder httpRequesterBuilder;
-    protected RequestMethod requestMethod = RequestMethod.GET; //默认get方法
+    protected IHttpRequester httpRequester;
+    protected HttpMethod httpMethod = HttpMethod.GET; //默认get方法
 
     /**
      * 单网页抓取
@@ -70,7 +69,7 @@ public abstract class WebCatcher {
         System.out.println("httpRequester has been built: " + httpRequester);
         //发起HTTP请求
         ResponseResult response;
-        if (requestMethod == RequestMethod.GET) {
+        if (httpMethod == HttpMethod.GET) {
             System.out.println("start send http request to [" + urlStr + "] by get method");
             response = httpRequester.get(urlStr);
         } else {
@@ -88,21 +87,21 @@ public abstract class WebCatcher {
      * 创建HTTP请求工具
      */
     private IHttpRequester buildRequester() {
-        if (httpRequesterBuilder == null) {
-            httpRequesterBuilder = HttpUtilBuilder.builder()
+        if (httpRequester == null) {
+            httpRequester = new HttpUtil()
                     .setDefaultUserAgent();
         }
-        return httpRequesterBuilder.build();
+        return httpRequester;
     }
 
     //=====================================================================================
 
-    public void setHttpRequesterBuilder(HttpRequesterBuilder builder) {
-        this.httpRequesterBuilder = builder;
+    public void setHttpRequester(IHttpRequester requester) {
+        this.httpRequester = requester;
     }
 
-    public void setRequestMethod(RequestMethod requestMethod) {
-        this.requestMethod = requestMethod;
+    public void setRequestMethod(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
 }

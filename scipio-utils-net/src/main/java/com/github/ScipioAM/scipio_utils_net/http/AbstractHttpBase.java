@@ -1,103 +1,186 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_io.parser.StreamParser;
-import com.github.ScipioAM.scipio_utils_net.http.common.RequestDataMode;
-import com.github.ScipioAM.scipio_utils_net.http.common.RequestMethod;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
-import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.UploadListener;
+import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
+import com.github.ScipioAM.scipio_utils_net.http.bean.RequestInfo;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.common.*;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import java.io.*;
-import java.net.Proxy;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Class: AbstractHttpBase
- * Description:
- * Author: Alan Min
- * Create Date: 2019/9/3
+ * Java原生{@link HttpURLConnection}的易用性API父类
+ * @author  Alan Scipio
+ * @since 1.0.0
+ * @date 2019/9/3
  */
-public abstract class AbstractHttpBase {
+public abstract class AbstractHttpBase implements IHttpRequester{
 
-    protected String charset = "UTF-8";//编码字符集，默认UTF-8
+    //TODO [待完成]第一次自动下载服务器的SSL证书，存入cacerts里去
 
-    protected String userAgent = null;
+    //传输文件要用到
+    protected final String NEWLINE = "\r\n";
+    //边界符-传输文件要用到
+    protected final String BOUNDARY = "PART-BOUNDARY";
+    //传输文件要用到
+    protected final String TOW_HYPHENS = "--";
 
-    protected Map<String, String> reqHeaderParam = null;//自定义请求头参数
+    /** 请求的各种参数信息 */
+    protected RequestInfo requestInfo = new RequestInfo();
 
-    protected Proxy proxy = null;//代理
+    /** 请求内容 */
+    protected RequestContent requestContent;
 
-    protected boolean isFollowRedirects = false;//是否关闭重定向以获取跳转后的真实地址,默认false
+    /** 请求时上传的文件 */
+    protected Map<String,File> uploadFiles;
 
-    protected Integer fileBufferSize;//上传文件时的缓冲区大小
+    /** SSLContext初始化者 */
+    protected SSLContextInitializer sslContextInitializer = SSLContextInitializer.DEFAULT;
 
-    protected String downloadFilePath;//下载文件的全路径，如果不为空则代表需要下载
+    /** 信任管理器（决定了信任哪些SSL证书） */
+    protected TrustManager[] trustManagers = new TrustManager[]{new AllTrustX509TrustManager()};
 
-    protected ResponseListener responseListener;//响应监听器（响应时的回调）
+    protected UploadListener uploadListener;
 
-    protected UploadListener uploadListener;//上传监听器
+    protected DownloadListener downloadListener;
 
-    protected DownloadListener downloadListener;//下载监听器
+    protected ResponseSuccessHandler responseSuccessHandler;
 
-    //----------------------------------------------------------------------------------------------
+    protected ResponseFailureHandler responseFailureHandler;
+
+    protected ExecuteErrorHandler executeErrorHandler;
+
+    protected StartExecuteListener startExecuteListener;
+
+    //==================================================================================================================
 
     /**
      * 发起http请求并获取返回的数据(不包括输出文件)
      * @param urlPath url路径
-     * @param requestMethod get请求还是post请求
-     * @param requestDataMode 发起请求时传参的方式，默认(比如x=1&y=2...)
-     * @param responseDataMode 封装响应数据的模式
+     * @param httpMethod get请求还是post请求
+     * @param requestContent 请求的内容
+     * @param responseDataMode 希望返回数据以什么形式封装
      * @return 响应数据
      */
-    protected abstract ResponseResult doRequest(String urlPath, RequestMethod requestMethod, RequestDataMode requestDataMode,
-                                                ResponseDataMode responseDataMode, Object requestParam)
-            throws IOException, IllegalArgumentException, KeyManagementException;
+    protected abstract ResponseResult doRequest(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode)
+            throws IOException, IllegalArgumentException;
 
     /**
-     * 发起http请求，输出文件流（可能还包括其他参数），获取返回的数据
+     * 发起http请求，上传文件（可能还包括其他参数），获取返回的数据
      * @param urlPath 请求的url
      * @param requestParams 请求的字符串参数
-     * @param outputFiles 输出的文件参数
-     * @param responseDataMode 封装响应数据的模式
+     * @param uploadFiles 要上传的文件
+     * @param responseDataMode 希望返回数据以什么形式封装
      * @return 响应数据
      */
-    protected abstract ResponseResult doFileRequest(String urlPath, Map<String,String> requestParams, Object outputFiles , ResponseDataMode responseDataMode )
-            throws IOException, KeyManagementException, IllegalArgumentException;
+    protected abstract ResponseResult doFileRequest(String urlPath, Map<String,String> requestParams, Map<String,File> uploadFiles, ResponseDataMode responseDataMode)
+            throws IOException, IllegalArgumentException;
 
     /**
-     * 检查上传的文件（单个）有问题就抛异常
+     * 供子类简化调用：调用doRequest并作异常处理包装
      */
-    protected void checkPostFile(File file) throws IllegalArgumentException{
-        if(!file.exists()) {
-            throw new IllegalArgumentException("Post file is null or not exists");
-        }
-    }
-
-    /**
-     * 检查上传的文件（多个）有问题就抛异常
-     */
-    protected void checkPostFile(HashMap<String,File> files) throws IllegalArgumentException{
-        for( Map.Entry<String,File> entry : files.entrySet() ) {
-            if( !entry.getValue().exists() || entry.getValue().isDirectory()) {
-                throw new IllegalArgumentException("file not exists or is a directory which key is ["+entry.getKey()+"]");
+    protected ResponseResult execRequestAction(String urlPath, HttpMethod httpMethod, RequestContent requestContent, ResponseDataMode responseDataMode) {
+        ResponseResult response;
+        try {
+            if(responseDataMode == null) {
+                responseDataMode = (requestInfo.getResponseDataMode() == null ? ResponseDataMode.DEFAULT : requestInfo.getResponseDataMode());
             }
+            //开始执行前的回调
+            if(startExecuteListener != null) {
+                startExecuteListener.beforeExec(urlPath,httpMethod,requestInfo,requestContent,responseDataMode);
+            }
+            //执行
+            response = doRequest(urlPath, httpMethod, requestContent, responseDataMode);
+        }catch (Exception e) {
+            if(executeErrorHandler != null) {
+                executeErrorHandler.handle(urlPath,httpMethod,e);
+            }
+            response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
+            response.setErrorMsg(e.toString());
         }
+        return response;
     }
+
+    /**
+     * 供子类简化调用：调用doFileRequest并作异常处理包装
+     */
+    protected ResponseResult execFileRequestAction(String urlPath, RequestContent requestContent, Map<String,File> uploadFiles, ResponseDataMode responseDataMode) {
+        ResponseResult response;
+        try {
+            Map<String,String> requestParams = null;
+            if(requestContent != null) {
+                requestParams = requestContent.getFormContent();
+            }
+            if(responseDataMode == null) {
+                responseDataMode = (requestInfo.getResponseDataMode() == null ? ResponseDataMode.DEFAULT : requestInfo.getResponseDataMode());
+            }
+            //开始执行前的回调
+            if(startExecuteListener != null) {
+                startExecuteListener.beforeExec(urlPath,HttpMethod.POST,requestInfo,requestContent,responseDataMode);
+            }
+            //执行
+            response = doFileRequest(urlPath,requestParams,uploadFiles,responseDataMode);
+        }catch (Exception e) {
+            if(executeErrorHandler != null)
+                executeErrorHandler.handle(urlPath,HttpMethod.POST,e);
+            response = new ResponseResult(ResponseResult.EXECUTE_ERR_CODE);
+            response.setErrorMsg(e.toString());
+        }
+        return response;
+    }
+
+    //==================================================================================================================
+
+    @Override
+    public ResponseResult get(String urlPath, ResponseDataMode responseDataMode) {
+        return execRequestAction(urlPath, HttpMethod.GET,requestContent,responseDataMode);
+    }
+
+    @Override
+    public ResponseResult get(String urlPath) {
+        return get(urlPath,null);
+    }
+
+    @Override
+    public ResponseResult post(String urlPath, ResponseDataMode responseDataMode) {
+        return execRequestAction(urlPath, HttpMethod.POST,requestContent,responseDataMode);
+    }
+
+    @Override
+    public ResponseResult post(String urlPath) {
+        return post(urlPath,null);
+    }
+
+    @Override
+    public ResponseResult postFile(String urlPath, ResponseDataMode dataMode) {
+        return execFileRequestAction(urlPath,requestContent,uploadFiles,dataMode);
+    }
+
+    @Override
+    public ResponseResult postFile(String urlPath) {
+        return postFile(urlPath,null);
+    }
+
+    @Override
+    public ResponseResult download(String urlPath, String downloadFileDir, String fileName) {
+        String fileFullPath = downloadFileDir + File.separator + fileName;
+        this.setDownloadFilePath(fileFullPath);
+        return execRequestAction(urlPath, HttpMethod.POST,requestContent,ResponseDataMode.DOWNLOAD_FILE);
+    }
+
+    //==================================================================================================================
 
     /**
      * 下载文件
@@ -105,238 +188,237 @@ public abstract class AbstractHttpBase {
      * @param in 连接里响应的输入流，文件数据在此流中
      * @param contentLength 响应的文件字节大小
      */
-    protected void downloadFile(String outputFilePath, InputStream in, int contentLength) {
+    protected void downloadFile(String outputFilePath, InputStream in, long contentLength, String contentType, ResponseResult result) {
+        if(contentLength == 0L) {
+            result.setErrorMsg("Content-Length is 0 while download file");
+        }
+
+        String finalFilePath = outputFilePath;
+        //自动根据contentType生成后缀
+        if(requestInfo.isDownloadAutoExtension() && StringUtil.isNotNull(contentType)) {
+            System.out.println("Auto match file extension by Content-Type");
+            String extension;
+            if(contentType.contains("text/plain")) {
+                extension = ".txt";
+            }
+            else  if(contentType.contains(";")) {
+                String finalContentType = contentType.split(";")[0];
+                extension = finalContentType.split("/")[1];
+            }
+            else {
+                extension = contentType.split("/")[1];
+            }
+            finalFilePath = outputFilePath + "." + extension;
+        }
+        File outputFile = new File(finalFilePath);
+
         IOException ioe = null;
         boolean isSuccess = false;
-        try (BufferedInputStream bis = new BufferedInputStream(in);
-             FileOutputStream fos = new FileOutputStream(outputFilePath)
-        ) {
+        BufferedInputStream bis = null;
+        FileOutputStream fos = null;
+        try {
+            bis = new BufferedInputStream(in);
+            fos = new FileOutputStream(outputFile);
+
             int length;//每次读取的字节数
-            double readLength = 0.0;//总共读取的字节数
+            long readLength = 0L;//总共已读取的字节数
             byte[] buffer = new byte[getFileBufferSize()];
-            while( (length=bis.read(buffer))!=-1 )
-            {
+            while ((length = bis.read(buffer)) != -1) {
                 fos.write(buffer,0,length);
-                readLength += length;
-                double downloadedPercent = readLength/contentLength;//计算下载进度
+                //下载中的回调
                 if(downloadListener!=null) {
-                    downloadListener.onDownloading(downloadedPercent);
+                    //计算下载进度
+                    readLength += length;
+                    int progress = 0;
+                    if(contentLength != 0L) { //contentLength已知时才计算进度
+                        progress = (int) (100L * readLength / contentLength);
+                    }
+                    downloadListener.onDownloading(contentLength,readLength,progress);
                 }
             }
             isSuccess = true;
         }catch (IOException e) {
             ioe = e;
+            result.setResponseCode(ResponseResult.EXECUTE_ERR_CODE);
+            result.setErrorMsg(e.toString());
+            e.printStackTrace();
+        } finally {
+            try {
+                if(bis != null) bis.close();
+                if(fos != null) fos.close();
+                if(!isSuccess) { //不成功就删除空的输出文件
+                    if(outputFile.exists()) {
+                        //noinspection ResultOfMethodCallIgnored
+                        outputFile.delete();
+                    }
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         //下载结束时的回调
         if(downloadListener!=null) {
-            downloadListener.onFinished(isSuccess,ioe);
-        }
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * 获取当前设置的编码字符集
-     */
-    public String getCharset() {
-        return charset;
-    }
-
-    /**
-     * 获取当前设置的userAgent
-     */
-    public String getUserAgent() {
-        return userAgent;
-    }
-
-    /**
-     * 获取自定义请求头参数
-     */
-    public Map<String, String> getReqHeaderParam() {
-        return reqHeaderParam;
-    }
-
-    /**
-     * 检查当前设置的followRedirects参数情况
-     * 参数含义：是否关闭重定向以获取跳转后的真实地址
-     */
-    public boolean isFollowRedirects() {
-        return isFollowRedirects;
-    }
-
-    /**
-     * 清除上传和响应监听器
-     */
-    public void clearListeners() {
-        responseListener = null;
-        uploadListener = null;
-    }
-
-    /**
-     * 获取当前设置的 上传文件缓冲区大小 如果为空则取默认值
-     * @param fileLength 文件总长度，单位是byte
-     */
-    public int getFileBufferSize(long fileLength) {
-        if( fileBufferSize==null || fileBufferSize==0 ) {
-            setDefaultBufferSize(fileLength);
-        }
-        return fileBufferSize;
-    }
-
-    public int getFileBufferSize() {
-        if( fileBufferSize==null || fileBufferSize==0 ) {
-            setDefaultBufferSize();
-        }
-        return fileBufferSize;
-    }
-
-    /**
-     * 根据文件大小调整缓冲区的大小
-     * @param fileLength 文件总长度，单位是byte
-     */
-    public void setDefaultBufferSize(long fileLength) {
-        if( fileLength<=(1024*1024) )
-            fileBufferSize=1024;
-        else if ( fileLength<=(1024*1024*10) )
-            fileBufferSize=4096;
-        else
-            fileBufferSize=1024*1024;
-    }
-
-    public void setDefaultBufferSize() {
-        fileBufferSize=1024;
-    }
-
-    /**
-     * 获取下载文件的全路径
-     */
-    public String getDownloadFilePath() {
-        return downloadFilePath;
-    }
-
-    /**
-     * 重置各项配置
-     */
-    public void resetConfig() {
-        userAgent = null;
-        reqHeaderParam = null;
-        proxy = null;
-        isFollowRedirects = false;
-        fileBufferSize = null;
-        responseListener = null;
-        uploadListener = null;
-        downloadListener = null;
-        downloadFilePath = null;
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * 设置http和https连接共通的部分
-     * @param conn http或https连接对象
-     * @param contentType 请求头的contentType
-     * @param requestMethod get请求还是post请求
-     */
-    protected void setCommonConnectionData(URLConnection conn, String contentType, RequestMethod requestMethod) {
-        //设置共通的头信息，以及输出请求参数
-        conn.setConnectTimeout(1000 * 10);//设置连接超时的时间(毫秒)
-        conn.setReadTimeout(1000 * 60);
-        conn.setDoInput(true);//设置连接打开输入流
-        if(requestMethod== RequestMethod.POST) {
-            conn.setDoOutput(true);//设置连接打开输出
-        }
-        conn.setRequestProperty("Accept-Encoding", "gzip,deflate");//告诉服务器支持gzip压缩
-        conn.setRequestProperty("Accept-Charset", charset);
-        conn.setRequestProperty("Charset", charset);
-        //设置contentType
-        if(contentType!=null)
-            conn.setRequestProperty("Content-Type", contentType);//可被后面的headerParam覆盖
-        //设置user-agent，默认user-agent是Mac系统上66版的chrome浏览器
-        if(userAgent!=null && (!userAgent.equals("")) )
-            conn.setRequestProperty("User-Agent",userAgent);
-        //设置自定义头部参数
-        if(reqHeaderParam!=null) {
-            for(Map.Entry<String,String> entry: reqHeaderParam.entrySet())
-                conn.setRequestProperty(entry.getKey(), entry.getValue());
+            downloadListener.onFinished(isSuccess,outputFile,ioe);
         }
     }
 
     /**
-     * 依据返回的状态码进行处理
-     * @param conn 连接对象
-     * @param responseCode 响应码
-     * @param responseDataMode 获取响应数据的模式
+     * 执行文件等数据的输出操作（上传）
+     * @param os 连接的输出流对象
+     * @param outputParams 要输出的字符串参数（可选）
+     * @param outputFiles 要输出的文件对象（单个File对象或key-File的HashMap对象）
      */
-    protected ResponseResult handleResponse(URLConnection conn, int responseCode, ResponseDataMode responseDataMode) throws IOException {
-        ResponseResult result = new ResponseResult();
-        result.setResponseCode(responseCode);
-        result.setContentEncoding(conn.getContentEncoding());
-        result.setContentLength(conn.getContentLength());
-        result.setHeaders(conn.getHeaderFields());
-        result.setConnObj(conn);
-
-        if(responseCode>=200 && responseCode<300) {
-            handleSuccess(result,responseCode,conn, responseDataMode);
-        }
-        else {
-            //失败后的响应回调
-            if(responseListener!=null)
-                responseListener.onFailure(responseCode,conn);
-        }
-        return result;
-    }
-
-    /**
-     * 响应成功时的处理（响应码:200）
-     * @param responseCode 响应码
-     * @param conn 连接对象
-     * @param responseDataMode 获取响应数据的模式
-     */
-    private void handleSuccess(ResponseResult result, int responseCode, URLConnection conn, ResponseDataMode responseDataMode)
+    protected void doMultipartOutput(OutputStream os , Map<String,String> outputParams, Map<String,File> outputFiles)
             throws IOException
     {
-        //成功后的响应回调
-        if(responseListener!=null)
-            responseListener.onSuccess(responseCode,conn);
-
-        InputStream in = conn.getInputStream();
-        if(downloadFilePath!=null && !"".equals(downloadFilePath)) {
-            downloadFile(downloadFilePath,in,conn.getContentLength());
-            return;
-        }
-        else if(responseDataMode == ResponseDataMode.STREAM_ONLY) {
-            result.setResponseStream(in);
-            return;
-        }
-        else if(responseDataMode == ResponseDataMode.NONE) {
-            return;
-        }
-
-        String responseStrData;
-        //解读响应的输入流
-        String encoding = conn.getContentEncoding();
-        if(encoding!=null && encoding.equals("gzip")) {//响应体是否为gzip压缩
-            responseStrData = StreamParser.readStreamFromGZIP(in);
-        }
-        else {
-            responseStrData = StreamParser.readStream(in);
-        }
-        result.setData(responseStrData);
+        // 往服务器端写内容 也就是发起http请求需要带的参数
+        DataOutputStream dos = new DataOutputStream(os);
+        // 请求参数部分
+        writeParams(outputParams, dos);
+        // 请求上传文件部分
+        writeFiles(outputFiles, dos);
+        // 请求结束标志
+        String endTarget = TOW_HYPHENS + BOUNDARY + TOW_HYPHENS + NEWLINE;
+        dos.writeBytes(endTarget);
+        dos.flush();
+        dos.close();
     }
 
     /**
-     * 创建SSL连接工程
+     * 传输文件专用 - 对字符串参数进行编码处理并输出数据流中
+     * @param outputParams 要传输的参数
+     * @param dos 数据输出流
      */
-    protected SSLSocketFactory createSSLSocketFactory(HttpsURLConnection httpsConn)
-            throws NoSuchAlgorithmException, KeyManagementException
+    private void writeParams(Map<String,String> outputParams, DataOutputStream dos)
+            throws IOException
     {
-        //创建SSLContext对象，并使用我们指定的信任管理器初始化
-        TrustManager[] tm={new EmptyX509TrustManager()};
-        SSLContext sslContext=SSLContext.getInstance("SSL");
-        sslContext.init(null, tm, new SecureRandom());
-        //从上述SSLContext对象中得到SSLSocketFactory对象
-        return sslContext.getSocketFactory();
+        if( outputParams==null || outputParams.isEmpty() ) {
+            System.out.println("发送的字符串参数为空");//test
+            return;
+        }
+
+        StringBuilder params=new StringBuilder();
+        for( Map.Entry<String,String> entry : outputParams.entrySet() ) {
+            //每段开头
+            params.append(TOW_HYPHENS).append(BOUNDARY).append(NEWLINE);
+            //参数头
+            params.append("Content-Length: ").append(entry.getValue().length())
+                    .append(NEWLINE)
+                    .append("Content-Disposition: form-data; name=\"")
+                    .append(entry.getKey()).append("\"")
+                    .append(NEWLINE)
+                    .append("Content-Type: text/plain; charset=").append(requestInfo.getCharset())
+                    // 参数头设置完以后需要两个换行，然后才是参数内容
+                    .append(NEWLINE)
+                    .append(NEWLINE)
+                    .append(entry.getValue())
+                    .append(NEWLINE);
+        }
+        dos.writeBytes(params.toString());
+        dos.flush();
     }
+
+    /**
+     * 传输文件专用 - 将文件输出到数据流中
+     * @param uploadFiles 要上传的文件
+     * @param dos 数据输出流
+     */
+    private void writeFiles(Map<String,File> uploadFiles, DataOutputStream dos) throws IOException {
+        if (uploadFiles == null) {
+            return;
+        }
+        try {
+            checkPostFile(uploadFiles);
+
+            FileUploadListener fileUploadListener = null;
+            long totalBytes = 0L;
+            long readBytes = 0L;
+            //统计总字节数，供普通上传监听器用
+            if(uploadListener != null) {
+                for (Map.Entry<String, File> entry : uploadFiles.entrySet()) {
+                    totalBytes += entry.getValue().length();
+                }
+                //转为FileUploadListener
+                if(uploadListener instanceof FileUploadListener) {
+                    fileUploadListener = (FileUploadListener) uploadListener;
+                }
+            }
+
+            int loopCount = 1;
+            for (Map.Entry<String, File> entry : uploadFiles.entrySet()) {
+                //单个文件的输出（上传）
+                long singleReadBytes = writeSingleFile(loopCount, dos, entry.getKey(), entry.getValue(), fileUploadListener, totalBytes, readBytes);
+                if(uploadListener != null) {
+                    readBytes += singleReadBytes;
+                    if(fileUploadListener != null) {
+                        fileUploadListener.onFilesUploading(uploadFiles.size(), loopCount);
+                    }
+                }
+                loopCount++;
+            }//end of for
+            //上传完成的回调
+            if(uploadListener!=null) {
+                uploadListener.onCompleted(uploadFiles);
+            }
+        }catch (IOException e){
+            if(uploadListener!=null) {
+                uploadListener.onError(e);
+            }
+            throw e;
+        }
+    }//end of writeFiles()
+
+    /**
+     * 对单个文件的输出操作
+     * @param no 循环的第几个文件
+     * @param dos 数据输出流
+     * @param key 元信息里的name的值
+     * @param file 要输出的文件
+     */
+    private long writeSingleFile(int no, DataOutputStream dos, String key, File file, FileUploadListener fileUploadListener, long totalBytes, long readBytes)
+            throws IOException
+    {
+        String headParams = TOW_HYPHENS + BOUNDARY + NEWLINE +
+                "Accept-Encoding: gzip" +
+                NEWLINE +
+                "Content-Length:" + file.length() +
+                NEWLINE +
+                "Content-Disposition: form-data; name=\"" + key + "\"; filename=\"" + file.getName() + "\"" +
+                NEWLINE +
+                "Content-Type:" +
+                getContentTypeByFile(file) +
+                NEWLINE +
+                "content-transfer-encoding: binary" +
+                NEWLINE +
+                NEWLINE;// 参数头设置完以后需要两个换行，然后才是参数内容
+        dos.writeBytes(headParams);
+
+        FileInputStream fis = new FileInputStream(file);
+        int len;
+        long readLength = 0L;//已经读取的长度
+        long fileLength = file.length();//文件总长度
+        //确定上传文件缓冲区的大小
+        byte[] buffer = new byte[getFileBufferSize(file.length())];
+        //开始上传
+        while ((len = fis.read(buffer)) != -1) {
+            dos.write(buffer, 0, len);
+            if(uploadListener!=null) {
+                readLength += len;
+                int totalProgress = (int) ((readBytes / totalBytes) * 100);
+                if(fileUploadListener != null) { //针对单个上传文件
+                    int fileProgress = (int) (100L * readLength / fileLength);
+                    fileUploadListener.onSingleUploading(no, file, fileLength, readLength, fileProgress);
+                }
+                //总进度的回调
+                uploadListener.onUploading(totalBytes,(readBytes + readLength),totalProgress);
+            }
+        }
+        dos.writeBytes(NEWLINE);
+        dos.flush();
+        return readLength;
+    }
+
+    //==================================================================================================================
 
     /**
      * 文件输出时判断Content-Type，这里仅用在输出的元信息里
@@ -355,11 +437,329 @@ public abstract class AbstractHttpBase {
     }
 
     /**
-     * 检查get方法下的参数是否正确
+     * 获取默认User-Agent
      */
-    protected boolean checkParamsByGet(String params) {
-        String regex="((\\w+={0,1})(\\w*)&{0,1})+";
-        return Pattern.matches(regex,params);
+    public String getDefaultUserAgent() {
+        return PresetUserAgent.UA_CHROME66_MAC;
+    }
+
+    /**
+     * 获取当前设置的编码字符集
+     */
+    public String getCharset() {
+        return requestInfo.getCharset();
+    }
+
+    /**
+     * 获取当前设置的userAgent
+     */
+    public String getUserAgent() {
+        return requestInfo.getUserAgent();
+    }
+
+    /**
+     * 获取自定义请求头参数
+     */
+    public Map<String, String> getRequestHeaders() {
+        return requestInfo.getRequestHeaders();
+    }
+
+    /**
+     * 检查当前设置的followRedirects参数情况
+     * 参数含义：是否关闭重定向以获取跳转后的真实地址
+     */
+    public boolean isFollowRedirects() {
+        return requestInfo.isFollowRedirects();
+    }
+
+    /**
+     * 清除所有监听器
+     */
+    public void clearListeners() {
+        downloadListener = null;
+        uploadListener = null;
+        responseSuccessHandler = null;
+        responseFailureHandler = null;
+        executeErrorHandler = null;
+    }
+
+    /**
+     * 获取当前设置的 上传文件缓冲区大小 如果为空则取默认值
+     * @param fileLength 文件总长度，单位是byte
+     */
+    public int getFileBufferSize(long fileLength) {
+        if (requestInfo.getFileBufferSize() == null || requestInfo.getFileBufferSize() == 0) {
+            setDefaultBufferSize(fileLength);
+        }
+        return requestInfo.getFileBufferSize();
+    }
+
+    public int getFileBufferSize() {
+        if(requestInfo.getFileBufferSize()==null || requestInfo.getFileBufferSize()==0) {
+            setDefaultBufferSize();
+        }
+        return requestInfo.getFileBufferSize();
+    }
+
+    /**
+     * 根据文件大小调整缓冲区的大小
+     * @param fileLength 文件总长度，单位是byte
+     */
+    public void setDefaultBufferSize(long fileLength) {
+        if (fileLength <= (1024 * 1024)) {
+            requestInfo.setFileBufferSize(1024);
+        }
+        else if (fileLength <= (1024 * 1024 * 10)) {
+            requestInfo.setFileBufferSize(4096);
+        }
+        else {
+            requestInfo.setFileBufferSize(1024 * 1024);
+        }
+    }
+
+    public void setDefaultBufferSize() {
+        requestInfo.setFileBufferSize(1024);
+    }
+
+    /**
+     * 获取下载文件的全路径
+     */
+    public String getDownloadFilePath() {
+        return requestInfo.getDownloadFilePath();
+    }
+
+    /**
+     * 重置各项配置
+     */
+    public void reset() {
+        requestInfo = new RequestInfo();
+        requestContent = null;
+        uploadFiles = null;
+        sslContextInitializer = SSLContextInitializer.DEFAULT;
+        trustManagers = new TrustManager[]{new AllTrustX509TrustManager()};
+        clearListeners();
+    }
+
+    public RequestInfo getRequestInfo() {
+        return requestInfo;
+    }
+
+    public void setRequestInfo(RequestInfo requestInfo) {
+        this.requestInfo = requestInfo;
+    }
+
+    public TrustManager[] getTrustManagers() {
+        return trustManagers;
+    }
+
+    /**
+     * 下载时自动生成文件后缀（根据contentType进行截取）
+     * @param downloadAutoExtension 为true代表会自动生成（默认值为false）
+     */
+    public AbstractHttpBase setDownloadAutoExtension(boolean downloadAutoExtension) {
+        requestInfo.setDownloadAutoExtension(downloadAutoExtension);
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setTrustManagers(TrustManager... trustManagers) {
+        this.trustManagers = trustManagers;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setSSLContextInitializer(SSLContextInitializer sslContextInitializer) {
+        this.sslContextInitializer = sslContextInitializer;
+        return this;
+    }
+
+    public SSLContextInitializer getSslContextInitializer() {
+        return sslContextInitializer;
+    }
+
+    @Override
+    public AbstractHttpBase setUploadListener(UploadListener uploadListener) {
+        this.uploadListener = uploadListener;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setDownloadListener(DownloadListener downloadListener) {
+        this.downloadListener = downloadListener;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        this.responseSuccessHandler = responseSuccessHandler;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        this.responseFailureHandler = responseFailureHandler;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        this.executeErrorHandler = executeErrorHandler;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        this.startExecuteListener = startExecuteListener;
+        return this;
+    }
+
+    @Override
+    public AbstractHttpBase setResponseDataMode(ResponseDataMode responseDataMode) {
+        requestInfo.setResponseDataMode(responseDataMode);
+        return this;
+    }
+
+    //==================================================================================================================
+
+    /**
+     * 检查上传的文件，有问题就抛异常
+     */
+    protected void checkPostFile(Map<String,File> files) throws IllegalArgumentException{
+        for( Map.Entry<String,File> entry : files.entrySet() ) {
+            if( !entry.getValue().exists() || entry.getValue().isDirectory()) {
+                throw new IllegalArgumentException("file not exists or is a directory which key is ["+entry.getKey()+"]");
+            }
+        }
+    }
+
+    /**
+     * 设置http和https连接共通的部分
+     * @param conn http或https连接对象
+     * @param contentType 请求头的contentType
+     * @param httpMethod get请求还是post请求
+     */
+    protected void setCommonConnectionData(HttpURLConnection conn, String contentType, HttpMethod httpMethod) throws ProtocolException {
+        conn.setRequestMethod(httpMethod.value);//设置连接方法
+        conn.setInstanceFollowRedirects(requestInfo.isFollowRedirects());//是否关闭重定向以获取跳转后的真实地址
+        //设置共通的头信息，以及输出请求参数
+        conn.setConnectTimeout(1000 * 10);//设置连接超时的时间(毫秒)
+        conn.setReadTimeout(1000 * 60);
+        conn.setDoInput(true);//设置连接打开输入流
+        if(httpMethod == HttpMethod.POST) {
+            conn.setDoOutput(true);//设置连接打开输出
+        }
+        conn.setRequestProperty("Accept-Encoding", "gzip,deflate");//告诉服务器支持gzip压缩
+        conn.setRequestProperty("Accept-Charset", requestInfo.getCharset());
+        conn.setRequestProperty("Charset", requestInfo.getCharset());
+        //设置contentType
+        if(contentType != null) {
+            conn.setRequestProperty("Content-Type", contentType);//可被后面的headerParam覆盖
+        }
+        //设置user-agent，默认user-agent是Mac系统上66版的chrome浏览器
+        if(requestInfo.getUserAgent() != null && (!"".equals(requestInfo.getUserAgent()))) {
+            conn.setRequestProperty("User-Agent", requestInfo.getUserAgent());
+        }
+        //设置自定义头部参数
+        if(requestInfo.getRequestHeaders() != null && requestInfo.getRequestHeaders().size() > 0) {
+            for (Map.Entry<String, String> entry : requestInfo.getRequestHeaders().entrySet()) {
+                conn.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    /**
+     * 输出请求内容（请求体）
+     * @param conn 连接对象
+     * @param httpMethod 请求方法（GET还是POST）
+     * @param requestContent 请求内容
+     * @throws IOException 输出异常
+     */
+    protected void outputRequestContent(HttpURLConnection conn, HttpMethod httpMethod, RequestContent requestContent) throws IOException {
+        if(httpMethod == HttpMethod.GET || requestContent == null) {
+            return;
+        }
+        OutputStream out = conn.getOutputStream();
+        String outputContent = null;
+        switch (requestContent.getMode()) {
+            case FORM:
+                outputContent = setContentForPost(requestContent.getFormContent());
+                break;
+            case TEXT_JSON:
+            case TEXT_XML:
+            case TEXT_PLAIN:
+                outputContent = requestContent.getStrContent();
+                break;
+        }
+        if(outputContent != null) {
+            out.write(outputContent.getBytes(requestInfo.getCharset()));//将数据输出
+            out.close();
+        }
+    }
+
+    /**
+     * 依据返回的状态码进行处理
+     */
+    protected ResponseResult handleResponse(ResponseResult result, int responseCode, ResponseDataMode responseDataMode, InputStream in, long contentLength, String contentType, String encoding) throws IOException {
+        if(responseCode >= 200 && responseCode < 300) {
+            handleSuccess(result, responseDataMode, in, contentLength, contentType, encoding);
+            //成功后的响应回调
+            if(responseSuccessHandler != null) {
+                responseSuccessHandler.handle(responseCode,result);
+            }
+        }
+        else {
+            //失败后的响应回调
+            if(responseFailureHandler != null) {
+                responseFailureHandler.handle(responseCode,result);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 响应成功时的处理（响应码:2xx）
+     */
+    protected void handleSuccess(ResponseResult result, ResponseDataMode responseDataMode, InputStream in, long contentLength, String contentType, String encoding)
+            throws IOException
+    {
+        if(responseDataMode == ResponseDataMode.DOWNLOAD_FILE) {
+            if(requestInfo.getDownloadFilePath()==null || "".equals(requestInfo.getDownloadFilePath())) {
+                throw new IOException("argument [downloadFilePath] not set!");
+            }
+            downloadFile(requestInfo.getDownloadFilePath(),in,contentLength,contentType,result);
+            return;
+        }
+        else if(responseDataMode == ResponseDataMode.STREAM_ONLY) {
+            result.setResponseStream(in);
+            return;
+        }
+        else if(responseDataMode == ResponseDataMode.NONE) {
+            return;
+        }
+
+        String responseStrData;
+        //解读响应的输入流
+        if(encoding!=null && encoding.equalsIgnoreCase("gzip")) {//响应体是否为gzip压缩
+            responseStrData = StreamParser.readStreamFromGZIP(in);
+        }
+        else {
+            responseStrData = StreamParser.readStream(in);
+        }
+        result.setData(responseStrData);
+    }
+
+    /**
+     * 创建SSLSocket工厂以用于HTTPS连接
+     */
+    protected SSLSocketFactory createSSLSocketFactory()
+            throws Exception
+    {
+        if(sslContextInitializer == null) {
+            sslContextInitializer = SSLContextInitializer.DEFAULT;
+        }
+        SSLContext sslContext = sslContextInitializer.build(trustManagers);
+        //从上述SSLContext对象中得到SSLSocketFactory对象
+        return sslContext.getSocketFactory();
     }
 
     /**
@@ -381,9 +781,93 @@ public abstract class AbstractHttpBase {
     }
 
     /**
+     * 准备最终的url
+     * @param urlPath 原始传入的url
+     * @param httpMethod http方法（get还是post）
+     * @param content 请求内容
+     * @return 最终连接用的url
+     */
+    protected String prepareFinalUrl(String urlPath, HttpMethod httpMethod, RequestContent content) {
+        String currentUrl = urlPath;
+        if(content == null || httpMethod == HttpMethod.POST) {
+            return currentUrl;
+        }
+        RequestDataMode dataMode = content.getMode();
+        //为get方法拼接参数
+        if(dataMode == RequestDataMode.FORM) {
+            currentUrl = setUrlByGet(urlPath, content.getFormContent());
+        }
+        else if(dataMode == RequestDataMode.TEXT_PLAIN) {
+            checkParamsByGet(content.getStrContent());
+            currentUrl += ("?" + content.getStrContent());
+        }
+        else {
+            throw new IllegalArgumentException("Wrong requestDataMode when using GET method! requestDataMode: [" + dataMode.name() + "]");
+        }
+        return currentUrl;
+    }
+
+    /**
+     * 检查get方法下的参数是否正确
+     */
+    private void checkParamsByGet(String params) throws IllegalArgumentException {
+        String regex="((\\w+=?)(\\w*)&?)+";
+        if(!Pattern.matches(regex,params)) {
+            throw new IllegalArgumentException("Wrong request params when using GET method");
+        }
+    }
+
+    /**
+     * 为get方法准备好带参的url地址
+     * @param address 地址
+     * @param params 参数
+     * @return 一拼接好的地址字符串
+     */
+    private String setUrlByGet(String address, Map<String,String> params)
+    {
+        if(params==null) {
+            return address;
+        }
+
+        String url=address+"?";
+        StringBuilder temp=new StringBuilder();
+        for(Map.Entry<String,String> p : params.entrySet()) {
+            temp.append(replaceSpecialChar(p.getKey()));
+            temp.append("=");
+            temp.append(replaceSpecialChar(p.getValue()));
+            temp.append("&");
+        }
+        url += temp.substring(0, (temp.length() - 1));
+        return url;
+    }
+
+    /**
+     * 将参数对象转换成适应post提交的字符串
+     * @param params 需要传递的参数
+     * @return 已经转换适成应post提交的字符串
+     */
+    protected String setContentForPost(Map<String,String> params)
+    {
+        if(params==null) {
+            throw new IllegalArgumentException("params is null");
+        }
+
+        StringBuilder temp=new StringBuilder();
+        String postData;
+        for(Map.Entry<String,String> p : params.entrySet()) {
+            temp.append(replaceSpecialChar(p.getKey()));
+            temp.append("=");
+            temp.append(replaceSpecialChar(p.getValue()));
+            temp.append("&");
+        }
+        postData = temp.substring(0, temp.length() - 1);
+        return postData;
+    }
+
+    /**
      * 替换参数中的特殊字符
      */
-    protected String replaceSpecialChar(String s) {
+    private String replaceSpecialChar(String s) {
         String rslt=s;
         if(rslt.contains("+"))
             rslt=rslt.replace("+","%2B");
@@ -403,34 +887,5 @@ public abstract class AbstractHttpBase {
             rslt=rslt.replace("#","%23");
         return rslt;
     }
-
-    //原始不用到第三方组件版：文件输出时判断Content-Type
-//    protected String getContentTypeForFile(File file) throws Exception{
-//        String streamContentType = "application/octet-stream";
-//        String imageContentType = "";
-//        ImageInputStream image = null;
-//        try {
-//            image = ImageIO.createImageInputStream(file);
-//            if (image == null) {
-//                return streamContentType;
-//            }
-//            Iterator<ImageReader> it = ImageIO.getImageReaders(image);
-//            if (it.hasNext()) {
-//                imageContentType = "image/" + it.next().getFormatName();
-//                return imageContentType;
-//            }
-//        } catch (IOException e) {
-//            throw new Exception(e);
-//        } finally {
-//            try{
-//                if (image != null) {
-//                    image.close();
-//                }
-//            }catch(IOException e){
-//                throw new Exception(e);
-//            }
-//        }
-//        return streamContentType;
-//    }
 
 }

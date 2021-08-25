@@ -225,7 +225,8 @@ public class ThreadLocalCleaner implements AutoCloseable{
 
     private static void forEach(
             Thread thread, Field field,
-            BiConsumer<ThreadLocal<?>, Object> consumer) {
+            BiConsumer<ThreadLocal<?>, Object> consumer)
+    {
         try {
             Object threadLocals = field.get(thread);
             if (threadLocals != null) {

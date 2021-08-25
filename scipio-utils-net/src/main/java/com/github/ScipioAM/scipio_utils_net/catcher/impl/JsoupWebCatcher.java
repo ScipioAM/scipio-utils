@@ -4,7 +4,7 @@ import com.github.ScipioAM.scipio_utils_net.catcher.CatchListener;
 import com.github.ScipioAM.scipio_utils_net.catcher.IOListener;
 import com.github.ScipioAM.scipio_utils_net.catcher.WebCatcher;
 import com.github.ScipioAM.scipio_utils_net.catcher.bean.WebInfo;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseResult;
+import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 

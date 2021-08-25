@@ -8,7 +8,7 @@ import java.security.cert.X509Certificate;
  * @author Alan Min
  * @date 2018/4/16
  */
-public class EmptyX509TrustManager implements X509TrustManager {
+public class AllTrustX509TrustManager implements X509TrustManager {
 
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {

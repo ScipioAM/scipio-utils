@@ -1,15 +1,13 @@
 package com.github.ScipioAM.scipio_utils_net.http;
 
-import com.github.ScipioAM.scipio_utils_net.http.common.*;
-import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.ResponseListener;
-import com.github.ScipioAM.scipio_utils_net.http.listener.UploadListener;
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
+import com.github.ScipioAM.scipio_utils_net.http.bean.RequestContent;
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
+import com.github.ScipioAM.scipio_utils_net.http.listener.*;
 
+import javax.net.ssl.TrustManager;
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.SocketAddress;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,149 +18,70 @@ import java.util.Map;
  */
 public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
 
-    /**
-     * 请求时发送的数据（为空则不发送）
-     * 为json或xml的string字符串，或者HashMap形式的字符串键值对
-     */
-    private Object requestData;
-    /**
-     * 请求时上传的文件
-     * 单个上传时为File对象，多个上传时为HashMap<String,File>键值对
-     */
-    private Object requestFile;
-    /**
-     * HTTP请求方法
-     */
-    private RequestDataMode requestDataMode = RequestDataMode.DEFAULT;
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * GET请求
-     * @param urlPath url路径
-     * @param responseDataMode 接收响应数据的模式
-     * @return 响应数据
-     */
-    public ResponseResult get(String urlPath, ResponseDataMode responseDataMode) {
-        ResponseResult response;
-        try {
-            response = doRequest(urlPath, RequestMethod.GET,requestDataMode,responseDataMode,requestData);
-        }catch (Exception e) {
-            if(responseListener!=null)
-                responseListener.onError(e);
-            response = new ResponseResult(-1);
+    @Override
+    public HttpUtil setRequestJson(String content) {
+        if(requestContent == null) {
+            requestContent = new RequestContent();
         }
-        return response;
+        requestContent.setJsonContent(content);
+        return this;
     }
 
-    /**
-     * GET请求（默认传参，默认响应）
-     */
     @Override
-    public ResponseResult get(String urlPath){
-        return get(urlPath, ResponseDataMode.DEFAULT);
-    }
-
-    /**
-     * POST请求
-     * @param urlPath url路径
-     * @param responseDataMode 接收响应数据的模式
-     * @return 响应数据
-     */
-    public ResponseResult post(String urlPath, ResponseDataMode responseDataMode) {
-        ResponseResult response;
-        try {
-            response = doRequest(urlPath, RequestMethod.POST,requestDataMode,responseDataMode,requestData);
-        }catch (Exception e) {
-            if(responseListener!=null)
-                responseListener.onError(e);
-            response = new ResponseResult(-1);
+    public HttpUtil setRequestXml(String content) {
+        if(requestContent == null) {
+            requestContent = new RequestContent();
         }
-        return response;
+        requestContent.setXmlContent(content);
+        return this;
     }
 
-    /**
-     * POST请求（默认传参，默认响应）
-     */
     @Override
-    public ResponseResult post(String urlPath) {
-        return post(urlPath, ResponseDataMode.DEFAULT);
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * POST请求
-     * @param urlPath url路径
-     * @param responseDataMode 接收响应数据的模式
-     * @return 响应数据
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public ResponseResult postFile(String urlPath, ResponseDataMode responseDataMode) {
-        ResponseResult response;
-        try {
-            if(requestData instanceof HashMap)
-                response = doFileRequest(urlPath, (HashMap<String,String>)requestData,requestFile,responseDataMode);
-            else
-                response = doFileRequest(urlPath, null,requestFile,responseDataMode);
-        }catch (Exception e) {
-            if(responseListener!=null)
-                responseListener.onError(e);
-            response = new ResponseResult(-1);
+    public HttpUtil setRequestForm(Map<String,String> content) {
+        if(requestContent == null) {
+            requestContent = new RequestContent();
         }
-        return response;
+        requestContent.setFormContent(content);
+        return this;
     }
+
+    public HttpUtil addRequestForm(String key, String value) {
+        if(requestContent == null) {
+            requestContent = new RequestContent();
+        }
+        requestContent.addFormContent(key, value);
+        return this;
+    }
+
+    @Override
+    public HttpUtil setRequestText(String content) {
+        if(requestContent == null) {
+            requestContent = new RequestContent();
+        }
+        requestContent.setTextContent(content);
+        return this;
+    }
+
+    @Override
+    public HttpUtil setUploadFile(Map<String,File> uploadFiles) {
+        this.uploadFiles = uploadFiles;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setResponseDataMode(ResponseDataMode responseDataMode) {
+        requestInfo.setResponseDataMode(responseDataMode);
+        return this;
+    }
+
+    //==================================================================================================================
 
     /**
-     * POST请求（默认传参）
+     * 设置请求和响应的编码字符集
      */
-    public ResponseResult postFile(String urlPath) {
-        return postFile(urlPath, ResponseDataMode.DEFAULT);
-    }
-
-    //----------------------------------------------------------------------------------------------
-
     @Override
-    public HttpUtil setRequestJsonData(String requestData) {
-        this.requestData = requestData;
-        this.requestDataMode = RequestDataMode.JSON;
-        return this;
-    }
-
-    @Override
-    public HttpUtil setRequestXmlData(String requestData) {
-        this.requestData = requestData;
-        this.requestDataMode = RequestDataMode.XML;
-        return this;
-    }
-
-    @Override
-    public HttpUtil setRequestFormData(Map<String,String> requestData) {
-        this.requestData = ((requestData instanceof HashMap) ? requestData : new HashMap<>(requestData));
-        this.requestDataMode = RequestDataMode.DEFAULT;
-        return this;
-    }
-
-    @Override
-    public HttpUtil setRequestFile(File requestFile) {
-        this.requestFile = requestFile;
-        return this;
-    }
-
-    @Override
-    public HttpUtil setRequestFile(Map<String,File> requestFile) {
-        this.requestFile = ((requestFile instanceof HashMap) ? requestFile : new HashMap<>(requestFile));
-        return this;
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * 设置请求头的编码字符集
-     */
     public HttpUtil setCharset(String charset) {
-        this.charset = charset;
+        requestInfo.setCharset(charset);
         return this;
     }
 
@@ -179,7 +98,7 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
             System.getProperties().remove("https.proxyPort");
         }
         else {
-            proxy = null;
+            requestInfo.setProxy(null);
         }
         return this;
     }
@@ -200,7 +119,7 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
         }
         else {
             SocketAddress sa = new InetSocketAddress(host,Integer.parseInt(port));
-            proxy = new Proxy(Proxy.Type.HTTP,sa);
+            requestInfo.setProxy(new Proxy(Proxy.Type.HTTP,sa));
         }
         return this;
     }
@@ -220,8 +139,9 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
     /**
      * 设置userAgent
      */
+    @Override
     public HttpUtil setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
+        requestInfo.setUserAgent(userAgent);
         return this;
     }
 
@@ -229,7 +149,7 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
      * 设置默认userAgent
      */
     public HttpUtil setDefaultUserAgent() {
-        this.userAgent = PresetUserAgent.UA_CHROME66_MAC;
+        requestInfo.setUserAgent(getDefaultUserAgent());
         return this;
     }
 
@@ -238,11 +158,16 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
      */
     @Override
     public HttpUtil setRequestHeader(Map<String, String> headers) {
-        if(this.reqHeaderParam==null) {
-            this.reqHeaderParam = headers;
+        requestInfo.setRequestHeaders(headers);
+        return this;
+    }
+
+    public HttpUtil addRequestHeader(Map<String,String> headers) {
+        if(requestInfo.getRequestHeaders()==null) {
+            requestInfo.setRequestHeaders(headers);
         }
         else {
-            this.reqHeaderParam.putAll(headers);
+            requestInfo.getRequestHeaders().putAll(headers);
         }
         return this;
     }
@@ -250,15 +175,14 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
     /**
      * 设置自定义请求头参数（仅一对数据）
      */
-    @Override
-    public HttpUtil setRequestHeader(String key, String value) {
+    public HttpUtil addRequestHeader(String key, String value) {
         if( key==null || "".equals(key) ) {
             return this;
         }
-        if(reqHeaderParam==null) {
-            reqHeaderParam = new HashMap<>();
+        if(requestInfo.getRequestHeaders()==null) {
+            requestInfo.setRequestHeaders(new HashMap<>());
         }
-        reqHeaderParam.put(key,value);
+        requestInfo.getRequestHeaders().put(key,value);
         return this;
     }
 
@@ -266,69 +190,103 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
      * 设置followRedirects参数
      * 参数含义：是否关闭重定向以获取跳转后的真实地址
      */
+    @Override
     public HttpUtil setFollowRedirects(boolean followRedirects) {
-        isFollowRedirects = followRedirects;
+        requestInfo.setFollowRedirects(followRedirects);
         return this;
     }
 
-    /**
-     * 设置响应监听器
-     */
-    public HttpUtil setResponseListener(ResponseListener responseListener) {
-        this.responseListener = responseListener;
+    @Override
+    public HttpUtil setResponseSuccessHandler(ResponseSuccessHandler responseSuccessHandler) {
+        this.responseSuccessHandler = responseSuccessHandler;
         return this;
     }
 
-    /**
-     * 设置上传监听器
-     */
+    @Override
+    public HttpUtil setResponseFailureHandler(ResponseFailureHandler responseFailureHandler) {
+        this.responseFailureHandler = responseFailureHandler;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setExecuteErrorHandler(ExecuteErrorHandler executeErrorHandler) {
+        this.executeErrorHandler = executeErrorHandler;
+        return this;
+    }
+
+    @Override
     public HttpUtil setUploadListener(UploadListener uploadListener) {
         this.uploadListener = uploadListener;
         return this;
     }
 
-    /**
-     * 设置下载监听器
-     */
+    @Override
     public HttpUtil setDownloadListener(DownloadListener downloadListener) {
         this.downloadListener = downloadListener;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setStartExecuteListener(StartExecuteListener startExecuteListener) {
+        this.startExecuteListener = startExecuteListener;
         return this;
     }
 
     /**
      * 设置上传文件缓冲区大小
      */
+    @Override
     public HttpUtil setFileBufferSize(Integer fileBufferSize) {
-        this.fileBufferSize = fileBufferSize;
+        requestInfo.setFileBufferSize(fileBufferSize);
         return this;
     }
 
     /**
      * 设置下载文件的全路径
      */
+    @Override
     public HttpUtil setDownloadFilePath(String downloadFilePath) {
-        this.downloadFilePath = downloadFilePath;
+        requestInfo.setDownloadFilePath(downloadFilePath);
+        if(StringUtil.isNotNull(downloadFilePath)) {
+            requestInfo.setResponseDataMode(ResponseDataMode.DOWNLOAD_FILE);
+        }
         return this;
     }
 
-    //----------------------------------------------------------------------------------------------
+    /**
+     * 下载时自动生成文件后缀（根据contentType进行截取）
+     * @param downloadAutoExtension 为true代表会自动生成（默认值为false）
+     */
+    @Override
+    public HttpUtil setDownloadAutoExtension(boolean downloadAutoExtension) {
+        super.setDownloadAutoExtension(downloadAutoExtension);
+        return this;
+    }
+
+    @Override
+    public HttpUtil setTrustManagers(TrustManager... trustManagers) {
+        super.trustManagers = trustManagers;
+        return this;
+    }
+
+    @Override
+    public HttpUtil setSSLContextInitializer(SSLContextInitializer sslContextInitializer) {
+        super.sslContextInitializer = sslContextInitializer;
+        return this;
+    }
+
+    //==================================================================================================================
 
     /**
      * 设置对响应结果的测试处理
      */
-    public void enableHandleResponseForTest()
+    public void setHandleResponseForTest()
     {
-        setResponseListener(new ResponseListener() {
-            //成功时的处理
-            @Override
-            public void onSuccess(int responseCode, URLConnection conn) {
-                System.out.println("=============== http request success:"+responseCode+" ===============");
-            }
-            //失败时的处理
-            @Override
-            public void onFailure(int responseCode, URLConnection conn) {
-                switch (responseCode)
-                {
+        setResponseSuccessHandler((responseCode, result) ->
+                System.out.println("=============== http request success:"+responseCode+" ===============")
+        );
+        setResponseFailureHandler((responseCode, result) -> {
+                switch (responseCode) {
                     case 400:
                         System.out.println("Error:400 bad request");
                     case 404:
@@ -338,13 +296,7 @@ public class HttpUtil extends AbstractHttpUtil implements IHttpRequester{
                     case 503:
                         System.out.println("Error:503 Server unavailable");
                     default:
-                        System.out.println("Error:response code "+responseCode);
-                }
-            }
-            //异常时的处理
-            @Override
-            public void onError(Exception e) {
-                e.printStackTrace();
+                        System.out.println("Error:response code " + responseCode);
             }
         });
     }

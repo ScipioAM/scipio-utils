@@ -1,10 +1,11 @@
-package com.github.ScipioAM.scipio_utils_net.http.common;
+package com.github.ScipioAM.scipio_utils_net.http.bean;
+
+import com.github.ScipioAM.scipio_utils_net.http.common.HttpMethod;
+import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,20 +16,29 @@ import java.util.Map;
  */
 public class ResponseResult {
 
+    //执行代码出现异常时的响应码
+    public static final int EXECUTE_ERR_CODE = -1;
+
+    private String requestUrl;
+
+    private HttpMethod httpMethod;
+
     //HTTP响应码，为-1则代表运行时抛了异常
     private Integer responseCode;
+
+    private ResponseDataMode dataMode;
 
     //响应数据
     private String data;
 
     //响应头
-    private Map<String, List<String>> headers;
+    private Map<String, String> headers;
 
-    //响应的字符编码
+    //响应的压缩编码
     private String contentEncoding;
 
     //响应的数据长度
-    private Integer contentLength;
+    private Long contentLength;
 
     //响应数据类型
     private String contentType;
@@ -51,7 +61,10 @@ public class ResponseResult {
     @Override
     public String toString() {
         return "ResponseResult{" +
-                "responseCode=" + responseCode +
+                "requestUrl='" + requestUrl + '\'' +
+                ", httpMethod=" + httpMethod +
+                ", responseCode=" + responseCode +
+                ", dataMode=" + dataMode +
                 ", data='" + data + '\'' +
                 ", headers=" + headers +
                 ", contentEncoding='" + contentEncoding + '\'' +
@@ -61,6 +74,30 @@ public class ResponseResult {
                 ", responseStream=" + responseStream +
                 ", errorMsg='" + errorMsg + '\'' +
                 '}';
+    }
+
+    public String getRequestUrl() {
+        return requestUrl;
+    }
+
+    public void setRequestUrl(String requestUrl) {
+        this.requestUrl = requestUrl;
+    }
+
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    public ResponseDataMode getDataMode() {
+        return dataMode;
+    }
+
+    public void setDataMode(ResponseDataMode dataMode) {
+        this.dataMode = dataMode;
     }
 
     public String getContentType() {
@@ -103,51 +140,26 @@ public class ResponseResult {
         this.data = data;
     }
 
-    public Map<String, List<String>> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, List<String>> headers) {
+    public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 
-    public List<String> getHeader(String key) {
+    public String getHeader(String key) {
         if(headers==null)
             return null;
 
         return headers.get(key);
     }
 
-    public String getOneHeader(String key) {
-        if(headers==null)
-            return null;
-
-        List<String> headerList = headers.get(key);
-        if(headerList!=null) {
-            return headerList.get(0);
-        }
-        else {
-            return null;
-        }
-    }
-
-    public void setHeader(String key, List<String> value) {
+    public void addHeader(String key, String value) {
         if(headers==null) {
             headers = new HashMap<>();
         }
         headers.put(key, value);
-    }
-
-    public void setHeader(String key, String value) {
-        if(headers==null) {
-            headers = new HashMap<>();
-        }
-        List<String> headerList = headers.get(key);
-        if(headerList==null) {
-            headerList = new ArrayList<>();
-        }
-        headerList.add(value);
-        headers.put(key, headerList);
     }
 
     public String getContentEncoding() {
@@ -158,11 +170,11 @@ public class ResponseResult {
         this.contentEncoding = contentEncoding;
     }
 
-    public Integer getContentLength() {
+    public Long getContentLength() {
         return contentLength;
     }
 
-    public void setContentLength(Integer contentLength) {
+    public void setContentLength(Long contentLength) {
         this.contentLength = contentLength;
     }
 
