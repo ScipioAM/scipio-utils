@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>scipio-utils</artifactId>
+        <groupId>com.github.ScipioAM</groupId>
+        <version>1.0.2-p2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>scipio-utils-pdf</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.ScipioAM</groupId>
+            <artifactId>scipio-utils-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-核心模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>kernel</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-io模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>io</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-布局模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-亚洲字体模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>font-asian</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-数字签名模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>sign</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-表格模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>forms</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- itext-条码模块 -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>barcodes</artifactId>
+            <version>${itext.version}</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>

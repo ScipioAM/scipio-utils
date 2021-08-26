@@ -6,7 +6,7 @@
 
     <groupId>com.github.ScipioAM</groupId>
     <artifactId>scipio-utils</artifactId>
-    <version>1.0.2-p1</version>
+    <version>1.0.2-p2</version>
     <modules>
         <module>scipio-utils-common</module>
         <module>scipio-utils-io</module>
@@ -14,6 +14,7 @@
         <module>scipio-utils-crypto</module>
         <module>scipio-utils-javafx</module>
         <module>scipio-utils-image</module>
+        <module>scipio-utils-pdf</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -53,10 +54,12 @@
         <dom4j.version>2.1.3</dom4j.version>
         <JMimeMagic.version>0.1.5</JMimeMagic.version>
         <jfoenix.version>8.0.10</jfoenix.version>
-        <bouncy-castle.version>1.68</bouncy-castle.version>
+        <bouncy-castle.version>1.69</bouncy-castle.version>
         <maven.model.version>3.8.2</maven.model.version>
         <jsoup.version>1.14.2</jsoup.version>
         <javax.mail.version>1.6.2</javax.mail.version>
+        <pdfbox.version>3.0.0-RC1</pdfbox.version>
+        <itext.version>7.1.16</itext.version>
     </properties>
 
     <dependencyManagement>
@@ -180,6 +183,22 @@
                 <groupId>com.sun.mail</groupId>
                 <artifactId>javax.mail</artifactId>
                 <version>${javax.mail.version}</version>
+            </dependency>
+
+            <!-- Apache PDFBox -->
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${pdfbox.version}</version>
+            </dependency>
+
+            <!-- ITextPDF Core -->
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>itext7-core</artifactId>
+                <version>${itext.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
