@@ -7,9 +7,11 @@ import org.jsoup.nodes.Element;
 
 /**
  * 针对Jsoup的抓取实现
- * @author Alan Min
- * @since 2021/6/9
+ * @author Alan Scipio
+ * @since 1.0.0
+ * @date 2021/6/9
  */
+@FunctionalInterface
 public interface JsoupCatchListener extends CatchListener {
 
     /**
@@ -29,7 +31,7 @@ public interface JsoupCatchListener extends CatchListener {
             webInfo.setWebTitle(title);
         }
         else {
-            System.out.println("<title> tag is missing");
+            System.out.println("Html tag <title> is missing");
         }
         //自定义抓取逻辑
         System.out.println("start to do catch job with jsoup");

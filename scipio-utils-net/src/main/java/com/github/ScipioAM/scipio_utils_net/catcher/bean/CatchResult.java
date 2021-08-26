@@ -4,8 +4,9 @@ import java.util.*;
 
 /**
  * 网页抓取结果集
- * @author alan scipio
- * @since 2021/6/9
+ * @author Alan Scipio
+ * @since 1.0.0
+ * @date 2021/6/9
  */
 public class CatchResult {
 
