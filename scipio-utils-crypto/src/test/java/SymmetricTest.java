@@ -1,6 +1,6 @@
 import com.github.ScipioAM.scipio_utils_crypto.CryptoUtil;
 import com.github.ScipioAM.scipio_utils_crypto.mode.SCAlgorithm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Class: SymmetricTest

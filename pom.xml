@@ -46,17 +46,16 @@
 
         <google.libraries.version>20.6.0</google.libraries.version>
 
-        <junit.version>4.11</junit.version>
-        <gson.version>2.8.5</gson.version>
-        <zxing.version>3.4.0</zxing.version>
-        <xstream.version>1.4.12</xstream.version>
-        <dom4j.version>2.1.1</dom4j.version>
+        <junit.version>5.8.0-RC1</junit.version>
+        <gson.version>2.8.8</gson.version>
+        <zxing.version>3.4.1</zxing.version>
+        <xstream.version>1.4.18</xstream.version>
+        <dom4j.version>2.1.3</dom4j.version>
         <JMimeMagic.version>0.1.5</JMimeMagic.version>
-        <jetbrains.anno.version>19.0.0</jetbrains.anno.version>
         <jfoenix.version>8.0.10</jfoenix.version>
         <bouncy-castle.version>1.68</bouncy-castle.version>
-        <maven.model.version>3.6.3</maven.model.version>
-        <jsoup.version>1.13.1</jsoup.version>
+        <maven.model.version>3.8.2</maven.model.version>
+        <jsoup.version>1.14.2</jsoup.version>
         <javax.mail.version>1.6.2</javax.mail.version>
     </properties>
 
@@ -80,8 +79,8 @@
 
             <!--junit-->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -120,12 +119,6 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>${jetbrains.anno.version}</version>
-                <scope>compile</scope>
             </dependency>
 
             <!--Google的二维码工具ZXing(已统一管理，不再单独引入)-->
@@ -181,7 +174,21 @@
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
             </dependency>
+
+            <!-- Javax.Mail -->
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${javax.mail.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

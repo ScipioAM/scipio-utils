@@ -2,7 +2,7 @@ import com.github.ScipioAM.scipio_utils_javafx.register.ActiveCode;
 import com.github.ScipioAM.scipio_utils_javafx.register.RegisterMode;
 import com.github.ScipioAM.scipio_utils_javafx.register.RegisterService;
 import com.github.ScipioAM.scipio_utils_javafx.register.RegisterServiceImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * 测试注册相关功能

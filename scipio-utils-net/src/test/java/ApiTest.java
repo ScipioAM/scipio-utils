@@ -2,7 +2,7 @@ import com.github.ScipioAM.scipio_utils_net.api_lib.ApiComResponse;
 import com.github.ScipioAM.scipio_utils_net.api_lib.ApiUtil;
 import com.github.ScipioAM.scipio_utils_net.api_lib.virus_total.VTApiUtil;
 import com.github.ScipioAM.scipio_utils_net.api_lib.virus_total.bean.VTApiResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashMap;

@@ -4,7 +4,7 @@ import com.github.ScipioAM.scipio_utils_net.catcher.impl.JsoupCatchListener;
 import com.github.ScipioAM.scipio_utils_net.catcher.impl.JsoupWebCatcher;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public class CatcherTest {
             throw new RuntimeException("catch empty for <div class='reader-txt'>");
         }
         Elements pTagList = textContainer.getElementsByTag("p");
-        if(pTagList==null || pTagList.size()<=0) {
+        if(pTagList.size()<=0) {
             throw new RuntimeException("catch empty for p tag");
         }
 
