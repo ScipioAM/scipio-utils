@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_pdf.listener;
+package com.github.ScipioAM.scipio_utils_doc.listener;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -12,6 +12,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 @FunctionalInterface
 public interface PdfboxPageHandler {
 
-    void onEveryPage(PDDocument document, PDPage page, int pageIndex) throws Exception;
+    void onEveryPage(PDDocument document, PDPage page, int pageIndex, int totalPages) throws Exception;
 
 }
