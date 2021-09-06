@@ -1,16 +1,8 @@
 import com.github.ScipioAM.scipio_utils_common.os.WindowsCmd;
-import com.github.ScipioAM.scipio_utils_common.os.constants.WinServiceType;
+import com.github.ScipioAM.scipio_utils_common.os.WindowsService;
+import com.github.ScipioAM.scipio_utils_common.os.bean.WinServiceResult;
 import org.junit.jupiter.api.Test;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-/**
- * Class: StringTest
- * Description:
- * Author: Alan Min
- * Create Date: 2020/10/4
- */
 public class StringTest {
 
     @Test
@@ -25,10 +17,11 @@ public class StringTest {
     @Test
     public void test1()
     {
-        String str = "        TYPE               : e0  USER_SHARE_PROCESS INSTANCE";
+        String str = "redis";
 
-        WinServiceType serviceType = WinServiceType.analyze(str);
-        System.out.println(serviceType);
+        WindowsService service = WindowsService.newInstance();
+        WinServiceResult status = service.start(str);
+        System.out.println(status);
     }
 
 }

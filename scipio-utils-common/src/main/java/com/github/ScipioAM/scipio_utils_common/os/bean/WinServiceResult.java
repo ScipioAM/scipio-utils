@@ -3,23 +3,26 @@ package com.github.ScipioAM.scipio_utils_common.os.bean;
 import com.github.ScipioAM.scipio_utils_common.os.constants.WinServiceType;
 
 /**
- * Windows Service的状态
+ * sc命令执行后的结果或service当前状态
  * @author Alan Scipio
  * @since 1.0.2-p3
  * @date 2021/9/1
  */
-public class WinServiceStatus {
+public class WinServiceResult {
 
     /** cmd里反馈执行是否成功 */
     private Boolean execSuccess;
 
-    /** cmd里反馈的错误信息 */
-    private String errorMsg;
+    /** cmd里原始输出的信息 */
+    private String originalMsg;
 
+    /** 服务名 */
     private String serviceName;
 
+    /** 服务类型 */
     private WinServiceType serviceType;
 
+    /** 服务当前状态 */
     private WinServiceRunState state;
 
     private Integer win32ExitCode;
@@ -30,14 +33,22 @@ public class WinServiceStatus {
 
     private Integer waitHint;
 
-    //==================================================================================================================
+    /** 服务运行时的进程id */
+    private Integer pid;
 
+    /** 服务的sid */
+    private String sid;
+
+    /** 备注 */
+    private String remarks;
+
+    //==================================================================================================================
 
     @Override
     public String toString() {
         return "WinServiceStatus{" +
                 "execSuccess=" + execSuccess +
-                ", errorMsg='" + errorMsg + '\'' +
+                ", originalMsg='" + originalMsg + '\'' +
                 ", serviceName='" + serviceName + '\'' +
                 ", serviceType=" + serviceType +
                 ", state=" + state +
@@ -45,6 +56,9 @@ public class WinServiceStatus {
                 ", serviceExitCode=" + serviceExitCode +
                 ", checkPoint=" + checkPoint +
                 ", waitHint=" + waitHint +
+                ", pid=" + pid +
+                ", sid='" + sid + '\'' +
+                ", remarks='" + remarks + '\'' +
                 '}';
     }
 
@@ -54,14 +68,6 @@ public class WinServiceStatus {
 
     public void setExecSuccess(Boolean execSuccess) {
         this.execSuccess = execSuccess;
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
-    }
-
-    public void setErrorMsg(String errorMsg) {
-        this.errorMsg = errorMsg;
     }
 
     public String getServiceName() {
@@ -118,5 +124,37 @@ public class WinServiceStatus {
 
     public void setWaitHint(Integer waitHint) {
         this.waitHint = waitHint;
+    }
+
+    public Integer getPid() {
+        return pid;
+    }
+
+    public void setPid(Integer pid) {
+        this.pid = pid;
+    }
+
+    public String getOriginalMsg() {
+        return originalMsg;
+    }
+
+    public void setOriginalMsg(String originalMsg) {
+        this.originalMsg = originalMsg;
+    }
+
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 }
