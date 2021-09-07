@@ -3,6 +3,7 @@ package com.github.ScipioAM.scipio_utils_common.os.bean;
 import com.github.ScipioAM.scipio_utils_common.os.constants.WinServiceErrType;
 import com.github.ScipioAM.scipio_utils_common.os.constants.WinServiceStartType;
 import com.github.ScipioAM.scipio_utils_common.os.constants.WinServiceType;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Windows Service 安装\卸载相关参数
@@ -16,32 +17,38 @@ public class WinServiceOption {
     /**
      * 服务名（相当于ID）
      */
+    @NotBlank(message = "[serviceName] can not be blank")
     private String serviceName;
 
     /**
      * 指定给人看的别名
      */
+    @NotBlank(message = "[displayName] can not be blank")
     private String displayName;
 
     /**
+     * [create必填]服务二进制文件的路径
+     */
+    @NotBlank(message = "[binPath] can not be blank")
+    private String binPath;
+
+    /**
      * 服务类型
+     *      <p>默认值：OWN</p>
      */
     private WinServiceType serviceType;
 
     /**
      * 服务启动类型
+     *      <p>默认值：DEMAND</p>
      */
     private WinServiceStartType startType;
 
     /**
      * 服务无法启动时的错误严重性
+     *      <p>默认值：NORMAL</p>
      */
     private WinServiceErrType errorType;
-
-    /**
-     * [create必填]服务二进制文件的路径
-     */
-    private String binPath;
 
     /**
      * 服务从属的服务组名称
@@ -69,62 +76,80 @@ public class WinServiceOption {
      */
     private String password;
 
+    /**
+     * 服务的描述
+     */
+    private String description;
+
+    public WinServiceOption() {}
+
+    public WinServiceOption(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
     //==================================================================================================================
 
     public String getServiceName() {
         return serviceName;
     }
 
-    public void setServiceName(String serviceName) {
+    public WinServiceOption setServiceName(String serviceName) {
         this.serviceName = serviceName;
+        return this;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public WinServiceOption setDisplayName(String displayName) {
         this.displayName = displayName;
+        return this;
     }
 
     public WinServiceType getServiceType() {
         return serviceType;
     }
 
-    public void setServiceType(WinServiceType serviceType) {
+    public WinServiceOption setServiceType(WinServiceType serviceType) {
         this.serviceType = serviceType;
+        return this;
     }
 
     public WinServiceStartType getStartType() {
         return startType;
     }
 
-    public void setStartType(WinServiceStartType startType) {
+    public WinServiceOption setStartType(WinServiceStartType startType) {
         this.startType = startType;
+        return this;
     }
 
     public WinServiceErrType getErrorType() {
         return errorType;
     }
 
-    public void setErrorType(WinServiceErrType errorType) {
+    public WinServiceOption setErrorType(WinServiceErrType errorType) {
         this.errorType = errorType;
+        return this;
     }
 
     public String getBinPath() {
         return binPath;
     }
 
-    public void setBinPath(String binPath) {
+    public WinServiceOption setBinPath(String binPath) {
         this.binPath = binPath;
+        return this;
     }
 
     public String getGroup() {
         return group;
     }
 
-    public void setGroup(String group) {
+    public WinServiceOption setGroup(String group) {
         this.group = group;
+        return this;
     }
 
     public Boolean getTag() {
@@ -140,32 +165,44 @@ public class WinServiceOption {
         }
     }
 
-    public void setTag(Boolean tag) {
+    public WinServiceOption setTag(Boolean tag) {
         this.tag = tag;
+        return this;
     }
 
     public String getDepend() {
         return depend;
     }
 
-    public void setDepend(String depend) {
+    public WinServiceOption setDepend(String depend) {
         this.depend = depend;
+        return this;
     }
 
     public String getObj() {
         return obj;
     }
 
-    public void setObj(String obj) {
+    public WinServiceOption setObj(String obj) {
         this.obj = obj;
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public WinServiceOption setPassword(String password) {
         this.password = password;
+        return this;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public WinServiceOption setDescription(String description) {
+        this.description = description;
+        return this;
+    }
 }

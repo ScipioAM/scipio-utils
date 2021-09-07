@@ -114,16 +114,10 @@ public interface WinServiceSuccessHandler {
     };
 
     /**
-     * TODO 2.[sc create]命令的处理
+     * 空处理(仅打印一下)
      */
-    WinServiceSuccessHandler CREATE = (scType, resultList, result) -> {
-        return result;
-    };
-
-    /**
-     * TODO 3.[sc delete]命令的处理
-     */
-    WinServiceSuccessHandler DELETE = (scType, resultList, result) -> {
+    WinServiceSuccessHandler EMPTY_PRINT = (scType, resultList, result) -> {
+        System.out.println("Empty success handle, scType[" + scType + "]");
         return result;
     };
 

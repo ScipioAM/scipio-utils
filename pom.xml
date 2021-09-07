@@ -61,6 +61,8 @@
         <poi.version>5.0.0</poi.version>
         <pdfbox.version>3.0.0-RC1</pdfbox.version>
         <itext.version>7.1.16</itext.version>
+        <hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
+        <jakarta.el.version>4.0.0</jakarta.el.version>
     </properties>
 
     <dependencyManagement>
@@ -89,6 +91,19 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- javax.validation - 实现 -->
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
+            <!-- javax - 表达式支持 -->
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>jakarta.el</artifactId>
+                <version>${jakarta.el.version}</version>
+            </dependency>
+
             <!-- Google云平台相关库的总管理，包括谷歌的HttpClient -->
             <dependency>
                 <groupId>com.google.cloud</groupId>
@@ -103,12 +118,6 @@
                 <groupId>com.thoughtworks.xstream</groupId>
                 <artifactId>xstream</artifactId>
                 <version>${xstream.version}</version>
-                <!--            <exclusions>-->
-                <!--                <exclusion>-->
-                <!--                    <groupId>xpp3</groupId>-->
-                <!--                    <artifactId>xpp3_min</artifactId>-->
-                <!--                </exclusion>-->
-                <!--            </exclusions>-->
             </dependency>
 
             <!--XML解析框架：dom4j-->
@@ -215,6 +224,14 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
         </dependency>
     </dependencies>
 

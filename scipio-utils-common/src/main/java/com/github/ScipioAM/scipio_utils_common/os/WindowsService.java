@@ -1,9 +1,11 @@
 package com.github.ScipioAM.scipio_utils_common.os;
 
 import com.github.ScipioAM.scipio_utils_common.AssertUtil;
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_common.os.bean.WinServiceOption;
 import com.github.ScipioAM.scipio_utils_common.os.bean.WinServiceResult;
 import com.github.ScipioAM.scipio_utils_common.os.constants.SCType;
+import com.github.ScipioAM.scipio_utils_common.validation.Validator;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -36,7 +38,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult query(String serviceName) {
         AssertUtil.notNull(serviceName);
-        String cmd = "sc query " + serviceName;
+        String cmd = "sc query \"" + serviceName + "\"";
         return exec(SCType.QUERY,cmd);
     }
 
@@ -47,7 +49,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult start(String serviceName) {
         AssertUtil.notNull(serviceName);
-        String cmd = "sc start " + serviceName;
+        String cmd = "sc start \"" + serviceName + "\"";
         return exec(SCType.START,cmd);
     }
 
@@ -58,7 +60,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult stop(String serviceName) {
         AssertUtil.notNull(serviceName);
-        String cmd = "sc stop " + serviceName;
+        String cmd = "sc stop \"" + serviceName + "\"";
         return exec(SCType.STOP,cmd);
     }
 
@@ -69,7 +71,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult showSid(String anyName) {
         AssertUtil.notNull(anyName);
-        String cmd = "sc showsid " + anyName;
+        String cmd = "sc showsid \"" + anyName + "\"";
         return exec(SCType.SHOW_SID,cmd);
     }
 
@@ -80,8 +82,52 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult create(WinServiceOption option) {
         AssertUtil.notNull(option);
-        String cmd = "sc create ";//TODO 1.如何构建create命令待完成
-        return exec(SCType.CREATE,cmd);
+        Validator.newInstance().validateOnce(option);//校验
+        StringBuilder cmd = new StringBuilder("sc create ");
+        //必填项们
+        cmd.append("\"").append(option.getServiceName()).append("\" ")
+                .append("displayname= \"").append(option.getDisplayName()).append("\" ")
+                .append("binpath= \"").append(option.getBinPath()).append("\"");
+        //服务类型
+        if(option.getServiceType() != null) {
+            cmd.append(" type= ").append(option.getServiceType().value);
+        }
+        //服务的启动类型
+        if(option.getStartType() != null) {
+            cmd.append(" start= ").append(option.getStartType().value);
+        }
+        //服务无法启动时的错误严重性
+        if(option.getErrorType() != null) {
+            cmd.append(" error= ").append(option.getErrorType().value);
+        }
+        //从属组名
+        if(StringUtil.isNotNull(option.getGroup())) {
+            cmd.append(" group= \"").append(option.getGroup()).append("\"");
+        }
+        //指定是否从 CreateService 调用获取 TagID, 标记仅用于启动驱动程序和系统启动驱动程序
+        if(option.getTag() != null) {
+            cmd.append(" tag= ").append(option.getTagStr());
+        }
+        //服务依赖的前置服务(们)
+        if(StringUtil.isNotNull(option.getDepend())) {
+            cmd.append(" depend= \"").append(option.getDepend()).append("\"");
+        }
+        //指定服务将在其中运行的帐户的名称,或指定要Windows驱动程序的驱动程序对象的名称, 默认设置为 LocalSystem
+        if(StringUtil.isNotNull(option.getObj())) {
+            cmd.append(" obj= \"").append(option.getObj()).append("\"");
+        }
+        //指定密码, 如果使用 LocalSystem 帐户外的帐户，则这是必需的
+        if(StringUtil.isNotNull(option.getPassword())) {
+            cmd.append(" password= \"").append(option.getPassword()).append("\"");
+        }
+        WinServiceResult createResult = exec(SCType.CREATE,cmd.toString());
+        //补充description(如果option里设置了的话)
+        if(createResult != null && createResult.getExecSuccess() && StringUtil.isNotNull(option.getDescription())) {
+            return setDescription(option.getServiceName(),option.getDescription());
+        }
+        else {
+            return createResult;
+        }
     }
 
     /**
@@ -99,7 +145,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      */
     public WinServiceResult delete(String serviceName) {
         AssertUtil.notNull(serviceName);
-        String cmd = "sc delete " + serviceName;
+        String cmd = "sc delete \"" + serviceName + "\"";
         return exec(SCType.DELETE,cmd);
     }
 
@@ -121,7 +167,7 @@ public class WindowsService extends AbstractWindowsExecutor {
         if(description == null) {
             description = "";
         }
-        String cmd = "sc description " + serviceName + " \"" + description + "\"";
+        String cmd = "sc description \"" + serviceName + "\" \"" + description + "\"";
         return exec(SCType.DELETE,cmd);
     }
 
@@ -152,7 +198,7 @@ public class WindowsService extends AbstractWindowsExecutor {
         WinServiceResult result = new WinServiceResult();
         StringBuilder originalMsg = new StringBuilder();
         try {
-            System.out.println("Execute command: " + cmd);
+            System.out.println("Execute command: [" + cmd + "]");
             if(resultHandler != null) { //自定义结果处理器
                 result = resultHandler.handle(scType, cmd, resultList);
             }
@@ -182,13 +228,7 @@ public class WindowsService extends AbstractWindowsExecutor {
                             case SHOW_SID:
                                 result = WinServiceSuccessHandler.SHOW_SID.handle(scType,resultList,result);
                                 break;
-                            case CREATE:
-                                result = WinServiceSuccessHandler.CREATE.handle(scType,resultList,result);
-                                break;
-                            case DELETE:
-                                result = WinServiceSuccessHandler.DELETE.handle(scType,resultList,result);
-                                break;
-                            default: //DESCRIPTION命令不需要进一步解析
+                            default: //CREATE,DELETE,DESCRIPTION命令不需要进一步解析
                                 break;
                         }
                     }
@@ -212,7 +252,7 @@ public class WindowsService extends AbstractWindowsExecutor {
      * @return true代表成功
      */
     private boolean checkResult(SCType scType, List<String> resultList) {
-        if(scType == SCType.DESCRIPTION) {
+        if(scType == SCType.DESCRIPTION || scType == SCType.CREATE || scType == SCType.DELETE) {
             String line = resultList.get(0);
             return (line.contains("成功") || line.contains("success"));
         }
