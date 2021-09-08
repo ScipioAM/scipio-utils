@@ -19,27 +19,27 @@ public class ValidationUtil {
 
     //==================================================================================================================
 
-    public void setFactory(ValidatorFactory factory) {
+    public static void setFactory(ValidatorFactory factory) {
         validator.setFactory(factory);
     }
 
-    public void setDefaultExecutor(jakarta.validation.Validator defaultExecutor) {
+    public static void setDefaultExecutor(jakarta.validation.Validator defaultExecutor) {
         validator.setDefaultExecutor(defaultExecutor);
     }
 
-    public void setCustomInvalidHandler(InvalidBeanHandler customInvalidHandler) {
+    public static void setCustomInvalidHandler(InvalidBeanHandler customInvalidHandler) {
         validator.setCustomInvalidHandler(customInvalidHandler);
     }
 
-    public void setCustomValidHandler(ValidBeanHandler customValidHandler) {
+    public static void setCustomValidHandler(ValidBeanHandler customValidHandler) {
         validator.setCustomValidHandler(customValidHandler);
     }
 
-    public jakarta.validation.Validator getDefaultExecutor() {
+    public static jakarta.validation.Validator getDefaultExecutor() {
         return validator.getDefaultExecutor();
     }
 
-    public jakarta.validation.Validator buildDefaultExecutor() {
+    public static jakarta.validation.Validator buildDefaultExecutor() {
         return validator.buildDefaultExecutor();
     }
 
@@ -49,15 +49,15 @@ public class ValidationUtil {
         validator.validateOnce(obj);
     }
 
-    public <T> boolean validateOnceIf(T obj) {
+    public static <T> boolean validateOnceIf(T obj) {
         return validator.validateOnceIf(obj);
     }
 
-    public <T> void validate(T obj) throws ValidationException {
+    public static <T> void validate(T obj) throws ValidationException {
         validator.validate(obj);
     }
 
-    public <T> boolean validateIf(T obj) {
+    public static <T> boolean validateIf(T obj) {
         return validator.validateIf(obj);
     }
 
