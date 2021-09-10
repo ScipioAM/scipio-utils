@@ -1,16 +1,19 @@
-package com.github.ScipioAM.scipio_utils_doc.reader;
+package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import com.github.ScipioAM.scipio_utils_common.annotations.Nullable;
 import com.github.ScipioAM.scipio_utils_common.validation.Validator;
-import com.github.ScipioAM.scipio_utils_doc.ExcelOperatorBase;
-import com.github.ScipioAM.scipio_utils_doc.bean.ExcelIndex;
-import com.github.ScipioAM.scipio_utils_doc.listener.ExcelCellHandler;
-import com.github.ScipioAM.scipio_utils_doc.listener.ExcelRowHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelEndListener;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelRowHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import jakarta.validation.constraints.NotNull;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * excel读取者
@@ -18,25 +21,26 @@ import org.apache.poi.ss.usermodel.Sheet;
  * @since 1.0.2-p3
  * @date 2021/8/27
  */
-public class ExcelReader extends ExcelOperatorBase {
+public class ExcelOperator extends ExcelOperatorBase {
 
-    /** 指定的Sheet和范围 */
-    @NotNull
-    private ExcelIndex excelIndex = new ExcelIndex();
+    /** 指定的Sheet和Sheet里的扫描范围 */
+    protected ExcelIndex excelIndex = new ExcelIndex();
 
-    /** 行处理器(每行) */
-    @Nullable
-    private ExcelRowHandler rowHandler;
+    @Override
+    public ExcelOperator load(File file) throws IOException, InvalidFormatException, NullPointerException {
+        return (ExcelOperator) super.load(file);
+    }
 
-    /** 列处理器(每个单元格) */
-    @Nullable
-    private ExcelCellHandler cellHandler;
+    @Override
+    public ExcelOperator load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+        return (ExcelOperator) super.load(fileFullPath);
+    }
 
     /**
      * 扫描指定Sheet里的指定范围
      * @param missingCellPolicy 单元格缺失或为空时的策略，默认是RETURN_NULL_AND_BLANK，具体参看{@link Row.MissingCellPolicy}
      */
-    public void read(@Nullable Row.MissingCellPolicy missingCellPolicy)
+    public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy)
     {
         // **************** 参数检查 ****************
         if(workbook == null) {
@@ -102,85 +106,96 @@ public class ExcelReader extends ExcelOperatorBase {
                 }
             }//end of if(cellHandler != null)
         }//end of row-scan for
+        if(endListener != null) {
+            endListener.lastOperation(workbook);
+        }
+        else {
+            ExcelEndListener.SIMPLE_CLOSE.lastOperation(workbook);
+        }
     }//end of read()
 
-    public void read() {
-        read(null);
+    public void operate() {
+        operate(null);
     }
 
     //==================================================================================================================
 
-    public ExcelReader setExcelIndex(ExcelIndex excelIndex) {
-        this.excelIndex = excelIndex;
-        return this;
-    }
-
-    public ExcelReader setRowHandler(ExcelRowHandler rowHandler) {
+    public ExcelOperator setRowHandler(ExcelRowHandler rowHandler) {
         this.rowHandler = rowHandler;
         return this;
     }
 
-    public ExcelReader setCellHandler(ExcelCellHandler cellHandler) {
+    public ExcelOperator setCellHandler(ExcelCellHandler cellHandler) {
         this.cellHandler = cellHandler;
         return this;
     }
 
-    public ExcelReader setSheetIndex(Integer sheetIndex) {
+    public ExcelOperator setEndListener(ExcelEndListener endListener) {
+        super.endListener = endListener;
+        return this;
+    }
+
+    public ExcelOperator setExcelIndex(ExcelIndex excelIndex) {
+        this.excelIndex = excelIndex;
+        return this;
+    }
+
+    public ExcelOperator setSheetIndex(Integer sheetIndex) {
         excelIndex.setSheetIndex(sheetIndex);
         return this;
     }
 
-    public ExcelReader setSheetName(String sheetName) {
+    public ExcelOperator setSheetName(String sheetName) {
         excelIndex.setSheetName(sheetName);
         return this;
     }
 
-    public ExcelReader setRowStartIndex(Integer rowStartIndex) {
+    public ExcelOperator setRowStartIndex(Integer rowStartIndex) {
         excelIndex.setRowStartIndex(rowStartIndex);
         return this;
     }
 
-    public ExcelReader setRowLength(Integer rowLength) {
+    public ExcelOperator setRowLength(Integer rowLength) {
         excelIndex.setRowLength(rowLength);
         return this;
     }
 
-    public ExcelReader setRowStep(Integer rowStep) {
+    public ExcelOperator setRowStep(Integer rowStep) {
         excelIndex.setRowStep(rowStep);
         return this;
     }
 
-    public ExcelReader setColumnStartIndex(Integer columnStartIndex) {
+    public ExcelOperator setColumnStartIndex(Integer columnStartIndex) {
         excelIndex.setColumnStartIndex(columnStartIndex);
         return this;
     }
 
-    public ExcelReader setColumnLength(Integer columnLength) {
+    public ExcelOperator setColumnLength(Integer columnLength) {
         excelIndex.setColumnLength(columnLength);
         return this;
     }
 
-    public ExcelReader setColumnStep(Integer columnStep) {
+    public ExcelOperator setColumnStep(Integer columnStep) {
         excelIndex.setColumnStep(columnStep);
         return this;
     }
 
-    public ExcelReader setUsePhysicalNumberOfRows(boolean usePhysicalNumberOfRows) {
+    public ExcelOperator setUsePhysicalNumberOfRows(boolean usePhysicalNumberOfRows) {
         excelIndex.setUsePhysicalNumberOfRows(usePhysicalNumberOfRows);
         return this;
     }
 
-    public ExcelReader setUsePhysicalNumberOfCells(boolean usePhysicalNumberOfCells) {
+    public ExcelOperator setUsePhysicalNumberOfCells(boolean usePhysicalNumberOfCells) {
         excelIndex.setUsePhysicalNumberOfCells(usePhysicalNumberOfCells);
         return this;
     }
 
-    public ExcelReader setUseLastNumberOfRows(boolean useLastNumberOfRows) {
+    public ExcelOperator setUseLastNumberOfRows(boolean useLastNumberOfRows) {
         excelIndex.setUseLastNumberOfRows(useLastNumberOfRows);
         return this;
     }
 
-    public ExcelReader setUseLastNumberOfCells(boolean useLastNumberOfCells) {
+    public ExcelOperator setUseLastNumberOfCells(boolean useLastNumberOfCells) {
         excelIndex.setUseLastNumberOfCells(useLastNumberOfCells);
         return this;
     }

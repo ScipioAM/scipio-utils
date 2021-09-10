@@ -1,5 +1,5 @@
-import com.github.ScipioAM.scipio_utils_doc.listener.ExcelCellHandler;
-import com.github.ScipioAM.scipio_utils_doc.reader.ExcelReader;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -55,13 +55,13 @@ public class ExcelReadTest {
             System.out.println("[row:" + rowIndex + ",column:" + columnIndex + "] " + cell);
             return true;
         };
-        try (ExcelReader reader = new ExcelReader()) {
-            reader.load(file);
-            reader.setSheetIndex(0)
+        try (ExcelOperator operator = new ExcelOperator()) {
+            operator.load(file);
+            operator.setSheetIndex(0)
                     .setUseLastNumberOfRows(true)
                     .setUseLastNumberOfCells(true)
                     .setCellHandler(cellHandler)
-                    .read();
+                    .operate();
         }catch (Exception e) {
             e.printStackTrace();
         }

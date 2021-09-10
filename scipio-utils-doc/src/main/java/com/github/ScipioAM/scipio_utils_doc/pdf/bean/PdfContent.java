@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_doc.bean;
+package com.github.ScipioAM.scipio_utils_doc.pdf.bean;
 
 /**
  * PDF文件的内容

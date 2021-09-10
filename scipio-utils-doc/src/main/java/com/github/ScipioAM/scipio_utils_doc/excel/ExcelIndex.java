@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_doc.bean;
+package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

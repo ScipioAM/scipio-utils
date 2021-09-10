@@ -1,5 +1,9 @@
-package com.github.ScipioAM.scipio_utils_doc;
+package com.github.ScipioAM.scipio_utils_doc.excel;
 
+import com.github.ScipioAM.scipio_utils_common.annotations.Nullable;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelEndListener;
+import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelRowHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -21,6 +25,18 @@ public abstract class ExcelOperatorBase implements Closeable {
     protected Workbook workbook;
     protected Boolean isOldVersion;
 
+    /** 行处理器(每行) */
+    @Nullable
+    protected ExcelRowHandler rowHandler;
+
+    /** 列处理器(每个单元格) */
+    @Nullable
+    protected ExcelCellHandler cellHandler;
+
+    /** 操作结束时的回调 */
+    @Nullable
+    protected ExcelEndListener endListener;
+
     /**
      * 加载excel文件
      * @param file 目标文件
@@ -29,7 +45,7 @@ public abstract class ExcelOperatorBase implements Closeable {
      * @throws InvalidFormatException 加载失败
      * @throws NullPointerException file对象为null
      */
-    public Workbook load(File file) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperatorBase load(File file) throws IOException, InvalidFormatException, NullPointerException {
         Workbook workbook;
         isOldVersion = ExcelUtil.isOldVersion(file);
         if(isOldVersion) {
@@ -40,10 +56,10 @@ public abstract class ExcelOperatorBase implements Closeable {
             workbook = new XSSFWorkbook(file);
         }
         this.workbook = workbook;
-        return workbook;
+        return this;
     }
 
-    public Workbook load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperatorBase load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
         return load(new File(fileFullPath));
     }
 
@@ -52,6 +68,16 @@ public abstract class ExcelOperatorBase implements Closeable {
         if(workbook != null) {
             workbook.close();
         }
+    }
+
+    //==================================================================================================================
+
+    public Workbook getWorkbook() {
+        return workbook;
+    }
+
+    public void setWorkbook(Workbook workbook) {
+        this.workbook = workbook;
     }
 
 }

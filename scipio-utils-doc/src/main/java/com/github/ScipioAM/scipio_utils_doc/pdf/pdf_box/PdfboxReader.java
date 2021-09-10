@@ -1,6 +1,6 @@
-package com.github.ScipioAM.scipio_utils_doc.reader;
+package com.github.ScipioAM.scipio_utils_doc.pdf.pdf_box;
 
-import com.github.ScipioAM.scipio_utils_doc.listener.PdfboxPageHandler;
+import com.github.ScipioAM.scipio_utils_doc.pdf.IPdfReader;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;

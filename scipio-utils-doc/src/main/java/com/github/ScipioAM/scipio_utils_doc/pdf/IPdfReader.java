@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_doc.reader;
+package com.github.ScipioAM.scipio_utils_doc.pdf;
 
 /**
  * @author Alan Scipio

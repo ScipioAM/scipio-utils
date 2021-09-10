@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_doc.listener;
+package com.github.ScipioAM.scipio_utils_doc.pdf.pdf_box;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
