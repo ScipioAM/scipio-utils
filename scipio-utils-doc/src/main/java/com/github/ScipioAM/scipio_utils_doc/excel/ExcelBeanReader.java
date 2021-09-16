@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.*;
 import jakarta.validation.constraints.NotNull;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -35,7 +36,7 @@ public class ExcelBeanReader extends ExcelOperator{
      * @param <T> JavaBean的类型
      * @return 映射后的JavaBean list
      */
-    public <T> List<T> read(@NotNull ExcelBeanMapper<T> beanMapper) {
+    public <T> List<T> read(@NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         //参数检查
         if(beanMapper == null) {
             throw new NullPointerException("argument \"ExcelBeanMapper\" is null");
@@ -60,7 +61,7 @@ public class ExcelBeanReader extends ExcelOperator{
     }
 
     /**
-     * 读取excel并映射为JavaBean
+     * 读取excel并映射为JavaBean - 根据定义的映射信息map
      * @param mappingInfo 映射信息
      *                     <ul>
      *                          <li>Key: excel每一行中，要映射列的下标(0-based)</li>
@@ -69,11 +70,27 @@ public class ExcelBeanReader extends ExcelOperator{
      * @param <T> JavaBean的类型
      * @return 映射后的JavaBean list
      */
-    public <T> List<T> read(Map<Integer,String> mappingInfo) {
+    public <T> List<T> read(@NotNull Map<Integer,String> mappingInfo, @NotNull Class<T> beanClass) throws Exception {
         if(mappingInfo == null || mappingInfo.size() <= 0) {
             throw new IllegalArgumentException("argument \"mappingInfo\" is null or empty");
         }
-        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(mappingInfo);
+        if(beanClass == null ) {
+            throw new NullPointerException("argument \"beanClass\" is null");
+        }
+        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(mappingInfo,beanClass);
+        return read(beanAutoMapper);
+    }
+
+    /**
+     * 读取excel并映射为JavaBean - 根据注解映射
+     * @param <T> JavaBean的类型，要映射的字段上需要添加{@link ExcelMapping}注解
+     * @return 映射后的JavaBean list
+     */
+    public <T> List<T> read(@NotNull Class<T> beanClass) throws Exception {
+        if(beanClass == null ) {
+            throw new NullPointerException("argument \"beanClass\" is null");
+        }
+        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(null,beanClass);
         return read(beanAutoMapper);
     }
 

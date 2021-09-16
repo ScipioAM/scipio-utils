@@ -1,4 +1,5 @@
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanReader;
+import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
 import org.apache.poi.ss.usermodel.Cell;
@@ -75,7 +76,7 @@ public class ExcelReadTest {
         //设定要读取的文件
         File file = new File("D:\\temp\\test.xlsx");
 
-        //设定映射关系
+        //设定映射关系map（或者用注解来确定映射关系）
         Map<Integer, String> mappingInfo = new HashMap<>();
         mappingInfo.put(0,"id");
         mappingInfo.put(1,"name");
@@ -85,7 +86,7 @@ public class ExcelReadTest {
             reader.load(file);
             List<TestBean> beanList = reader.setSheetIndex(0) //指定读取哪个Sheet
                     .setUseLastNumberOfRows(true) //自动获取所有物理存在的行
-                    .read(mappingInfo);//读取(映射)
+                    .read(TestBean.class);//读取(映射)
             System.out.println(beanList);
         }catch (Exception e) {
             e.printStackTrace();
@@ -95,9 +96,12 @@ public class ExcelReadTest {
     /**
      * 测试用的bean类
      */
-    private static class TestBean {
+    public static class TestBean {
+        @ExcelMapping(cellIndex = 0)
         private Integer id;
+        @ExcelMapping(cellIndex = 1)
         private String name;
+        @ExcelMapping(cellIndex = 2)
         private String descCn;
 
         public Integer getId() {
@@ -122,6 +126,15 @@ public class ExcelReadTest {
 
         public void setDescCn(String descCn) {
             this.descCn = descCn;
+        }
+
+        @Override
+        public String toString() {
+            return "TestBean{" +
+                    "id=" + id +
+                    ", name='" + name + '\'' +
+                    ", descCn='" + descCn + '\'' +
+                    '}';
         }
     }
 

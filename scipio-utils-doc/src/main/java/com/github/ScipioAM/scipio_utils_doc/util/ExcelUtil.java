@@ -1,8 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.util;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
 
@@ -120,6 +118,60 @@ public class ExcelUtil {
                 throw new IllegalArgumentException("column scan range(columnLength + columnStartIndex) can not greater then " + COLUMN_MAX_NEW);
             }
         }
+    }
+
+    /**
+     * 简单获取单元格的值
+     * @param cell 单元格对象
+     * @param getFormulaResult 对于公式单元格，是获取公式计算的值，还是公式本身。
+     *                         (为true代表获取公式计算的值)
+     * @return 单元格的值
+     */
+    public static Object getCellValue(Cell cell, boolean getFormulaResult) {
+        Object value = null;
+        CellType cellType = cell.getCellType();
+        switch (cellType) {
+            case STRING: // 字符串类型的单元格
+                value = cell.getStringCellValue();
+                break;
+            case BOOLEAN: // boolean类型的单元格
+                value = cell.getBooleanCellValue();
+                break;
+            case NUMERIC: // 数字(包括分数)、日期类型的单元格
+                //日期
+                if(DateUtil.isCellDateFormatted(cell)) {
+                    value = cell.getLocalDateTimeCellValue();
+                }
+                //数字
+                else {
+                    value = cell.getNumericCellValue();
+                }
+                break;
+            case FORMULA: // 公式类型的单元格
+                //获取公式计算的值
+                if(getFormulaResult) {
+                    try {
+                        value = cell.getNumericCellValue();
+                    }catch (IllegalStateException e) {
+                        value = cell.getStringCellValue();
+                    }
+                }
+                //获取公式本身
+                else {
+                    value = cell.getCellFormula();
+                }
+                break;
+            case BLANK: // 空值类型的单元格
+                System.out.println("Cell type is blank");
+                break;
+            case ERROR: // 故障类型的单元格
+                System.err.println("Cell type is error! ");
+                break;
+            default:
+                System.err.println("Unknown cell type " + cellType);
+                break;
+        }
+        return value;
     }
 
 }

@@ -17,6 +17,6 @@ public interface ExcelBeanMapper<T> {
      * @param rowIndex 行索引(0-based)
      * @return JavaBean实例
      */
-    T mapping(Row row, int rowIndex);
+    T mapping(Row row, int rowIndex) throws Exception;
 
 }
