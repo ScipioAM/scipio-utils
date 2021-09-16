@@ -6,14 +6,15 @@ import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelEndListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelRowHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
+import jakarta.validation.constraints.NotNull;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * excel读取者
@@ -27,12 +28,12 @@ public class ExcelOperator extends ExcelOperatorBase {
     protected ExcelIndex excelIndex = new ExcelIndex();
 
     @Override
-    public ExcelOperator load(File file) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperator load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelOperator) super.load(file);
     }
 
     @Override
-    public ExcelOperator load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperator load(@NotNull String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelOperator) super.load(fileFullPath);
     }
 
@@ -43,41 +44,14 @@ public class ExcelOperator extends ExcelOperatorBase {
     public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy)
     {
         // **************** 参数检查 ****************
-        if(workbook == null) {
-            throw new NullPointerException("workbook is null, maybe not loaded before read");
-        }
-        if(excelIndex == null) {
-            throw new NullPointerException("argument[ExcelIndex] is null");
-        }
-        Validator.newInstance().validateOnce(excelIndex);//校验合法性
-        if(!excelIndex.useLastNumberOfRows() && !excelIndex.usePhysicalNumberOfRows()) {
-            if(excelIndex.getRowLength() == null) {
-                throw new NullPointerException("rowLength is null");
-            }
-            //校验行扫描范围是否合法
-            ExcelUtil.checkRowMax(isOldVersion,excelIndex.getRowStartIndex(),excelIndex.getRowLength());
-        }
-        if((cellHandler != null) && !excelIndex.usePhysicalNumberOfCells() && !excelIndex.useLastNumberOfCells()) {
-            if(excelIndex.getColumnLength() == null) {
-                throw new NullPointerException("columnLength is null");
-            }
-            //校验列扫描范围是否合法
-            ExcelUtil.checkColumnMax(isOldVersion,excelIndex.getColumnStartIndex(),excelIndex.getColumnLength());
-        }
-        // **************** 获取目标Sheet ****************
-        Integer sheetIndex = excelIndex.getSheetIndex();
-        Sheet sheet = (sheetIndex != null) ? workbook.getSheetAt(sheetIndex) : workbook.getSheet(excelIndex.getSheetName());
+        paramsCheck();
         if(missingCellPolicy == null) {
             missingCellPolicy = workbook.getMissingCellPolicy();
         }
+        // **************** 获取目标Sheet ****************
+        Sheet sheet = getSheet(excelIndex,workbook);
         //确定最终的行数
-        Integer rowLength = excelIndex.getRowLength();
-        if(excelIndex.useLastNumberOfRows()) {
-            rowLength = (sheet.getLastRowNum() + 1);
-        }
-        else if(excelIndex.usePhysicalNumberOfRows()) {
-            rowLength = sheet.getPhysicalNumberOfRows();
-        }
+        Integer rowLength = determineRowLength(excelIndex,sheet);
         // **************** 开始扫描行 ****************
         OUTER:
         for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
@@ -106,12 +80,7 @@ public class ExcelOperator extends ExcelOperatorBase {
                 }
             }//end of if(cellHandler != null)
         }//end of row-scan for
-        if(endListener != null) {
-            endListener.lastOperation(workbook);
-        }
-        else {
-            ExcelEndListener.SIMPLE_CLOSE.lastOperation(workbook);
-        }
+        finish();
     }//end of read()
 
     public void operate() {
@@ -119,6 +88,85 @@ public class ExcelOperator extends ExcelOperatorBase {
     }
 
     //==================================================================================================================
+
+    /**
+     * 参数检查
+     */
+    protected void paramsCheck() throws NullPointerException, IllegalArgumentException {
+        if(workbook == null) {
+            throw new NullPointerException("workbook is null, maybe not loaded before read");
+        }
+        if(excelIndex == null) {
+            throw new NullPointerException("argument[ExcelIndex] is null");
+        }
+        Validator.newInstance().validateOnce(excelIndex);//校验合法性
+        if(!excelIndex.useLastNumberOfRows() && !excelIndex.usePhysicalNumberOfRows()) {
+            if(excelIndex.getRowLength() == null) {
+                throw new NullPointerException("rowLength is null");
+            }
+            //校验行扫描范围是否合法
+            ExcelUtil.checkRowMax(isOldVersion,excelIndex.getRowStartIndex(),excelIndex.getRowLength());
+        }
+        if((cellHandler != null) && !excelIndex.usePhysicalNumberOfCells() && !excelIndex.useLastNumberOfCells()) {
+            if(excelIndex.getColumnLength() == null) {
+                throw new NullPointerException("columnLength is null");
+            }
+            //校验列扫描范围是否合法
+            ExcelUtil.checkColumnMax(isOldVersion,excelIndex.getColumnStartIndex(),excelIndex.getColumnLength());
+        }
+    }
+
+    /**
+     * 根据设定获取Sheet对象
+     * @param excelIndex 设定
+     * @param workbook 工作簿对象
+     * @return Sheet对象
+     */
+    protected Sheet getSheet(ExcelIndex excelIndex, Workbook workbook) {
+        Integer sheetIndex = excelIndex.getSheetIndex();
+        return  (sheetIndex != null) ? workbook.getSheetAt(sheetIndex) : workbook.getSheet(excelIndex.getSheetName());
+    }
+
+    /**
+     * 根据设定决定最终要读取的总行数
+     * @param excelIndex 设定
+     * @param sheet Sheet对象
+     * @return 最终要读取的总行数
+     */
+    protected Integer determineRowLength(ExcelIndex excelIndex, Sheet sheet) {
+        Integer rowLength = excelIndex.getRowLength();
+        if(excelIndex.useLastNumberOfRows()) {
+            rowLength = (sheet.getLastRowNum() + 1);
+        }
+        else if(excelIndex.usePhysicalNumberOfRows()) {
+            rowLength = sheet.getPhysicalNumberOfRows();
+        }
+        return rowLength;
+    }
+
+    protected void finish() {
+        if(endListener != null) {
+            endListener.lastOperation(workbook);
+        }
+        else {
+            ExcelEndListener.SIMPLE_CLOSE.lastOperation(workbook);
+        }
+    }
+
+    //==================================================================================================================
+
+    public void clearCallbacks() {
+        super.cellHandler = null;
+        super.rowHandler = null;
+        super.endListener = null;
+    }
+
+    public void clearAllSettings() {
+        this.excelIndex = new ExcelIndex();
+        super.workbook = null;
+        super.isOldVersion = null;
+        clearCallbacks();
+    }
 
     public ExcelOperator setRowHandler(ExcelRowHandler rowHandler) {
         this.rowHandler = rowHandler;

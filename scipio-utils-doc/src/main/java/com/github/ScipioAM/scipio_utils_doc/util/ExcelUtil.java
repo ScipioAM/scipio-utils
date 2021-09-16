@@ -43,9 +43,6 @@ public class ExcelUtil {
      * @return true代表是旧版
      */
     public static boolean isOldVersion(File file) {
-        if(file == null) {
-            throw new NullPointerException("file object is null");
-        }
         String fileName = file.getName();
         return isOldVersion(fileName);
     }

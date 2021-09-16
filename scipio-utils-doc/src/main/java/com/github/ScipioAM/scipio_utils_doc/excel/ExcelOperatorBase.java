@@ -5,15 +5,13 @@ import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelEndListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.listener.ExcelRowHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
+import jakarta.validation.constraints.NotNull;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * @author Alan Scipio
@@ -45,7 +43,13 @@ public abstract class ExcelOperatorBase implements Closeable {
      * @throws InvalidFormatException 加载失败
      * @throws NullPointerException file对象为null
      */
-    public ExcelOperatorBase load(File file) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperatorBase load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
+        if(file == null) {
+            throw new NullPointerException("argument \"file\" is null");
+        }
+        else if(!file.exists()) {
+            throw new FileNotFoundException("file[" + file.getAbsolutePath() + "] does not exists");
+        }
         Workbook workbook;
         isOldVersion = ExcelUtil.isOldVersion(file);
         if(isOldVersion) {
@@ -59,7 +63,7 @@ public abstract class ExcelOperatorBase implements Closeable {
         return this;
     }
 
-    public ExcelOperatorBase load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelOperatorBase load(@NotNull String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
         return load(new File(fileFullPath));
     }
 
