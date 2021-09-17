@@ -2,6 +2,7 @@ package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
+import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import jakarta.validation.constraints.NotNull;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -10,16 +11,24 @@ import org.apache.poi.ss.usermodel.Sheet;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
+ * excel -> JavaBean 读取器
  * @author Alan Scipio
  * @since 1.0.2-p3
  * @date 2021/9/10
  */
 public class ExcelBeanReader extends ExcelOperator{
+
+    /**
+     * 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过）
+     */
+    private final Set<Integer> rowWhitelist = new HashSet<>();
 
     @Override
     public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
@@ -45,13 +54,22 @@ public class ExcelBeanReader extends ExcelOperator{
         paramsCheck();
         //获取目标Sheet
         Sheet sheet = getSheet(excelIndex,workbook);
-        //确定最终的行数
+        //确定最终的总行数
         Integer rowLength = determineRowLength(excelIndex,sheet);
+        //确定行白名单（跳过这些行）
+        if(beanMapper instanceof ExcelBeanAutoMapper) {
+            ExcelBeanAutoMapper<T> autoMapper = (ExcelBeanAutoMapper<T>) beanMapper;
+            checkRowBlacklist(autoMapper.getMappingInfo(),autoMapper.getBeanClass(),rowLength);
+        }
         // 开始扫描行
         List<T> beanList = buildBeanList();
         for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
+            //在黑名单中的行要跳过
+            if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
+                continue;
+            }
             Row row = sheet.getRow(i);
-            T bean = beanMapper.mapping(row,i);
+            T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
             if(bean != null) {
                 beanList.add(bean);
             }
@@ -62,16 +80,12 @@ public class ExcelBeanReader extends ExcelOperator{
     }
 
     /**
-     * 读取excel并映射为JavaBean - 根据定义的映射信息map
+     * 读取excel并映射为JavaBean - 根据定义的映射信息list
      * @param mappingInfo 映射信息
-     *                     <ul>
-     *                          <li>Key: excel每一行中，要映射列的下标(0-based)</li>
-     *                          <li>Value: JavaBean字段名称(大小写敏感)</li>
-     *                     </ul>
      * @param <T> JavaBean的类型
      * @return 映射后的JavaBean list
      */
-    public <T> List<T> read(@NotNull Map<Integer,String> mappingInfo, @NotNull Class<T> beanClass) throws Exception {
+    public <T> List<T> read(@NotNull List<ExcelMappingInfo> mappingInfo, @NotNull Class<T> beanClass) throws Exception {
         if(mappingInfo == null || mappingInfo.size() <= 0) {
             throw new IllegalArgumentException("argument \"mappingInfo\" is null or empty");
         }
@@ -101,8 +115,64 @@ public class ExcelBeanReader extends ExcelOperator{
      * @param <T> bean类型
      * @return 空的beanList实例
      */
-    public <T> List<T> buildBeanList() {
+    protected <T> List<T> buildBeanList() {
         return new ArrayList<>();
+    }
+
+    /**
+     * 检查构建行白名单
+     * @param infoList 自定义映射信息list
+     * @param beanClass 目标JavaBean的类型
+     * @param rowLength 要处理的总行数
+     * @throws IllegalStateException 注解模式下。目标JavaBean没有任何{@link ExcelMapping}注解
+     */
+    private void checkRowBlacklist(List<ExcelMappingInfo> infoList, Class<?> beanClass, int rowLength) throws IllegalStateException {
+        Set<Integer> rowIndexSet = new HashSet<>();
+        int checkCount = 0;
+        if(infoList != null) {
+            for(ExcelMappingInfo info : infoList) {
+                Integer rowIndex = info.getRowIndex();
+                if(rowIndex != null && rowIndex >= 0) {
+                    rowIndexSet.add(rowIndex);
+                    checkCount++;
+                }
+            }
+        }
+        else {
+            List<ExcelMapping> mappingAnnotations = getMappingAnnotations(beanClass);
+            if(mappingAnnotations.size() <= 0) {
+                throw new IllegalStateException("target class[" + beanClass.getCanonicalName() + "] has no annotation[@ExcelMapping] found!");
+            }
+            for(ExcelMapping info : mappingAnnotations) {
+                if(info.rowIndex() >= 0) {
+                    rowIndexSet.add(info.rowIndex());
+                    checkCount++;
+                }
+            }
+        }
+        if(checkCount == rowLength) {
+            rowWhitelist.addAll(rowIndexSet);
+        }
+        else {
+            rowWhitelist.clear();
+        }
+    }
+
+    /**
+     * 获取类里所有字段上的注解
+     * @param beanClass javaBean类型
+     * @return 类里所有字段上的注解，没有注解就为空list
+     */
+    private List<ExcelMapping> getMappingAnnotations(Class<?> beanClass) {
+        List<ExcelMapping> mappingAnnotations = new ArrayList<>();
+        Field[] fields = beanClass.getDeclaredFields();
+        for(Field field : fields) {
+            if(field.isAnnotationPresent(ExcelMapping.class)) { //跳过没有被注解的字段
+                ExcelMapping mappingAnnotation = field.getDeclaredAnnotation(ExcelMapping.class);
+                mappingAnnotations.add(mappingAnnotation);
+            }
+        }
+        return mappingAnnotations;
     }
 
     //==================================================================================================================

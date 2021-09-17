@@ -19,11 +19,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ExcelMapping {
 
     /**
-     * 映射索引：
+     * 映射的列索引：
      * <p>该字段对应excel行中的第几列(0-based)</p>
      */
     int cellIndex();
 
-//    int rowIndex() default -1;
+    /**
+     * 映射的行索引：
+     * <p>该字段对应excel行中的第几行(0-based)，为-1则代表不使用</p>
+     */
+    int rowIndex() default -1;
 
 }

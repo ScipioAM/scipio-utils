@@ -9,15 +9,25 @@ import jakarta.validation.constraints.NotNull;
  * @since 1.0.2-p3
  * @date 2021/9/10
  */
-@Deprecated
 public class ExcelMappingInfo {
 
+    /**
+     * 映射的列索引：
+     * <p>该字段对应excel行中的第几列(0-based)</p>
+     */
     @NotNull
     private Integer cellIndex;
 
+    /**
+     * 映射的行索引：
+     * <p>该字段对应excel行中的第几行(0-based)，为-1则代表不使用</p>
+     */
     @Nullable
     private Integer rowIndex;
 
+    /**
+     * 对应的字段名称
+     */
     @NotNull
     private String fieldName;
 
@@ -34,19 +44,19 @@ public class ExcelMappingInfo {
         this.fieldName = fieldName;
     }
 
-    public int getCellIndex() {
+    public Integer getCellIndex() {
         return cellIndex;
     }
 
-    public void setCellIndex(int cellIndex) {
+    public void setCellIndex(Integer cellIndex) {
         this.cellIndex = cellIndex;
     }
 
-    public int getRowIndex() {
+    public Integer getRowIndex() {
         return rowIndex;
     }
 
-    public void setRowIndex(int rowIndex) {
+    public void setRowIndex(Integer rowIndex) {
         this.rowIndex = rowIndex;
     }
 

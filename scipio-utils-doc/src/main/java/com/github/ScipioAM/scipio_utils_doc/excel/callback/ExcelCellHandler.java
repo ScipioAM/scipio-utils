@@ -13,12 +13,13 @@ public interface ExcelCellHandler {
 
     /**
      * 对1行中每个单元格的处理
-     * @param row 行对象
      * @param cell 单元格对象
      * @param rowIndex 行索引(0-based)
      * @param columnIndex 列索引(0-based)
+     * @param rowLength 要扫描的总行数
+     * @param columnLength 要扫描的总列数
      * @return true代表继续执行，false代表中断对每个单元格的扫描
      */
-    boolean handle(Row row, Cell cell, int rowIndex, int columnIndex);
+    boolean handle(Cell cell, int rowIndex, int columnIndex, int rowLength, int columnLength);
 
 }

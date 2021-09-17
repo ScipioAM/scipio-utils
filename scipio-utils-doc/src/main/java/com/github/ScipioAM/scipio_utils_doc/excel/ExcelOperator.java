@@ -58,7 +58,7 @@ public class ExcelOperator extends ExcelOperatorBase {
         for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
             Row row = sheet.getRow(i);
             if(rowHandler != null) {
-                if(!rowHandler.handle(sheet,row,i)) {
+                if(!rowHandler.handle(row,i,rowLength)) {
                     break;
                 }
             }
@@ -75,7 +75,7 @@ public class ExcelOperator extends ExcelOperatorBase {
                 //开始扫描列
                 for(int j = excelIndex.getColumnStartIndex(); j < columnLength; j += excelIndex.getColumnStep()) {
                     Cell cell = row.getCell(j,missingCellPolicy);
-                    if(!cellHandler.handle(row,cell,i,j)) {
+                    if(!cellHandler.handle(cell,i,j,rowLength,columnLength)) {
                         break OUTER;
                     }
                 }

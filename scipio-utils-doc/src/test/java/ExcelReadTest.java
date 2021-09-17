@@ -1,5 +1,6 @@
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanReader;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
+import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
 import org.apache.poi.ss.usermodel.Cell;
@@ -11,9 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Alan Scipio
@@ -55,7 +54,7 @@ public class ExcelReadTest {
     @Test
     public void test1() {
         File file = new File("D:\\temp\\test.xlsx");
-        ExcelCellHandler cellHandler = (row, cell, rowIndex, columnIndex) -> {
+        ExcelCellHandler cellHandler = (cell, rowIndex, columnIndex, rowLength, columnLength) -> {
             System.out.println("[row:" + rowIndex + ",column:" + columnIndex + "] " + cell);
             return true;
         };
@@ -77,10 +76,10 @@ public class ExcelReadTest {
         File file = new File("D:\\temp\\test.xlsx");
 
         //设定映射关系map（或者用注解来确定映射关系）
-        Map<Integer, String> mappingInfo = new HashMap<>();
-        mappingInfo.put(0,"id");
-        mappingInfo.put(1,"name");
-        mappingInfo.put(2,"descCn");
+        List<ExcelMappingInfo> infoList = new ArrayList<>();
+        infoList.add(new ExcelMappingInfo(0,0,"id"));
+        infoList.add(new ExcelMappingInfo(1,0,"name"));
+        infoList.add(new ExcelMappingInfo(2,0,"descCn"));
 
         try (ExcelBeanReader reader = new ExcelBeanReader()) {
             reader.load(file);
@@ -97,11 +96,11 @@ public class ExcelReadTest {
      * 测试用的bean类
      */
     public static class TestBean {
-        @ExcelMapping(cellIndex = 0)
+        @ExcelMapping(cellIndex = 0,rowIndex = 2)
         private Integer id;
-        @ExcelMapping(cellIndex = 1)
+        @ExcelMapping(cellIndex = 1,rowIndex = 3)
         private String name;
-        @ExcelMapping(cellIndex = 2)
+        @ExcelMapping(cellIndex = 2,rowIndex = 2)
         private String descCn;
 
         public Integer getId() {

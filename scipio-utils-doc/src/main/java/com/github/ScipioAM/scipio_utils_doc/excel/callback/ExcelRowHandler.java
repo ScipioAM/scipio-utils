@@ -13,11 +13,11 @@ public interface ExcelRowHandler {
 
     /**
      * 对1个Sheet中每行的处理
-     * @param sheet Sheet对象
      * @param row 行对象
      * @param rowIndex 行索引(0-based)
+     * @param rowLength 要扫描的总行数
      * @return true代表继续执行，false代表中断对每行的扫描
      */
-    boolean handle(Sheet sheet, Row row, int rowIndex);
+    boolean handle(Row row, int rowIndex, int rowLength);
 
 }

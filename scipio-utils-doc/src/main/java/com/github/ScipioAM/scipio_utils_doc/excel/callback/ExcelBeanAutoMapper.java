@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
+import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
@@ -9,7 +10,7 @@ import org.apache.poi.ss.usermodel.Row;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Excel - JavaBean 自动转换器(只需要指定映射关系即可)
@@ -20,13 +21,9 @@ import java.util.Map;
 public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
 
     /**
-     * 映射信息(优先级高于{@link ExcelMapping})
-     * <ul>
-     *      <li>Key: excel每一行中，要映射列的下标(0-based)</li>
-     *      <li>Value: JavaBean字段名称(大小写敏感)</li>
-     * </ul>
+     * 自定义映射信息(优先级高于{@link ExcelMapping})
      */
-    private Map<Integer,String> mappingInfo;
+    private List<ExcelMappingInfo> mappingInfo;
 
     /**
      * Java Bean的类型
@@ -46,47 +43,37 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
 
     public ExcelBeanAutoMapper() {}
 
-    public ExcelBeanAutoMapper(Map<Integer, String> mappingInfo, Class<T> beanClass) {
+    public ExcelBeanAutoMapper(List<ExcelMappingInfo> mappingInfo, Class<T> beanClass) {
         this.mappingInfo = mappingInfo;
         this.beanClass = beanClass;
-    }
-
-    public Map<Integer, String> getMappingInfo() {
-        return mappingInfo;
-    }
-
-    public void setMappingInfo(Map<Integer, String> mappingInfo) {
-        this.mappingInfo = mappingInfo;
-    }
-
-    public Class<T> getBeanClass() {
-        return beanClass;
-    }
-
-    public void setBeanClass(Class<T> beanClass) {
-        this.beanClass = beanClass;
-    }
-
-    public boolean isGetFormulaResult() {
-        return getFormulaResult;
-    }
-
-    public void setGetFormulaResult(boolean getFormulaResult) {
-        this.getFormulaResult = getFormulaResult;
     }
 
     //==================================================================================================================
 
+    /**
+     * 映射：excel -> JavaBean
+     * @param row 行对象
+     * @param rowIndex 行索引(0-based)
+     * @param rowLength 要读取的总行数
+     * @return 通过映射，新生成的一个JavaBean实例
+     */
     @Override
-    public T mapping(Row row, int rowIndex) throws Exception {
+    public T mappingExcel2Bean(Row row, int rowIndex, int rowLength) throws Exception {
+        if(row == null) { //跳过整行都是空的
+            return null;
+        }
         //实例化一个javaBean
         T bean = beanClass.getDeclaredConstructor().newInstance();
         //依据map来映射
         if(mappingInfo != null) {
             //开始循环获取每行中的值，并set入这个bean里
-            for(Map.Entry<Integer,String> info : mappingInfo.entrySet()) {
-                Integer cellIndex = info.getKey();
-                String fieldName = info.getValue();
+            for(ExcelMappingInfo info : mappingInfo) {
+                Integer cellIndex = info.getCellIndex();
+                String fieldName = info.getFieldName();
+                Integer mappingRowIndex = info.getRowIndex();
+                if(mappingRowIndex != null && mappingRowIndex >=0 && mappingRowIndex != rowIndex) {
+                    continue;//启用行索引(不为空且大于等于0)，且当前行不是指定的行，则跳过
+                }
                 //获取单元格的值
                 Cell cell = row.getCell(cellIndex);
                 if(cell == null) {
@@ -106,21 +93,30 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
                     //执行set方法
                     setMethod.invoke(bean, finalCellValue);
                 }
-            }
-        }
+            }// end of for
+        } //end of outside if
         //依据注解来映射
         else {
             Field[] fields = beanClass.getDeclaredFields();
+            int fieldCount = 0;//要映射的字段总数
+            int nullCount = 0;//空值字段总数
             for(Field field : fields) {
                 if(!field.isAnnotationPresent(ExcelMapping.class)) { //跳过没有被注解的字段
                     continue;
                 }
+                fieldCount++;
                 //获取注解
                 ExcelMapping mappingAnnotation = field.getDeclaredAnnotation(ExcelMapping.class);
-                //根据注解的值获取index，并依次获取单元格
+                //根据注解的值获取rowIndex
+                int mappingRowIndex = mappingAnnotation.rowIndex();
+                if(mappingRowIndex >= 0 && rowIndex != mappingRowIndex) {
+                    continue;//启用行索引(大于等于0)，且当前行不是指定的行，则跳过
+                }
+                //根据注解的值获取cellIndex，并依次获取单元格
                 int cellIndex = mappingAnnotation.cellIndex();
                 Cell cell = row.getCell(cellIndex);
                 if(cell == null) {
+                    nullCount++;
                     System.err.println("Cell is null, rowIndex[" + rowIndex + "], cellIndex[" + cellIndex + "]");
                     continue;
                 }
@@ -137,14 +133,54 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
                     setMethod.invoke(bean, finalCellValue);
                 }
             }
+            //如果所有映射字段都是空值，则不构成bean实例
+            if(nullCount == fieldCount) {
+                bean = null;
+            }
         }
         return bean;
     }
 
     //==================================================================================================================
 
-    private Object typeConvert(Object originalValue, Class<?> fieldClass) {
+    /**
+     * 类型转换
+     * @param originalValue 单元格原始值
+     * @param fieldClass 字段类型（预期要转的类型）
+     * @return 转换后的单元格值
+     * @throws IllegalStateException JavaBean类型有问题，转不了
+     */
+    private Object typeConvert(Object originalValue, Class<?> fieldClass) throws IllegalStateException {
         return typeConvert.convert(originalValue,originalValue.getClass(),fieldClass);
     }
 
+    //==================================================================================================================
+
+    public List<ExcelMappingInfo> getMappingInfo() {
+        return mappingInfo;
+    }
+
+    public void setMappingInfo(List<ExcelMappingInfo> mappingInfo) {
+        this.mappingInfo = mappingInfo;
+    }
+
+    public Class<T> getBeanClass() {
+        return beanClass;
+    }
+
+    public void setBeanClass(Class<T> beanClass) {
+        this.beanClass = beanClass;
+    }
+
+    public boolean isGetFormulaResult() {
+        return getFormulaResult;
+    }
+
+    public void setGetFormulaResult(boolean getFormulaResult) {
+        this.getFormulaResult = getFormulaResult;
+    }
+
+    public BeanTypeConvert getTypeConvert() {
+        return typeConvert;
+    }
 }
