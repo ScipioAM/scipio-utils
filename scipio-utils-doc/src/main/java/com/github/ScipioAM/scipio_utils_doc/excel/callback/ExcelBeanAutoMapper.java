@@ -1,6 +1,8 @@
-package com.github.ScipioAM.scipio_utils_doc.excel.listener;
+package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
+import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
+import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -36,6 +38,11 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
      *      (为true代表获取公式计算的值)
      */
     private boolean getFormulaResult = true;
+
+    /**
+     * 类型转换器
+     */
+    private final BeanTypeConvert typeConvert = new SimpleBeanTypeConvert();
 
     public ExcelBeanAutoMapper() {}
 
@@ -91,11 +98,13 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
                     //获取字段类型
                     Field field = beanClass.getDeclaredField(fieldName);
                     Class<?> fieldClass = field.getType();
+                    //类型检查和转换
+                    Object finalCellValue = typeConvert(cellValue,fieldClass);
                     //获取set方法
                     String setMethodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
                     Method setMethod = beanClass.getDeclaredMethod(setMethodName,fieldClass);
                     //执行set方法
-                    setMethod.invoke(bean, cellValue);
+                    setMethod.invoke(bean, finalCellValue);
                 }
             }
         }
@@ -118,12 +127,14 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
                 //获取单元格的值
                 Object cellValue = ExcelUtil.getCellValue(cell,getFormulaResult);
                 if(cellValue != null) {
+                    //类型检查和转换
+                    Object finalCellValue = typeConvert(cellValue,field.getType());
                     //获取set方法
                     String fieldName = field.getName();
                     String setMethodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
                     Method setMethod = beanClass.getDeclaredMethod(setMethodName,field.getType());
                     //执行set方法
-                    setMethod.invoke(bean, cellValue);
+                    setMethod.invoke(bean, finalCellValue);
                 }
             }
         }
@@ -132,25 +143,8 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
 
     //==================================================================================================================
 
-    /**
-     * 检查单元格值，如果是浮点型则转换为整型
-     * @param originalValue 原始读取的单元格值
-     * @param fieldClass 字段类型
-     * @return 最终的单元格值，如果原始值不是浮点型则原样输出
-     */
-    private Object changeFloat2Int(Object originalValue, Class<?> fieldClass) {
-        if(originalValue instanceof Double) {
-            if(fieldClass == Integer.class) {
-
-            }
-            else if(fieldClass == Long.class) {
-
-            }
-            return null; //TODO 待完成，考虑单元格值的转换，追加一个TypeConverter
-        }
-        else {
-            return originalValue;
-        }
+    private Object typeConvert(Object originalValue, Class<?> fieldClass) {
+        return typeConvert.convert(originalValue,originalValue.getClass(),fieldClass);
     }
 
 }

@@ -24,4 +24,6 @@ public @interface ExcelMapping {
      */
     int cellIndex();
 
+//    int rowIndex() default -1;
+
 }
