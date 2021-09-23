@@ -47,6 +47,9 @@ public abstract class ExcelOperatorBase implements Closeable {
         if(file == null) {
             throw new NullPointerException("argument \"file\" is null");
         }
+        else if(file.isDirectory()) {
+            throw new IllegalArgumentException("argument \"file\" must be a excel file");
+        }
         else if(!file.exists()) {
             throw new FileNotFoundException("file[" + file.getAbsolutePath() + "] does not exists");
         }

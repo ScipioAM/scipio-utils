@@ -1,8 +1,11 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_common.reflect.FieldUtil;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
+import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
+import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -34,12 +37,17 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
      * 对于公式单元格，是获取公式计算的值，还是公式本身。
      *      (为true代表获取公式计算的值)
      */
-    private boolean getFormulaResult = true;
+    private boolean getFormulaResult;
 
     /**
      * 类型转换器
      */
-    private final BeanTypeConvert typeConvert = new SimpleBeanTypeConvert();
+    private BeanTypeConvert typeConvert = new SimpleBeanTypeConvert();
+
+    /**
+     * JavaBean写入excel的具体实现者
+     */
+    private BeanCellWriter cellWriter = new SimpleBeanCellWriter();
 
     public ExcelBeanAutoMapper() {}
 
@@ -64,7 +72,7 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
         }
         //实例化一个javaBean
         T bean = beanClass.getDeclaredConstructor().newInstance();
-        //依据map来映射
+        //依据自定义list来映射
         if(mappingInfo != null) {
             //开始循环获取每行中的值，并set入这个bean里
             for(ExcelMappingInfo info : mappingInfo) {
@@ -141,6 +149,69 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
         return bean;
     }
 
+    /**
+     * 映射：JavaBean -> excel
+     * @param row 行对象
+     * @param rowIndex 行索引(0-based)
+     * @param rowLength 要读取的总行数
+     * @param bean JavaBean实例(将它的数据写入excel)
+     */
+    @Override
+    public void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean) throws Exception {
+        //依据自定义list来映射
+        if(mappingInfo != null) {
+            //开始循环的从bean写入到excel
+            for(ExcelMappingInfo info : mappingInfo) {
+                Integer cellIndex = info.getCellIndex();
+                Integer mappingRowIndex = info.getRowIndex();
+                if(mappingRowIndex != null && mappingRowIndex >=0 && mappingRowIndex != rowIndex) {
+                    continue;//启用行索引(不为空且大于等于0)，且当前行不是指定的行，则跳过
+                }
+                //获取单元格对象
+                Cell cell = row.getCell(cellIndex);
+                if(cell == null) {
+                    cell = row.createCell(cellIndex);
+                }
+                //获取字段值
+                String fieldName = info.getFieldName();
+                Field field = beanClass.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                Class<?> fieldClass = field.getType();
+                Object fieldValue = field.get(bean);
+                //写入单元格中
+                writeIntoCell(cell,fieldValue,fieldClass);
+            }
+        }
+        //依据注解来映射
+        else {
+            List<Field> fields = FieldUtil.getFieldsByAnnotationPresent(beanClass,ExcelMapping.class);
+            if(fields.size() <= 0) {
+                System.err.println("There has no field annotated by [@ExcelMapping]");
+                return;
+            }
+            for(Field field : fields) {
+                //获取注解
+                ExcelMapping mappingAnnotation = field.getDeclaredAnnotation(ExcelMapping.class);
+                //根据注解的值获取rowIndex
+                if(mappingAnnotation.rowIndex() >= 0 && rowIndex != mappingAnnotation.rowIndex()) {
+                    continue;//启用行索引(大于等于0)，且当前行不是指定的行，则跳过
+                }
+                //获取单元格对象
+                int cellIndex = mappingAnnotation.cellIndex();
+                Cell cell = row.getCell(cellIndex);
+                if(cell == null) {
+                    cell = row.createCell(cellIndex);
+                }
+                //获取字段值
+                field.setAccessible(true);
+                Class<?> fieldClass = field.getType();
+                Object fieldValue = field.get(bean);
+                //写入单元格中
+                writeIntoCell(cell,fieldValue,fieldClass);
+            }
+        }
+    }
+
     //==================================================================================================================
 
     /**
@@ -150,8 +221,19 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
      * @return 转换后的单元格值
      * @throws IllegalStateException JavaBean类型有问题，转不了
      */
-    private Object typeConvert(Object originalValue, Class<?> fieldClass) throws IllegalStateException {
+    private Object typeConvert(Object originalValue, Class<?> fieldClass) throws IllegalStateException, NullPointerException {
         return typeConvert.convert(originalValue,originalValue.getClass(),fieldClass);
+    }
+
+    /**
+     * 将值写入单元格
+     * @param cell 单元格对象
+     * @param value 要写入的值
+     * @param valueType 要写入值的类型
+     * @throws IllegalStateException 未知的写入值类型
+     */
+    private void writeIntoCell(Cell cell, Object value, Class<?> valueType) throws IllegalStateException, NullPointerException {
+        cellWriter.writeIntoCell(cell, value, valueType);
     }
 
     //==================================================================================================================
@@ -180,7 +262,11 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
         this.getFormulaResult = getFormulaResult;
     }
 
-    public BeanTypeConvert getTypeConvert() {
-        return typeConvert;
+    public void setTypeConvert(BeanTypeConvert typeConvert) {
+        this.typeConvert = typeConvert;
+    }
+
+    public void setCellWriter(BeanCellWriter cellWriter) {
+        this.cellWriter = cellWriter;
     }
 }

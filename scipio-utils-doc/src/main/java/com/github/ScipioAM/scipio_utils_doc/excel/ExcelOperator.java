@@ -41,8 +41,9 @@ public class ExcelOperator extends ExcelOperatorBase {
     /**
      * 扫描指定Sheet里的指定范围
      * @param missingCellPolicy 单元格缺失或为空时的策略，默认是RETURN_NULL_AND_BLANK，具体参看{@link Row.MissingCellPolicy}
+     * @param createSheetIfNotExists 获取不到sheet时是否创建
      */
-    public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy)
+    public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy, boolean createSheetIfNotExists)
     {
         // **************** 参数检查 ****************
         paramsCheck();
@@ -50,7 +51,7 @@ public class ExcelOperator extends ExcelOperatorBase {
             missingCellPolicy = workbook.getMissingCellPolicy();
         }
         // **************** 获取目标Sheet ****************
-        Sheet sheet = getSheet(excelIndex,workbook);
+        Sheet sheet = getSheet(excelIndex,workbook, createSheetIfNotExists);
         //确定最终的行数
         Integer rowLength = determineRowLength(excelIndex,sheet);
         // **************** 开始扫描行 ****************
@@ -85,7 +86,7 @@ public class ExcelOperator extends ExcelOperatorBase {
     }//end of read()
 
     public void operate() {
-        operate(null);
+        operate(null,false);
     }
 
     //==================================================================================================================
@@ -121,11 +122,16 @@ public class ExcelOperator extends ExcelOperatorBase {
      * 根据设定获取Sheet对象
      * @param excelIndex 设定
      * @param workbook 工作簿对象
+     * @param createIfNotExists 是否不存在Sheet时，创建它
      * @return Sheet对象
      */
-    protected Sheet getSheet(ExcelIndex excelIndex, Workbook workbook) {
+    protected Sheet getSheet(ExcelIndex excelIndex, Workbook workbook, boolean createIfNotExists) {
         Integer sheetIndex = excelIndex.getSheetIndex();
-        return  (sheetIndex != null) ? workbook.getSheetAt(sheetIndex) : workbook.getSheet(excelIndex.getSheetName());
+        Sheet sheet = (sheetIndex != null) ? workbook.getSheetAt(sheetIndex) : workbook.getSheet(excelIndex.getSheetName());
+        if(sheet == null && createIfNotExists) {
+            sheet = workbook.createSheet((sheetIndex != null) ? null : excelIndex.getSheetName());
+        }
+        return sheet;
     }
 
     /**
@@ -136,7 +142,10 @@ public class ExcelOperator extends ExcelOperatorBase {
      */
     protected Integer determineRowLength(ExcelIndex excelIndex, Sheet sheet) {
         Integer rowLength = excelIndex.getRowLength();
-        if(excelIndex.useLastNumberOfRows()) {
+        if(rowLength != null && rowLength >= 0) {
+            return rowLength;
+        }
+        else if(excelIndex.useLastNumberOfRows()) {
             rowLength = (sheet.getLastRowNum() + 1);
         }
         else if(excelIndex.usePhysicalNumberOfRows()) {

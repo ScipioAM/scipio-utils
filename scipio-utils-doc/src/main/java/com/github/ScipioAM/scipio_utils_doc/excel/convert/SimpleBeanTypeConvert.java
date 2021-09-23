@@ -31,6 +31,23 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
             else if(targetType == BigDecimal.class) {
                 return new BigDecimal(originalDV);
             }
+            else if(targetType == Boolean.class) {
+                if(originalDV == 0.0) {
+                    return Boolean.FALSE;
+                }
+                else if(originalDV == 1.0) {
+                    return Boolean.TRUE;
+                }
+            }
+        }
+        else if(originalType == String.class && targetType == Boolean.class) {
+            String originalStr = (String) originalValue;
+            if(originalStr.equalsIgnoreCase("true")) {
+                return true;
+            }
+            else if(originalStr.equalsIgnoreCase("false")) {
+                return false;
+            }
         }
 
         //不是预期可转换的，且类型又不一致，则抛出异常

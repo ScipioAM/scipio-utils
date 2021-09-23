@@ -1,5 +1,6 @@
+package com.test;
+
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanReader;
-import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
@@ -89,51 +90,6 @@ public class ExcelReadTest {
             System.out.println(beanList);
         }catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 测试用的bean类
-     */
-    public static class TestBean {
-        @ExcelMapping(cellIndex = 0,rowIndex = 2)
-        private Integer id;
-        @ExcelMapping(cellIndex = 1,rowIndex = 3)
-        private String name;
-        @ExcelMapping(cellIndex = 2,rowIndex = 2)
-        private String descCn;
-
-        public Integer getId() {
-            return id;
-        }
-
-        public void setId(Integer id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDescCn() {
-            return descCn;
-        }
-
-        public void setDescCn(String descCn) {
-            this.descCn = descCn;
-        }
-
-        @Override
-        public String toString() {
-            return "TestBean{" +
-                    "id=" + id +
-                    ", name='" + name + '\'' +
-                    ", descCn='" + descCn + '\'' +
-                    '}';
         }
     }
 
