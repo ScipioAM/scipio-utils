@@ -5,16 +5,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Class: StreamParseUtil
- * Description: v1.3
- * 流解析
- * Author: Alan Min
- * Createtime: 2018/4/16
+ * 流解析工具类
+ * @author Alan Scipio
+ * @date 2018/4/16
  */
 public class StreamParser {
 
-    private StreamParser() {
-    }
+    private StreamParser() { }
 
     /**
      * readStream()   将输入流处理成字符串对象

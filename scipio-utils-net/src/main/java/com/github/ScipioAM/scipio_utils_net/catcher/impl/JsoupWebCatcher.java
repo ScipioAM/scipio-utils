@@ -43,15 +43,15 @@ public class JsoupWebCatcher extends WebCatcher {
         //解析HTML
         Document document = Jsoup.parse(response.getData());
         //执行抓取逻辑
-        if(catchListener!=null) {
+        if(catchListener != null) {
             if(catchListener instanceof JsoupCatchListener) {
                 this.catchListener = (JsoupCatchListener) catchListener;
             }
             catchListener.onCatch(webInfo,document);
         }
         //执行IO逻辑(保存数据)
-        if(ioListener!=null) {
-            ioListener.onProcess(webInfo,document);
+        if(ioListener != null) {
+            ioListener.process(webInfo,document);
         }
         return webInfo;
     }
@@ -66,6 +66,11 @@ public class JsoupWebCatcher extends WebCatcher {
 
     public WebInfo singleCatch(String url, String filePath, String fileName, String fileSuffix) throws Exception {
         FileIOListener fileIOListener = new FileIOListener(filePath,fileName,fileSuffix);
+        return singleCatch(url,catchListener,fileIOListener);
+    }
+
+    public WebInfo singleCatch(String url, String filePath, String fileName) throws Exception {
+        FileIOListener fileIOListener = new FileIOListener(filePath,fileName);
         return singleCatch(url,catchListener,fileIOListener);
     }
 

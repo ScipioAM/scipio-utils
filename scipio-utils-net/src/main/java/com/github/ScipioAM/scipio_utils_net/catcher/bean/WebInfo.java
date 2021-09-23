@@ -5,8 +5,9 @@ import java.net.URL;
 
 /**
  * 网页抓取信息（包括抓取结果）
- * @author alan scipio
- * @since 2021/6/9
+ * @author Alan Scipio
+ * @since 1.0.0
+ * @date 2021/6/9
  */
 public class WebInfo {
 

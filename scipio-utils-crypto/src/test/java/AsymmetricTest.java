@@ -1,6 +1,6 @@
 import com.github.ScipioAM.scipio_utils_crypto.CryptoUtil;
 import com.github.ScipioAM.scipio_utils_crypto.mode.ACAlgorithm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Class: AsymmetricTest
@@ -13,7 +13,7 @@ public class AsymmetricTest {
     @Test
     public void test00()
     {
-        String content = "0987654321abcdefgzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz";
+        String content = "0987654321abcdefgzzzzzzzzzzzzzzzzzz";
         CryptoUtil cryptoUtil = new CryptoUtil();
         try {
             System.out.println("生成公钥和私钥");

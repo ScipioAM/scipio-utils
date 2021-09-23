@@ -157,7 +157,7 @@ public interface IHttpRequester {
 
     /**
      * 设置followRedirects参数
-     * <p>参数含义：是否关闭重定向以获取跳转后的真实地址</p>
+     * <p>参数含义：是否追踪重定向以获取跳转后的真实地址</p>
      */
     default IHttpRequester setFollowRedirects(boolean followRedirects) {
         System.err.println("method[followRedirects] not override, nothing happened");

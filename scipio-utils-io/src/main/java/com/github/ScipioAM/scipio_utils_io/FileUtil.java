@@ -5,10 +5,10 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
 /**
- * Class: FileUtil
- * Description: 文件操作工具
- * Author: Alan Min
- * Create Time: 2018/5/3
+ * 文件操作工具
+ * @author Alan Min
+ * @since 1.0.0
+ * @date 2018/5/3
  */
 public class FileUtil {
 

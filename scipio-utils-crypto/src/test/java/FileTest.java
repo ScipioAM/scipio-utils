@@ -3,7 +3,7 @@ import com.github.ScipioAM.scipio_utils_crypto.MessageDigestUtil;
 import com.github.ScipioAM.scipio_utils_crypto.SimpleFileCrypto;
 import com.github.ScipioAM.scipio_utils_crypto.mode.ACAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.SCAlgorithm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;

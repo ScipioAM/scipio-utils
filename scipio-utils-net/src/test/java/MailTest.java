@@ -1,5 +1,5 @@
 import com.github.ScipioAM.scipio_utils_net.mail.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * 邮件测试

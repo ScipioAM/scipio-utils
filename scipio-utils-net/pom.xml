@@ -5,7 +5,7 @@
     <parent>
         <artifactId>scipio-utils</artifactId>
         <groupId>com.github.ScipioAM</groupId>
-        <version>1.0.1</version>
+        <version>1.0.2-p3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,10 +16,6 @@
         <dependency>
             <groupId>com.github.ScipioAM</groupId>
             <artifactId>scipio-utils-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
         </dependency>
         <dependency>
             <groupId>net.sf.jmimemagic</groupId>
@@ -43,15 +39,7 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>${javax.mail.version}</version>
             <optional>true</optional>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.4.14</version>
         </dependency>
     </dependencies>
 

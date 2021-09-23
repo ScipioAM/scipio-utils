@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.catcher.impl;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_net.catcher.IOListener;
 import com.github.ScipioAM.scipio_utils_net.catcher.bean.CatchResult;
 import com.github.ScipioAM.scipio_utils_net.catcher.bean.WebInfo;
@@ -11,25 +12,30 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * 文件件IO操作的监听器实现 <br/>
- * (以TXT文件为主)
+ * 文件IO操作的监听器实现
  * @author Alan Scipio
- * @since 2021/6/9
+ * @since 1.0.0
+ * @date 2021/6/9
  */
 public class FileIOListener implements IOListener {
 
     private String filePath; //文件路径
     private String fileName; //文件名
-    private String fileSuffix = ".txt"; //文件后缀
+    private String fileExtension = "txt"; //文件后缀，默认txt，如不需要后缀则手动set为null
 
     private boolean isAppend = false; //是否为追加，为false则不是追加而是覆盖
 
     public FileIOListener() {}
 
-    public FileIOListener(String filePath, String fileName, String fileSuffix) {
+    public FileIOListener(String filePath, String fileName) {
         this.filePath = filePath;
         this.fileName = fileName;
-        this.fileSuffix = fileSuffix;
+    }
+
+    public FileIOListener(String filePath, String fileName, String fileExtension) {
+        this.filePath = filePath;
+        this.fileName = fileName;
+        this.fileExtension = fileExtension;
     }
 
     /**
@@ -39,10 +45,11 @@ public class FileIOListener implements IOListener {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
-    public void onProcess(WebInfo webInfo, Object... params) {
+    public void process(WebInfo webInfo, Object... params) {
         List<String> contentList = getFileContent(webInfo);
         File parentDir = new File(filePath);
-        File file = new File(filePath + File.separatorChar + fileName + fileSuffix);
+        String finalFileExtension = (StringUtil.isNull(fileExtension) ? null : ("." + fileExtension));
+        File file = new File(filePath + File.separatorChar + fileName + finalFileExtension);
         //创建父目录(如果不存在)
         if(!parentDir.exists()) {
             parentDir.mkdirs();
@@ -112,11 +119,11 @@ public class FileIOListener implements IOListener {
     }
 
     public String getFileSuffix() {
-        return fileSuffix;
+        return fileExtension;
     }
 
-    public FileIOListener setFileSuffix(String fileSuffix) {
-        this.fileSuffix = fileSuffix;
+    public FileIOListener setFileExtension(String fileExtension) {
+        this.fileExtension = fileExtension;
         return this;
     }
 

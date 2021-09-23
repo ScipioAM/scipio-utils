@@ -1,11 +1,10 @@
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.bean.ResponseResult;
-import com.github.ScipioAM.scipio_utils_net.http.common.ResponseDataMode;
 import com.github.ScipioAM.scipio_utils_net.http.listener.DownloadListener;
 import com.github.ScipioAM.scipio_utils_net.http.listener.FileUploadListener;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashMap;
