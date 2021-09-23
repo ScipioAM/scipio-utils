@@ -32,6 +32,9 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      */
     private boolean getFormulaResult = true;
 
+    /** 垂直读取标志 */
+    private boolean verticalRead = false;
+
     @Override
     public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelBeanReader) super.load(file);
@@ -53,19 +56,28 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         OpPrepareVo prepareVo = operationPrepare(beanMapper,false);
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
+        Integer rowStartIndex = excelIndex.getRowStartIndex();
+        int finalRowLength = rowStartIndex + rowLength;
         // 开始扫描行
         List<T> beanList = buildBeanList();
-        for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
+        for(int i = rowStartIndex; i < finalRowLength; i += excelIndex.getRowStep()) {
             //不在白名单中的行要跳过
             if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
                 continue;
             }
             Row row = sheet.getRow(i);
-            T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
-            if(bean != null) {
-                beanList.add(bean);
+            //垂直读取
+            if(verticalRead) {
+                //TODO 垂直读取的实现待完成，循环每个cell，写入bean的对应位置（bean为null就创建）
+                System.err.println("Sorry, vertical read is nt finished yet!");
             }
-        }
+            else { //正常水平读取
+                T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
+                if(bean != null) {
+                    beanList.add(bean);
+                }
+            }
+        }//end of for
         //收尾
         finish();
         return beanList;
@@ -84,7 +96,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(mappingInfo,beanClass);
+        AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
         if(customTypeConvert != null) {
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }
@@ -101,7 +113,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(null,beanClass);
+        AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(beanClass);
         if(customTypeConvert != null) {
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }
@@ -132,6 +144,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     public ExcelBeanReader setGetFormulaResult(Boolean getFormulaResult) {
         this.getFormulaResult = getFormulaResult;
+        return this;
+    }
+
+    public boolean isVerticalRead() {
+        return verticalRead;
+    }
+
+    public ExcelBeanReader setVerticalRead(boolean verticalRead) {
+        this.verticalRead = verticalRead;
         return this;
     }
 

@@ -93,4 +93,22 @@ public class ExcelReadTest {
         }
     }
 
+    @Test
+    public void test2() {
+        File file = new File("D:\\temp\\test7.xls");
+        try {
+            ExcelBeanReader reader = new ExcelBeanReader();
+            reader.load(file);
+            List<StyleBean> beanList = reader.setSheetIndex(5) //指定读取哪个Sheet
+                    .setRowStartIndex(12)
+                    .setRowLength(6)
+                    .setColumnStartIndex(2)
+                    .setColumnLength(1)
+                    .read(StyleBean.class);//读取(映射)
+            System.out.println(beanList);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

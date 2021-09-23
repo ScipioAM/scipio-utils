@@ -3,7 +3,7 @@ package com.github.ScipioAM.scipio_utils_doc.excel;
 import com.github.ScipioAM.scipio_utils_common.reflect.FieldUtil;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelBeanAutoMapper;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.AutoExcelBeanMapper;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelBeanMapper;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -32,8 +32,8 @@ public class ExcelBeanOperator extends ExcelOperator {
         //确定最终的总行数
         Integer rowLength = determineRowLength(excelIndex,sheet);
         //确定行白名单（跳过这些行）
-        if(beanMapper instanceof ExcelBeanAutoMapper) {
-            ExcelBeanAutoMapper<T> autoMapper = (ExcelBeanAutoMapper<T>) beanMapper;
+        if(beanMapper instanceof AutoExcelBeanMapper) {
+            AutoExcelBeanMapper<T> autoMapper = (AutoExcelBeanMapper<T>) beanMapper;
             checkRowWhitelist(autoMapper.getMappingInfo(),autoMapper.getBeanClass(),rowLength);
         }
         return new OpPrepareVo(sheet,rowLength);

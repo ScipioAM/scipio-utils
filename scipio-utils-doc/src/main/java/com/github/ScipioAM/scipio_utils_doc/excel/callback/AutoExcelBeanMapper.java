@@ -21,7 +21,7 @@ import java.util.List;
  * @since 1.0.2-p3
  * @date 2021/9/16
  */
-public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
+public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
 
     /**
      * 自定义映射信息(优先级高于{@link ExcelMapping})
@@ -49,9 +49,11 @@ public class ExcelBeanAutoMapper<T> implements ExcelBeanMapper<T>{
      */
     private BeanCellWriter cellWriter = new SimpleBeanCellWriter();
 
-    public ExcelBeanAutoMapper() {}
+    public AutoExcelBeanMapper(Class<T> beanClass) {
+        this.beanClass = beanClass;
+    }
 
-    public ExcelBeanAutoMapper(List<ExcelMappingInfo> mappingInfo, Class<T> beanClass) {
+    public AutoExcelBeanMapper(List<ExcelMappingInfo> mappingInfo, Class<T> beanClass) {
         this.mappingInfo = mappingInfo;
         this.beanClass = beanClass;
     }

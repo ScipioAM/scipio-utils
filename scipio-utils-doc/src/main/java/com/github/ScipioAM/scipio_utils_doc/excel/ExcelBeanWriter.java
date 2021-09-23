@@ -162,7 +162,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> autoMapper = new ExcelBeanAutoMapper<>(mappingInfo,beanClass);
+        AutoExcelBeanMapper<T> autoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
@@ -182,7 +182,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> autoMapper = new ExcelBeanAutoMapper<>(null,beanClass);
+        AutoExcelBeanMapper<T> autoMapper = new AutoExcelBeanMapper<>(null,beanClass);
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
