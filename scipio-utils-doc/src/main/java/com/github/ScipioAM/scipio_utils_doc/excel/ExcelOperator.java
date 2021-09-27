@@ -52,7 +52,7 @@ public class ExcelOperator extends ExcelOperatorBase {
         }
         // **************** 获取目标Sheet ****************
         Sheet sheet = getSheet(excelIndex,workbook, createSheetIfNotExists);
-        //确定最终的行数
+        //确定最终的行数(加上了起始行号)
         Integer rowLength = determineRowLength(excelIndex,sheet);
         // **************** 开始扫描行 ****************
         OUTER:
@@ -64,15 +64,8 @@ public class ExcelOperator extends ExcelOperatorBase {
                 }
             }
             if(cellHandler != null) {
-                //确定每次扫描时最终的列数
-                Integer columnLength = excelIndex.getColumnLength();
-                if (excelIndex.useLastNumberOfRows()) {
-                    int lastCellNum = row.getLastCellNum();
-                    columnLength = (lastCellNum == -1 ? 0 : lastCellNum);
-                }
-                else if(excelIndex.usePhysicalNumberOfCells()) {
-                    columnLength = row.getPhysicalNumberOfCells();
-                }
+                //确定每次扫描时最终的列数(加上了起始列号)
+                Integer columnLength = determineColumnLength(excelIndex,row);
                 //开始扫描列
                 for(int j = excelIndex.getColumnStartIndex(); j < columnLength; j += excelIndex.getColumnStep()) {
                     Cell cell = row.getCell(j,missingCellPolicy);
@@ -82,6 +75,7 @@ public class ExcelOperator extends ExcelOperatorBase {
                 }
             }//end of if(cellHandler != null)
         }//end of row-scan for
+        // **************** 收尾操作 ****************
         finish();
     }//end of read()
 
@@ -135,7 +129,7 @@ public class ExcelOperator extends ExcelOperatorBase {
     }
 
     /**
-     * 根据设定决定最终要读取的总行数
+     * 根据设定决定最终要读取的总行数(加上了起始行号)
      * @param excelIndex 设定
      * @param sheet Sheet对象
      * @return 最终要读取的总行数
@@ -143,6 +137,7 @@ public class ExcelOperator extends ExcelOperatorBase {
     protected Integer determineRowLength(ExcelIndex excelIndex, Sheet sheet) {
         Integer rowLength = excelIndex.getRowLength();
         if(rowLength != null && rowLength >= 0) {
+            rowLength += excelIndex.getRowStartIndex();
             return rowLength;
         }
         else if(excelIndex.useLastNumberOfRows()) {
@@ -151,7 +146,27 @@ public class ExcelOperator extends ExcelOperatorBase {
         else if(excelIndex.usePhysicalNumberOfRows()) {
             rowLength = sheet.getPhysicalNumberOfRows();
         }
+        rowLength += excelIndex.getRowStartIndex();
         return rowLength;
+    }
+
+    /**
+     * 根据设定觉得最终要读取的每行总列数(加上了起始列号)
+     * @param excelIndex 设定
+     * @param row row对象
+     * @return 最终要读取的每行总列数
+     */
+    protected Integer determineColumnLength(ExcelIndex excelIndex, Row row) {
+        Integer columnLength = excelIndex.getColumnLength();
+        if (excelIndex.useLastNumberOfRows()) {
+            int lastCellNum = row.getLastCellNum();
+            columnLength = (lastCellNum == -1 ? 0 : lastCellNum);
+        }
+        else if(excelIndex.usePhysicalNumberOfCells()) {
+            columnLength = row.getPhysicalNumberOfCells();
+        }
+        columnLength += excelIndex.getColumnStartIndex();
+        return columnLength;
     }
 
     protected void finish() {

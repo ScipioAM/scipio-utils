@@ -105,7 +105,12 @@ public class ExcelReadTest {
                     .setColumnStartIndex(2)
                     .setColumnLength(1)
                     .read(StyleBean.class);//读取(映射)
-            System.out.println(beanList);
+
+            System.out.println("\n" + beanList + "\n");
+
+            for(StyleBean bean : beanList) {
+                System.out.println(bean);
+            }
         }catch (Exception e) {
             e.printStackTrace();
         }

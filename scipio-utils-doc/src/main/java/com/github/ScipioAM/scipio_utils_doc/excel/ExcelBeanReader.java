@@ -57,21 +57,28 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
         Integer rowStartIndex = excelIndex.getRowStartIndex();
-        int finalRowLength = rowStartIndex + rowLength;
+        //如果是垂直读取，则准备好垂直读取的mapper
+        VerticalExcelBeanMapper<T> verticalBeanMapper = null;
+        if(verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
+            verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
+            verticalBeanMapper.prepareMappingInfo();
+        }
         // 开始扫描行
         List<T> beanList = buildBeanList();
-        for(int i = rowStartIndex; i < finalRowLength; i += excelIndex.getRowStep()) {
+        for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
             //不在白名单中的行要跳过
             if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
                 continue;
             }
             Row row = sheet.getRow(i);
             //垂直读取
-            if(verticalRead) {
-                //TODO 垂直读取的实现待完成，循环每个cell，写入bean的对应位置（bean为null就创建）
-                System.err.println("Sorry, vertical read is still developing!");
+            if(verticalBeanMapper != null) {
+                //确定每列总行数(加上了起始列号)
+                Integer columnLength = determineColumnLength(excelIndex,row);
+                verticalBeanMapper.mappingExcel2Bean(row,i,excelIndex.getColumnStartIndex(),columnLength,beanList);
             }
-            else { //正常水平读取
+            //正常水平读取
+            else {
                 T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
                 if(bean != null) {
                     beanList.add(bean);
@@ -96,12 +103,24 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
-        if(customTypeConvert != null) {
-            beanAutoMapper.setTypeConvert(customTypeConvert);
+        ExcelBeanMapper<T> beanMapper;
+        if(verticalRead) {
+            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(mappingInfo,beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanMapper = beanAutoMapper;
         }
-        beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanClass,beanAutoMapper);
+        else {
+            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanMapper = beanAutoMapper;
+        }
+        return read(beanClass,beanMapper);
     }
 
     /**
@@ -113,12 +132,24 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(beanClass);
-        if(customTypeConvert != null) {
-            beanAutoMapper.setTypeConvert(customTypeConvert);
+        ExcelBeanMapper<T> beanMapper;
+        if(verticalRead) {
+            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanMapper = beanAutoMapper;
         }
-        beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanClass,beanAutoMapper);
+        else {
+            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanMapper = beanAutoMapper;
+        }
+        return read(beanClass,beanMapper);
     }
 
     /**

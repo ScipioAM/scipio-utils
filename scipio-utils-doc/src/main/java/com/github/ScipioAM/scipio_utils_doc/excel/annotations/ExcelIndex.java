@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 注解版的{@link com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex}
  *      <p>注：优先级低于显式传参的{@link com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex}</p>
  * @author Alan Scipio
- * @since 1.0.2-p3
+ * @since 1.0.2
  * @date 2021/9/27
  */
 @Target(TYPE)

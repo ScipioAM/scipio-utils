@@ -8,28 +8,28 @@ import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
  */
 @ExcelIndex(
         sheetIndex = 5,
-        rowStartIndex = 12,
+        rowStartIndex = 11,
         rowLength = 6,
         columnStartIndex = 2,
         columnLength = 1)
 public class StyleBean {
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 12)
+    @ExcelMapping(rowIndex = 11)
     private String acptNo;
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 13)
+    @ExcelMapping(rowIndex = 12)
     private String acptQty;
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 14)
+    @ExcelMapping(rowIndex = 13)
     private String acptDate;
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 15)
+    @ExcelMapping(rowIndex = 14)
     private String price;
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 16)
+    @ExcelMapping(rowIndex = 15)
     private String priceType;
 
-    @ExcelMapping(cellIndex = 2,rowIndex = 17)
+    @ExcelMapping(rowIndex = 16)
     private String materialCost;
 
     @Override
