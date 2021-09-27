@@ -51,9 +51,9 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      * @param <T> JavaBean的类型
      * @return 映射后的JavaBean list
      */
-    public <T> List<T> read(@NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
+    public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         //操作前准备(参数检查、确认扫描总行数等)
-        OpPrepareVo prepareVo = operationPrepare(beanMapper,false);
+        OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass);
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
         Integer rowStartIndex = excelIndex.getRowStartIndex();
@@ -69,7 +69,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             //垂直读取
             if(verticalRead) {
                 //TODO 垂直读取的实现待完成，循环每个cell，写入bean的对应位置（bean为null就创建）
-                System.err.println("Sorry, vertical read is nt finished yet!");
+                System.err.println("Sorry, vertical read is still developing!");
             }
             else { //正常水平读取
                 T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
@@ -101,7 +101,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }
         beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanAutoMapper);
+        return read(beanClass,beanAutoMapper);
     }
 
     /**
@@ -118,7 +118,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }
         beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanAutoMapper);
+        return read(beanClass,beanAutoMapper);
     }
 
     /**

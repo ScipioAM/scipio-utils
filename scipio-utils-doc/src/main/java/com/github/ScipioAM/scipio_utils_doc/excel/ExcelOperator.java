@@ -26,7 +26,7 @@ import java.io.IOException;
 public class ExcelOperator extends ExcelOperatorBase {
 
     /** 指定的Sheet和Sheet里的扫描范围 */
-    protected ExcelIndex excelIndex = new ExcelIndex();
+    protected ExcelIndex excelIndex;
 
     @Override
     public ExcelOperator load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
@@ -199,61 +199,97 @@ public class ExcelOperator extends ExcelOperatorBase {
     }
 
     public ExcelOperator setSheetIndex(Integer sheetIndex) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setSheetIndex(sheetIndex);
         return this;
     }
 
     public ExcelOperator setSheetName(String sheetName) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setSheetName(sheetName);
         return this;
     }
 
     public ExcelOperator setRowStartIndex(Integer rowStartIndex) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setRowStartIndex(rowStartIndex);
         return this;
     }
 
     public ExcelOperator setRowLength(Integer rowLength) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setRowLength(rowLength);
         return this;
     }
 
     public ExcelOperator setRowStep(Integer rowStep) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setRowStep(rowStep);
         return this;
     }
 
     public ExcelOperator setColumnStartIndex(Integer columnStartIndex) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setColumnStartIndex(columnStartIndex);
         return this;
     }
 
     public ExcelOperator setColumnLength(Integer columnLength) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setColumnLength(columnLength);
         return this;
     }
 
     public ExcelOperator setColumnStep(Integer columnStep) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setColumnStep(columnStep);
         return this;
     }
 
     public ExcelOperator setUsePhysicalNumberOfRows(boolean usePhysicalNumberOfRows) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setUsePhysicalNumberOfRows(usePhysicalNumberOfRows);
         return this;
     }
 
     public ExcelOperator setUsePhysicalNumberOfCells(boolean usePhysicalNumberOfCells) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setUsePhysicalNumberOfCells(usePhysicalNumberOfCells);
         return this;
     }
 
     public ExcelOperator setUseLastNumberOfRows(boolean useLastNumberOfRows) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setUseLastNumberOfRows(useLastNumberOfRows);
         return this;
     }
 
     public ExcelOperator setUseLastNumberOfCells(boolean useLastNumberOfCells) {
+        if(this.excelIndex == null) {
+            this.excelIndex = new ExcelIndex();
+        }
         excelIndex.setUseLastNumberOfCells(useLastNumberOfCells);
         return this;
     }

@@ -30,7 +30,7 @@ public class ExcelIndex {
 
     /** 扫描行数时的步长 */
     @NotNull(message = "rowStep can not be null")
-    @Min(value = 0, message = "rowStep can not less then 0")
+    @Min(value = 1, message = "rowStep can not less then 1")
     private Integer rowStep = 1;
 
     /** 开始列索引(0-based) */
@@ -44,7 +44,7 @@ public class ExcelIndex {
 
     /** 扫描列数时的步长 */
     @NotNull(message = "columnStep can not be null")
-    @Min(value = 0, message = "columnStep can not less then 0")
+    @Min(value = 1, message = "columnStep can not less then 1")
     private Integer columnStep = 1;
 
     /** 使用{@link Sheet#getLastRowNum()}来自行判断rowLength，优先于usePhysicalNumberOfRows */
@@ -107,6 +107,10 @@ public class ExcelIndex {
         this.sheetName = sheetName;
         this.rowLength = rowLength;
         this.columnLength = columnLength;
+    }
+
+    public void transform(com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex annotation) {
+
     }
 
     public Integer getSheetIndex() {

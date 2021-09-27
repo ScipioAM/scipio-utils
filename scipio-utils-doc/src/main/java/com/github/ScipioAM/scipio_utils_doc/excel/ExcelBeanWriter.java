@@ -105,7 +105,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
      * @param beanList 要写入的数据
      * @param <T> JavaBean类型
      */
-    public <T> void write(@NotNull ExcelBeanMapper<T> beanMapper, @NotEmpty List<T> beanList) throws Exception {
+    public <T> void write(@NotNull ExcelBeanMapper<T> beanMapper, @NotEmpty List<T> beanList, @NotNull Class<T> beanClass) throws Exception {
         //如果未手动设定，则默认要写入的总行数等于beanList的总个数
         if(excelIndex.getRowLength() == null || excelIndex.getRowLength() < 0) {
             excelIndex.setRowLength(beanList.size());
@@ -119,7 +119,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             excelIndex.setSheetIndex(0);
         }
         //操作前准备(参数检查、确认扫描总行数等)
-        OpPrepareVo prepareVo = operationPrepare(beanMapper,true);
+        OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass);
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
         // 开始扫描行
@@ -166,7 +166,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
-        write(autoMapper,beanList);
+        write(autoMapper,beanList,beanClass);
     }
 
     /**
@@ -186,7 +186,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
-        write(autoMapper,beanList);
+        write(autoMapper,beanList,beanClass);
     }
 
     //==================================================================================================================

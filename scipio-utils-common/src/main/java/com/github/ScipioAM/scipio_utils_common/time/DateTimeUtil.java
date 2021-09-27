@@ -8,11 +8,14 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
 /**
- * 日期工具类（Java8添加的LocalDateTime类）
+ * 时间工具类
  * @author Alan Min
  * @since 2020/9/29
  */
 public class DateTimeUtil {
+
+    /** 默认时间日期格式 */
+    public static final String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * 字符串转日期
@@ -21,8 +24,7 @@ public class DateTimeUtil {
      * @param isOnlyDate 是否只有日期（而没有时分秒），为true代表是
      * @return 转换好的日期对象（如果转换失败则为null）
      */
-    public static LocalDateTime timeString2Obj(String pattern, String dateStr, boolean isOnlyDate)
-    {
+    public static LocalDateTime str2Time(String dateStr, String pattern, boolean isOnlyDate) {
         if(isOnlyDate) {
             pattern += "[['T'HH][:mm][:ss]]";
         }
@@ -37,35 +39,12 @@ public class DateTimeUtil {
     }
 
     /**
-     * 字符串转日期（确定只有日期而没有时分秒）
-     * @param dateStr 待转换的字符串数据
-     * @param pattern 字符串日期格式
-     * @return 转换好的日期对象（如果转换失败则为null）
-     */
-    public static LocalDateTime dateString2Obj(String pattern, String dateStr)
-    {
-        return timeString2Obj(pattern,dateStr,true);
-    }
-
-    /**
-     * 字符串转日期（确定只有日期而没有时分秒）
-     *      默认格式：yyyy/MM/dd
+     * 字符串转日期（默认时间格式）
      * @param dateStr 待转换的字符串数据
      * @return 转换好的日期对象（如果转换失败则为null）
      */
-    public static LocalDateTime dateString2Obj(String dateStr)
-    {
-        return timeString2Obj("yyyy/MM/dd",dateStr,true);
-    }
-
-    /**
-     * 字符串转日期（默认yyyy/MM/dd HH:mm:ss格式）
-     * @param dateStr 待转换的字符串数据
-     * @return 转换好的日期对象（如果转换失败则为null）
-     */
-    public static LocalDateTime timeString2Obj(String dateStr)
-    {
-        return timeString2Obj("yyyy/MM/dd HH:mm:ss",dateStr,false);
+    public static LocalDateTime str2Time(String dateStr) {
+        return str2Time(DEFAULT_TIME_FORMAT,dateStr,false);
     }
 
     /**
@@ -74,10 +53,9 @@ public class DateTimeUtil {
      * @param date 待转换的日期对象
      * @return 转换好的字符串（如果转换失败则为null）
      */
-    public static String date2String(String pattern,LocalDateTime date)
+    public static String time2Str(LocalDateTime date, String pattern)
     {
-        if(date==null)
-        {
+        if(date == null) {
             return null;
         }
         DateTimeFormatter formatter=DateTimeFormatter.ofPattern(pattern);
@@ -85,13 +63,13 @@ public class DateTimeUtil {
     }
 
     /**
-     * 日期转字符串（默认yyyy/MM/dd HH:mm:ss格式）
+     * 日期转字符串（默认时间格式）
      * @param date 待转换的日期对象
      * @return 转换好的字符串（如果转换失败则为null）
      */
-    public static String date2String(LocalDateTime date)
+    public static String time2Str(LocalDateTime date)
     {
-        return date2String("yyyy/MM/dd HH:mm:ss",date);
+        return time2Str(date, DEFAULT_TIME_FORMAT);
     }
 
     /**
@@ -99,14 +77,14 @@ public class DateTimeUtil {
      * @param pattern 日期格式
      */
     public static String getNowStr(String pattern) {
-        return date2String(pattern,LocalDateTime.now());
+        return time2Str(LocalDateTime.now(), pattern);
     }
 
     /**
-     * 获取当前时间的字符串（默认yyyy/MM/dd HH:mm:ss格式）
+     * 获取当前时间的字符串（默认时间格式）
      */
     public static String getNowStr() {
-        return date2String(LocalDateTime.now());
+        return time2Str(LocalDateTime.now());
     }
 
     /**

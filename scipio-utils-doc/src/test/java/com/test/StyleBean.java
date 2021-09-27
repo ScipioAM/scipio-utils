@@ -1,10 +1,17 @@
 package com.test;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 
 /**
  * @date 2021/9/23
  */
+@ExcelIndex(
+        sheetIndex = 5,
+        rowStartIndex = 12,
+        rowLength = 6,
+        columnStartIndex = 2,
+        columnLength = 1)
 public class StyleBean {
 
     @ExcelMapping(cellIndex = 2,rowIndex = 12)
