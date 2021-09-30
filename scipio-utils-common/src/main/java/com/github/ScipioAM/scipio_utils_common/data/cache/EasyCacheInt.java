@@ -6,5 +6,5 @@ package com.github.ScipioAM.scipio_utils_common.data.cache;
  * @since 1.0.2
  * @date 2021/9/29
  */
-public class EasyCacheInt extends EasyCache<Integer> implements EasyCacheIntApi{
+public class EasyCacheInt extends EasyCache<Integer> implements IEasyCacheInt {
 }

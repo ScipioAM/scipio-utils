@@ -3,7 +3,7 @@ package com.github.ScipioAM.scipio_utils_common.data.cache;
 import java.util.Map;
 
 /**
- * {@link EasyCacheApi}移除缓存数据时的监听回调
+ * {@link IEasyCache}移除缓存数据时的监听回调
  * @author Alan Scipio
  * @since 1.0.2
  * @date 2021/9/29

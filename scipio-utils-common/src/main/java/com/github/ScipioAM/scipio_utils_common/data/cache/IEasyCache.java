@@ -9,7 +9,7 @@ import java.util.Map;
  * @since 1.0.2
  * @date 2021/9/28
  */
-public interface EasyCacheApi<K> {
+public interface IEasyCache<K> {
 
     /**
      * 缓存数据
@@ -62,6 +62,13 @@ public interface EasyCacheApi<K> {
     void clearAll();
 
     /**
+     * 重置缓存(其实就是{@link #clearAll()}的别名)
+     */
+    default void reset() {
+        clearAll();
+    }
+
+    /**
      * 设置过期时长
      * @param key 键
      * @param expire 有效时长(单位毫秒)，为0则代表不过期
@@ -88,7 +95,7 @@ public interface EasyCacheApi<K> {
      * @param key 键
      * @return true代表包含，false代表不包含
      */
-    boolean isContains(K key);
+    boolean isContainsKey(K key);
 
     /**
      * 当前已缓存的数据总数
@@ -98,11 +105,11 @@ public interface EasyCacheApi<K> {
     /**
      * 设置缓存添加时的监听器
      */
-    void setCacheAddListener(CacheAddListener listener);
+    EasyCache<K> setCacheAddListener(CacheAddListener listener);
 
     /**
      * 设置缓存移除时的监听器
      */
-    void setCacheRemoveListener(CacheRemoveListener listener);
+    EasyCache<K> setCacheRemoveListener(CacheRemoveListener listener);
 
 }
