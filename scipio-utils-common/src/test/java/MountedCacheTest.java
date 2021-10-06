@@ -13,15 +13,15 @@ public class MountedCacheTest {
 
     @Test
     public void test0() {
-
         TestBean testBean = new TestBean();
         testBean.setList("qwe");
 
         MountedCacheWrapper wrapper = new MountedCacheWrapper(testBean);
         try {
-            wrapper.putData("zxcvbn");
-            String data = wrapper.getData(1,1);
-            System.out.println(data);
+            wrapper.putData("zxc");
+            System.out.println("putData succeed!");
+            String data = wrapper.getData(1);
+            System.out.println("getData: " + data);
         }catch (Exception e) {
             e.printStackTrace();
         }

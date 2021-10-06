@@ -56,4 +56,15 @@ public class AssertUtil {
         }
     }
 
+    /**
+     * 检查类型是否合法
+     * @param checkInstance 要检查的实例
+     * @param expectType 预期类型
+     */
+    public static void checkType(Object checkInstance, Class<?> expectType) {
+        if(checkInstance.getClass() != expectType) {
+            throw new IllegalStateException("Expect type [" + expectType + "], bus actual type is [" + checkInstance.getClass() + "], for check instance[" + checkInstance + "]");
+        }
+    }
+
 }
