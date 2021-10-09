@@ -30,4 +30,13 @@ public interface TreeNode {
      */
     void addChildNode(TreeNode childNode);
 
+    /**
+     * 获取节点的数据
+     * @param <T> 节点数据的类型
+     * @return 节点的数据
+     */
+    default <T> T getValue() {
+        return null;
+    }
+
 }

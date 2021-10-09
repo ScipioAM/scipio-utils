@@ -13,9 +13,9 @@ import java.util.List;
 
 /**
  * Gson工具类
- *
  * @author Alan Scipio
- * @since 2018/5/16
+ * @since 1.0.0
+ * @date 2018/5/16
  */
 public class GsonUtil {
 
@@ -23,7 +23,6 @@ public class GsonUtil {
 
     /**
      * 从json字符串里解出一个值（根据对应的键）
-     *
      * @param json      原始数据
      * @param searchKey 查找的键
      */
@@ -35,7 +34,6 @@ public class GsonUtil {
 
     /**
      * 从json字符串里解出多个值（根据对应的键）
-     *
      * @param json       原始数据
      * @param searchKeys 查找的键
      */
@@ -50,14 +48,12 @@ public class GsonUtil {
 
     //解析json字符串，返回jsonObject对象
     public static JsonObject getJsonObject(String json) {
-        JsonParser parser = new JsonParser();
-        return (JsonObject) parser.parse(json);
+        return (JsonObject) JsonParser.parseString(json);
     }
 
     //解析json字符串，返回其中部分内容的jsonObject对象
     public static JsonObject getJsonObject(String json, String searchKey) {
-        JsonParser parser = new JsonParser();
-        JsonObject root = (JsonObject) parser.parse(json);
+        JsonObject root = (JsonObject) JsonParser.parseString(json);
         return root.get(searchKey).getAsJsonObject();
     }
 
@@ -67,11 +63,8 @@ public class GsonUtil {
     }
 
     public static String toJson(Object obj, boolean isDisableHtmlEscaping) {
-        Gson gson;
-        if (isDisableHtmlEscaping)//是否不转换HTML特殊字符
-            gson = new GsonBuilder().disableHtmlEscaping().create();
-        else
-            gson = new Gson();
+        //是否不转换HTML特殊字符
+        Gson gson = (isDisableHtmlEscaping ? new GsonBuilder().disableHtmlEscaping().create() : new Gson());
         return gson.toJson(obj);
     }
 
@@ -92,7 +85,9 @@ public class GsonUtil {
         return gson.fromJson(jsonStr, type);
     }
 
-    //将json格式化输出
+    /**
+     * 将json格式化输出
+     */
     public static String toPrettyPrint(String json) {
         JsonParser jsonParser = new JsonParser();
         JsonObject jsonObject = jsonParser.parse(json).getAsJsonObject();
