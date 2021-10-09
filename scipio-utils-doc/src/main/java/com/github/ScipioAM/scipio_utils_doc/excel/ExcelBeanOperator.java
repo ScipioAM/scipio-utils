@@ -13,9 +13,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Excel-JavaBean处理器
+ * @author Alan Scipio
+ * @since 1.0.2-p3
  * @date 2021/9/18
  */
-public class ExcelBeanOperator extends ExcelOperator {
+public abstract class ExcelBeanOperator extends ExcelOperator {
 
     /**
      * 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过）

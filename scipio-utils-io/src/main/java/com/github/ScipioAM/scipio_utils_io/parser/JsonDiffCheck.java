@@ -24,7 +24,7 @@ public class JsonDiffCheck {
     }
 
     public void checkType(String json, Class<?> targetCheckType, JsonParser parser) {
-
+        //TODO 考虑平铺(flat)出一个map，再与另一个进行比较，恐怕要递归两次，还得使用MultiMap
     }
 
     //==================================================================================================================
@@ -33,7 +33,6 @@ public class JsonDiffCheck {
         Field[] fields = targetCheckType.getDeclaredFields();
         for(Field field : fields) {
             Class<?> fieldType = field.getType();
-            System.out.println("isSynthetic:" + fieldType.isSynthetic());
             if(fieldType.isPrimitive() || fieldType.isArray() || fieldType.isEnum() || fieldType == String.class) {
                 targetMap.put(field.getName(), field);
             }

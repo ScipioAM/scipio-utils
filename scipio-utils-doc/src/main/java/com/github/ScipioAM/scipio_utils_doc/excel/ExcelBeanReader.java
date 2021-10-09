@@ -71,6 +71,12 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 continue;
             }
             Row row = sheet.getRow(i);
+
+            //行处理监听器
+            if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                break;
+            }
+
             //垂直读取
             if(verticalBeanMapper != null) {
                 //确定每列总行数(加上了起始列号)

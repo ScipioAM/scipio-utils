@@ -8,11 +8,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 /**
  * maven配置文件工具类
- * @author Alan Min
- * @since 2021/2/2
+ * @author Alan Scipio
+ * @since 1.0.0
+ * @date 2021/2/2
  */
 public class MavenHelper {
 
@@ -33,7 +35,9 @@ public class MavenHelper {
             else
                 model = reader.read(
                         new InputStreamReader(
-                                getClass().getResourceAsStream("/META-INF/maven/de.scrum-master.stackoverflow/aspectj-introduce-method/pom.xml")
+                                Objects.requireNonNull(
+                                        getClass().getResourceAsStream("/META-INF/maven/de.scrum-master.stackoverflow/aspectj-introduce-method/pom.xml")
+                                )
                         )
                 );
         }

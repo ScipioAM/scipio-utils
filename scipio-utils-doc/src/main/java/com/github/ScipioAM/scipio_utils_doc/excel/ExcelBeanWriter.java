@@ -130,6 +130,11 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
                 continue;
             }
             Row row = sheet.getRow(i);
+            //行处理监听器
+            if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                break;
+            }
+
             if(row == null) {
                 row = sheet.createRow(i);
             }
