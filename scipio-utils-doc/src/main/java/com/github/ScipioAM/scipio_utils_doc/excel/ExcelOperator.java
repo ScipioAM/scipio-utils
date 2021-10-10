@@ -1,13 +1,12 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
-import com.github.ScipioAM.scipio_utils_common.annotations.Nullable;
-import com.github.ScipioAM.scipio_utils_common.validation.Validator;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelEndListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelRowHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import jakarta.validation.constraints.NotNull;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -95,7 +94,7 @@ public class ExcelOperator extends ExcelOperatorBase {
         if(excelIndex == null) {
             throw new NullPointerException("argument[ExcelIndex] is null");
         }
-        Validator.newInstance().validateOnce(excelIndex);//校验合法性
+        excelIndex.checkSelf();//校验合法性，非法就抛异常
         if(!excelIndex.useLastNumberOfRows() && !excelIndex.usePhysicalNumberOfRows()) {
             if(excelIndex.getRowLength() == null) {
                 throw new NullPointerException("rowLength is null");

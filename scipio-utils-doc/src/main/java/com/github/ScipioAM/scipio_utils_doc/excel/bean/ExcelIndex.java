@@ -1,7 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.bean;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.Min;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -109,8 +109,51 @@ public class ExcelIndex {
         this.columnLength = columnLength;
     }
 
-    public void transform(com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex annotation) {
+    /**
+     * 自我合法性校验
+     */
+    public void checkSelf() throws NullPointerException, IllegalArgumentException {
+        if(rowStartIndex == null) {
+            throw new NullPointerException("rowStartIndex can not be null");
+        }
+        else if(rowStartIndex < 0) {
+            throw new IllegalArgumentException("rowStartIndex can not less then 0");
+        }
 
+        if(rowLength == null) {
+            throw new NullPointerException("rowLength can not be null");
+        }
+        else if(rowLength < 0) {
+            throw new IllegalArgumentException("rowLength can not less then 0");
+        }
+
+        if(rowStep == null) {
+            throw new NullPointerException("rowStep can not be null");
+        }
+        else if(rowStep < 1) {
+            throw new IllegalArgumentException("rowStep can not less then 1");
+        }
+
+        if(columnStartIndex == null) {
+            throw new NullPointerException("columnStartIndex can not be null");
+        }
+        else if(columnStartIndex < 0) {
+            throw new IllegalArgumentException("columnStartIndex can not less then 0");
+        }
+
+        if(columnLength == null) {
+            throw new NullPointerException("columnLength can not be null");
+        }
+        else if(columnLength < 0) {
+            throw new IllegalArgumentException("columnLength can not less then 0");
+        }
+
+        if(columnStep == null) {
+            throw new NullPointerException("rowStep can not be null");
+        }
+        else if(columnStep < 1) {
+            throw new IllegalArgumentException("columnStep can not less then 1");
+        }
     }
 
     public Integer getSheetIndex() {

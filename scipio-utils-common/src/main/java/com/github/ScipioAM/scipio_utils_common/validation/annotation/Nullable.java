@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common.annotations;
+package com.github.ScipioAM.scipio_utils_common.validation.annotation;
 
 import java.lang.annotation.*;
 
