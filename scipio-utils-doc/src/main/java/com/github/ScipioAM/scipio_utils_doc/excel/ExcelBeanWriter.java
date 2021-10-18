@@ -1,14 +1,14 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import com.github.ScipioAM.scipio_utils_common.StringUtil;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotEmpty;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
@@ -105,7 +105,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
      * @param beanList 要写入的数据
      * @param <T> JavaBean类型
      */
-    public <T> void write(@NotNull ExcelBeanMapper<T> beanMapper, @NotEmpty List<T> beanList) throws Exception {
+    public <T> void write(@NotNull ExcelBeanMapper<T> beanMapper, @NotEmpty List<T> beanList, @NotNull Class<T> beanClass) throws Exception {
         //如果未手动设定，则默认要写入的总行数等于beanList的总个数
         if(excelIndex.getRowLength() == null || excelIndex.getRowLength() < 0) {
             excelIndex.setRowLength(beanList.size());
@@ -119,7 +119,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             excelIndex.setSheetIndex(0);
         }
         //操作前准备(参数检查、确认扫描总行数等)
-        OpPrepareVo prepareVo = operationPrepare(beanMapper,true);
+        OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass);
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
         // 开始扫描行
@@ -130,6 +130,11 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
                 continue;
             }
             Row row = sheet.getRow(i);
+            //行处理监听器
+            if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                break;
+            }
+
             if(row == null) {
                 row = sheet.createRow(i);
             }
@@ -162,11 +167,11 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> autoMapper = new ExcelBeanAutoMapper<>(mappingInfo,beanClass);
+        AutoExcelBeanMapper<T> autoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
-        write(autoMapper,beanList);
+        write(autoMapper,beanList,beanClass);
     }
 
     /**
@@ -182,11 +187,11 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> autoMapper = new ExcelBeanAutoMapper<>(null,beanClass);
+        AutoExcelBeanMapper<T> autoMapper = new AutoExcelBeanMapper<>(null,beanClass);
         if(customCellWriter != null) {
             autoMapper.setCellWriter(customCellWriter);
         }
-        write(autoMapper,beanList);
+        write(autoMapper,beanList,beanClass);
     }
 
     //==================================================================================================================

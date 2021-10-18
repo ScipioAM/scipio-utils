@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common.structure;
+package com.github.ScipioAM.scipio_utils_common.data.structure;
 
 import java.util.List;
 
@@ -29,5 +29,14 @@ public interface TreeNode {
      * @param childNode 子节点
      */
     void addChildNode(TreeNode childNode);
+
+    /**
+     * 获取节点的数据
+     * @param <T> 节点数据的类型
+     * @return 节点的数据
+     */
+    default <T> T getValue() {
+        return null;
+    }
 
 }

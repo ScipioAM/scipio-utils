@@ -9,17 +9,18 @@ import static com.github.ScipioAM.scipio_utils_common.thread.ThreadLocalChangeLi
 import static com.github.ScipioAM.scipio_utils_common.thread.ThreadLocalChangeListener.Mode.REMOVED;
 
 /**
- * ThreadLocal清理工具类（保证不会内存泄漏）                                <br/><br/>
+ * ThreadLocal清理工具类（保证不会内存泄漏）
  *
  *  <li>类初始化时，准备好反射要用的工具字段（field和class）</li>
  *  <li>类被构造时，保存一份当前线程的ThreadLocal.ThreadLocalMap的拷贝</li>
  *  <li>cleanup为调用入口（也可以用try-with-resources的close方法调起cleanup）</li>
  *
+ *  <a href="https://www.javaspecialists.eu">Original Author from here</a><br/>
+ *  <a href="https://www.cnblogs.com/princessd8251/articles/5186286.html">Article from here(reprint)</a>
+ *
  * @author Dr. Heinz M. Kabutz
  * @since 1.0.0-alpha01
  * @date 2021/8/12
- * author from: [https://www.javaspecialists.eu]
- * article from(repeated): [https://www.cnblogs.com/princessd8251/articles/5186286.html]
  */
 public class ThreadLocalCleaner implements AutoCloseable{
 

@@ -20,9 +20,9 @@ public @interface ExcelMapping {
 
     /**
      * 映射的列索引：
-     * <p>该字段对应excel行中的第几列(0-based)</p>
+     * <p>该字段对应excel行中的第几列(0-based)，为-1则代表不使用</p>
      */
-    int cellIndex();
+    int cellIndex() default -1;
 
     /**
      * 映射的行索引：

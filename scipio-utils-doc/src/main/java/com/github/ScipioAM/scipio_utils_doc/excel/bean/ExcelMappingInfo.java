@@ -1,7 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.bean;
 
-import com.github.ScipioAM.scipio_utils_common.annotations.Nullable;
-import jakarta.validation.constraints.NotNull;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 
 /**
  * Excel -> JavaBean 映射关系(暂未用到，后续可能考虑使用)

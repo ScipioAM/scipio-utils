@@ -1,7 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.bean;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.Min;
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -30,7 +30,7 @@ public class ExcelIndex {
 
     /** 扫描行数时的步长 */
     @NotNull(message = "rowStep can not be null")
-    @Min(value = 0, message = "rowStep can not less then 0")
+    @Min(value = 1, message = "rowStep can not less then 1")
     private Integer rowStep = 1;
 
     /** 开始列索引(0-based) */
@@ -44,7 +44,7 @@ public class ExcelIndex {
 
     /** 扫描列数时的步长 */
     @NotNull(message = "columnStep can not be null")
-    @Min(value = 0, message = "columnStep can not less then 0")
+    @Min(value = 1, message = "columnStep can not less then 1")
     private Integer columnStep = 1;
 
     /** 使用{@link Sheet#getLastRowNum()}来自行判断rowLength，优先于usePhysicalNumberOfRows */
@@ -107,6 +107,57 @@ public class ExcelIndex {
         this.sheetName = sheetName;
         this.rowLength = rowLength;
         this.columnLength = columnLength;
+    }
+
+    /**
+     * 自我合法性校验
+     */
+    public void checkSelf() throws NullPointerException, IllegalArgumentException {
+        if(rowStartIndex == null) {
+            throw new NullPointerException("rowStartIndex can not be null");
+        }
+        else if(rowStartIndex < 0) {
+            throw new IllegalArgumentException("rowStartIndex can not less then 0");
+        }
+
+        if(!useLastNumberOfRows && !usePhysicalNumberOfRows) {
+            if(rowLength == null) {
+                throw new NullPointerException("rowLength can not be null");
+            }
+            else if(rowLength < 0) {
+                throw new IllegalArgumentException("rowLength can not less then 0");
+            }
+        }
+
+        if(rowStep == null) {
+            throw new NullPointerException("rowStep can not be null");
+        }
+        else if(rowStep < 1) {
+            throw new IllegalArgumentException("rowStep can not less then 1");
+        }
+
+        if(columnStartIndex == null) {
+            throw new NullPointerException("columnStartIndex can not be null");
+        }
+        else if(columnStartIndex < 0) {
+            throw new IllegalArgumentException("columnStartIndex can not less then 0");
+        }
+
+        if(!useLastNumberOfCells && !usePhysicalNumberOfCells) {
+            if(columnLength == null) {
+                throw new NullPointerException("columnLength can not be null");
+            }
+            else if(columnLength < 0) {
+                throw new IllegalArgumentException("columnLength can not less then 0");
+            }
+        }
+
+        if(columnStep == null) {
+            throw new NullPointerException("rowStep can not be null");
+        }
+        else if(columnStep < 1) {
+            throw new IllegalArgumentException("columnStep can not less then 1");
+        }
     }
 
     public Integer getSheetIndex() {

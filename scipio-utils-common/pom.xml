@@ -5,7 +5,7 @@
     <parent>
         <artifactId>scipio-utils</artifactId>
         <groupId>com.github.ScipioAM</groupId>
-        <version>1.0.2-p3</version>
+        <version>1.0.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,16 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

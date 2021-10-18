@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_common.structure;
+package com.github.ScipioAM.scipio_utils_common.data.structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;

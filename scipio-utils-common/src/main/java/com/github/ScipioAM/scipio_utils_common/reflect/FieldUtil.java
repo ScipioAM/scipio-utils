@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +63,48 @@ public class FieldUtil {
             }
         }
         return finalFields;
+    }
+
+    /**
+     * 获取字段的泛型类型
+     * @param field 字段对象
+     * @return 泛型类型，如果字段没有泛型则抛出异常
+     */
+    public static Class<?>[] getParameterizedTypes(Field field) {
+        Type genericType = field.getGenericType();
+        if(genericType instanceof ParameterizedType) {
+            ParameterizedType pType = (ParameterizedType) genericType;
+            Type[] types = pType.getActualTypeArguments();
+            Class<?>[] classes = new Class[types.length];
+            for(int i = 0; i < types.length; i++) {
+                classes[i] = (Class<?>) types[i];
+            }
+            return classes;
+        }
+        else {//不是泛型
+            throw new IllegalStateException("field`s generic type is not a Parameterized type");
+        }
+    }
+
+    /**
+     * 获取字段的泛型类型
+     * @param field 字段对象
+     * @param parameterizedTypeIndex 第几个泛型(0-based)
+     * @return 泛型类型，如果字段没有泛型则抛出异常
+     */
+    public static Class<?> getParameterizedType(Field field, int parameterizedTypeIndex) {
+        Class<?>[] classes = getParameterizedTypes(field);
+        return classes[parameterizedTypeIndex];
+    }
+
+    /**
+     * 获取字段的泛型类型(如果有多个泛型，则固定获取第1个)
+     * @param field 字段对象
+     * @return 泛型类型，如果字段没有泛型则抛出异常
+     */
+    public static Class<?> getParameterizedType(Field field) {
+        Class<?>[] classes = getParameterizedTypes(field);
+        return classes[0];
     }
 
 }

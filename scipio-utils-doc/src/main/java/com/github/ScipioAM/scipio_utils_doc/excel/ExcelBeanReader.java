@@ -1,11 +1,11 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
+import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
-import jakarta.validation.constraints.NotNull;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -32,6 +32,12 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      */
     private boolean getFormulaResult = true;
 
+    /** 垂直读取标志 */
+    private boolean verticalRead = false;
+
+    /** 单元格忽略处理器 */
+    private CellIgnoreHandler cellIgnoreHandler;
+
     @Override
     public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelBeanReader) super.load(file);
@@ -48,24 +54,46 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      * @param <T> JavaBean的类型
      * @return 映射后的JavaBean list
      */
-    public <T> List<T> read(@NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
+    public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         //操作前准备(参数检查、确认扫描总行数等)
-        OpPrepareVo prepareVo = operationPrepare(beanMapper,false);
+        OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass);
         Sheet sheet = prepareVo.sheet;
         Integer rowLength = prepareVo.rowLength;
+        Integer rowStartIndex = excelIndex.getRowStartIndex();
+        //如果是垂直读取，则准备好垂直读取的mapper
+        VerticalExcelBeanMapper<T> verticalBeanMapper = null;
+        if(verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
+            verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
+            verticalBeanMapper.prepareMappingInfo();
+        }
         // 开始扫描行
         List<T> beanList = buildBeanList();
-        for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
+        for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
             //不在白名单中的行要跳过
             if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
                 continue;
             }
             Row row = sheet.getRow(i);
-            T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
-            if(bean != null) {
-                beanList.add(bean);
+
+            //行处理监听器
+            if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                break;
             }
-        }
+
+            //垂直读取
+            if(verticalBeanMapper != null) {
+                //确定每列总行数(加上了起始列号)
+                Integer columnLength = determineColumnLength(excelIndex,row);
+                verticalBeanMapper.mappingExcel2Bean(row,i,excelIndex.getColumnStartIndex(),columnLength,beanList);
+            }
+            //正常水平读取
+            else {
+                T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
+                if(bean != null) {
+                    beanList.add(bean);
+                }
+            }
+        }//end of for
         //收尾
         finish();
         return beanList;
@@ -84,12 +112,26 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(mappingInfo,beanClass);
-        if(customTypeConvert != null) {
-            beanAutoMapper.setTypeConvert(customTypeConvert);
+        ExcelBeanMapper<T> beanMapper;
+        if(verticalRead) {
+            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(mappingInfo,beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanMapper = beanAutoMapper;
         }
-        beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanAutoMapper);
+        else {
+            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanMapper = beanAutoMapper;
+        }
+        return read(beanClass,beanMapper);
     }
 
     /**
@@ -101,12 +143,26 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanAutoMapper<T> beanAutoMapper = new ExcelBeanAutoMapper<>(null,beanClass);
-        if(customTypeConvert != null) {
-            beanAutoMapper.setTypeConvert(customTypeConvert);
+        ExcelBeanMapper<T> beanMapper;
+        if(verticalRead) {
+            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanMapper = beanAutoMapper;
         }
-        beanAutoMapper.setGetFormulaResult(getFormulaResult);
-        return read(beanAutoMapper);
+        else {
+            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(beanClass);
+            if(customTypeConvert != null) {
+                beanAutoMapper.setTypeConvert(customTypeConvert);
+            }
+            beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanMapper = beanAutoMapper;
+        }
+        return read(beanClass,beanMapper);
     }
 
     /**
@@ -132,6 +188,20 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     public ExcelBeanReader setGetFormulaResult(Boolean getFormulaResult) {
         this.getFormulaResult = getFormulaResult;
+        return this;
+    }
+
+    public boolean isVerticalRead() {
+        return verticalRead;
+    }
+
+    public ExcelBeanReader setVerticalRead(boolean verticalRead) {
+        this.verticalRead = verticalRead;
+        return this;
+    }
+
+    public ExcelBeanReader setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
+        this.cellIgnoreHandler = cellIgnoreHandler;
         return this;
     }
 

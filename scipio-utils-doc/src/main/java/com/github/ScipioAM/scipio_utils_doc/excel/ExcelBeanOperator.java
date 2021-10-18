@@ -1,9 +1,10 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import com.github.ScipioAM.scipio_utils_common.reflect.FieldUtil;
+import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelBeanAutoMapper;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.AutoExcelBeanMapper;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelBeanMapper;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -12,16 +13,63 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Excel-JavaBean处理器
+ * @author Alan Scipio
+ * @since 1.0.2-p3
  * @date 2021/9/18
  */
-public class ExcelBeanOperator extends ExcelOperator {
+public abstract class ExcelBeanOperator extends ExcelOperator {
 
     /**
      * 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过）
      */
     protected final Set<Integer> rowWhitelist = new HashSet<>();
 
-    protected <T> OpPrepareVo operationPrepare(ExcelBeanMapper<T> beanMapper, boolean createIfNotExists) {
+    /**
+     * 准备ExcelIndex
+     * @param beanClass javaBean类型
+     */
+    protected void prepareExcelIndex(Class<?> beanClass) {
+        //已设定的excelIndex优先级高于注解
+        if(excelIndex != null) {
+            return;
+        }
+
+        excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
+        //获取注解
+        ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
+        if(annotation == null) {
+            return;
+        }
+        //将注解的值转换为excelIndex对象
+        if(annotation.sheetIndex() >= 0) {
+            excelIndex.setSheetIndex(annotation.sheetIndex());
+        }
+        else {
+            excelIndex.setSheetName(annotation.sheetName());
+        }
+        excelIndex.setRowStartIndex(annotation.rowStartIndex())
+                .setRowLength(annotation.rowLength())
+                .setRowStep(annotation.rowStep())
+                .setColumnStartIndex(annotation.columnStartIndex())
+                .setColumnLength(annotation.columnLength())
+                .setColumnStep(annotation.columnStep())
+                .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
+                .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
+                .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
+                .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
+    }
+
+    /**
+     * 操作前的准备
+     * @param beanMapper 映射操作者
+     * @param createIfNotExists 是否不存在就创建
+     * @param <T> javaBean类型
+     * @return 准备信息
+     */
+    protected <T> OpPrepareVo operationPrepare(ExcelBeanMapper<T> beanMapper, boolean createIfNotExists, Class<T> beanClass) {
+        //准备ExcelIndex
+        prepareExcelIndex(beanClass);
         //参数检查
         if(beanMapper == null) {
             throw new NullPointerException("argument \"ExcelBeanMapper\" is null");
@@ -32,8 +80,8 @@ public class ExcelBeanOperator extends ExcelOperator {
         //确定最终的总行数
         Integer rowLength = determineRowLength(excelIndex,sheet);
         //确定行白名单（跳过这些行）
-        if(beanMapper instanceof ExcelBeanAutoMapper) {
-            ExcelBeanAutoMapper<T> autoMapper = (ExcelBeanAutoMapper<T>) beanMapper;
+        if(beanMapper instanceof AutoExcelBeanMapper) {
+            AutoExcelBeanMapper<T> autoMapper = (AutoExcelBeanMapper<T>) beanMapper;
             checkRowWhitelist(autoMapper.getMappingInfo(),autoMapper.getBeanClass(),rowLength);
         }
         return new OpPrepareVo(sheet,rowLength);
