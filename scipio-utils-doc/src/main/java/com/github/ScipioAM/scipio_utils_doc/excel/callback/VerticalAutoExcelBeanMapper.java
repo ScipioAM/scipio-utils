@@ -39,6 +39,9 @@ public class VerticalAutoExcelBeanMapper<T> implements VerticalExcelBeanMapper<T
      */
     private boolean getFormulaResult;
 
+    /** 单元格忽略处理器 */
+    private CellIgnoreHandler cellIgnoreHandler;
+
     /**
      * 类型转换器
      */
@@ -110,7 +113,7 @@ public class VerticalAutoExcelBeanMapper<T> implements VerticalExcelBeanMapper<T
                 System.err.println("Cell is null, rowIndex[" + rowIndex + "], cellIndex[" + i + "]");
                 continue;
             }
-            ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult);
+            ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
             if(isNewBean) {
                 beanList.add(bean);
             }
@@ -125,5 +128,9 @@ public class VerticalAutoExcelBeanMapper<T> implements VerticalExcelBeanMapper<T
 
     public void setTypeConvert(BeanTypeConvert typeConvert) {
         this.typeConvert = typeConvert;
+    }
+
+    public void setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
+        this.cellIgnoreHandler = cellIgnoreHandler;
     }
 }

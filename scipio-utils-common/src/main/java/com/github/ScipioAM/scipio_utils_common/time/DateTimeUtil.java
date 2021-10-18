@@ -2,6 +2,7 @@ package com.github.ScipioAM.scipio_utils_common.time;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -109,7 +110,7 @@ public class DateTimeUtil {
     /**
      * LocalDateTime对象转时间戳
      * @param obj LocalDateTime对象
-     * @param zoneOffset 时区
+     * @param zoneOffset 时区偏移量(可以视为就是时区)
      * @return 时间戳（毫秒级）
      */
     public static long getTimestampFromObj(LocalDateTime obj, ZoneOffset zoneOffset) {
@@ -117,12 +118,12 @@ public class DateTimeUtil {
     }
 
     /**
-     * LocalDateTime对象转时间戳，默认时区为东八区
+     * LocalDateTime对象转时间戳，默认时区为系统时区
      * @param obj LocalDateTime对象
      * @return 时间戳（毫秒级）
      */
     public static long getTimestampFromObj(LocalDateTime obj) {
-        return obj.toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        return obj.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
 }

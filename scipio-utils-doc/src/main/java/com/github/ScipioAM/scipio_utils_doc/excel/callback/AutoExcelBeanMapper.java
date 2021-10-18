@@ -37,6 +37,9 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
      */
     private boolean getFormulaResult;
 
+    /** 单元格忽略处理器 */
+    private CellIgnoreHandler cellIgnoreHandler;
+
     /**
      * 类型转换器
      */
@@ -94,7 +97,7 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
                 continue;
             }
             fieldCount++;
-            ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult);
+            ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
         }// end of for
         //如果所有映射字段都是空值，则不构成bean实例
         if(nullCount == fieldCount) {
@@ -211,5 +214,9 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
 
     public void setCellWriter(BeanCellWriter cellWriter) {
         this.cellWriter = cellWriter;
+    }
+
+    public void setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
+        this.cellIgnoreHandler = cellIgnoreHandler;
     }
 }

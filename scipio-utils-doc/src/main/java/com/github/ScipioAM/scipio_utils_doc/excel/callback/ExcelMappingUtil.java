@@ -42,7 +42,7 @@ class ExcelMappingUtil {
                 throw new IllegalStateException("cellIndex can not less then 0");
             }
             int rowIndex = mappingAnnotation.rowIndex();
-            if(rowIndex < 0) {
+            if(checkRowIndex && rowIndex < 0) {
                 throw new IllegalStateException("rowIndex can not less then 0, when using vertical read mode");
             }
             ExcelMappingInfo infoBean = new ExcelMappingInfo(cellIndex,rowIndex,field.getName());
@@ -59,20 +59,27 @@ class ExcelMappingUtil {
      * @param fieldName 指定字段名
      * @param typeConvert 类型转换器
      * @param getFormulaResult 是否计算公式
+     * @param ignoreHandler 忽略处理器
      * @param <T> javaBean的类型
      * @throws NoSuchFieldException 没有指定的字段
      * @throws NoSuchMethodException 没有字段对应的set方法
      * @throws InvocationTargetException 反射执行set方法失败
      * @throws IllegalAccessException 反射执行set方法失败（没有访问权限）
      */
-    static <T> void setValueIntoBean(Cell cell, Class<T> beanClass, T bean, String fieldName, BeanTypeConvert typeConvert, boolean getFormulaResult) throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    static <T> void setValueIntoBean(Cell cell, Class<T> beanClass, T bean, String fieldName, BeanTypeConvert typeConvert, boolean getFormulaResult, CellIgnoreHandler ignoreHandler)
+            throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    {
         Object cellValue = ExcelUtil.getCellValue(cell,getFormulaResult);
         if(cellValue != null) {
             //获取字段类型
             Field field = beanClass.getDeclaredField(fieldName);
             Class<?> fieldClass = field.getType();
+            //是否要忽略的处理
+            if(ignoreHandler != null && ignoreHandler.ignore(cell,cellValue,cellValue.getClass(),fieldClass)){
+                return;
+            }
             //类型检查和转换
-            Object finalCellValue = typeConvert.convert(cellValue,cellValue.getClass(),fieldClass);
+            Object finalCellValue = typeConvert.convert(cell,cellValue,cellValue.getClass(),fieldClass);
             //获取set方法
             String setMethodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
             Method setMethod = beanClass.getDeclaredMethod(setMethodName,fieldClass);

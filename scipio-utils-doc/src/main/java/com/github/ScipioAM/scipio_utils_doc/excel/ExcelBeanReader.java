@@ -35,6 +35,9 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     /** 垂直读取标志 */
     private boolean verticalRead = false;
 
+    /** 单元格忽略处理器 */
+    private CellIgnoreHandler cellIgnoreHandler;
+
     @Override
     public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelBeanReader) super.load(file);
@@ -116,6 +119,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 beanAutoMapper.setTypeConvert(customTypeConvert);
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
             beanMapper = beanAutoMapper;
         }
         else {
@@ -124,6 +128,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 beanAutoMapper.setTypeConvert(customTypeConvert);
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
             beanMapper = beanAutoMapper;
         }
         return read(beanClass,beanMapper);
@@ -145,6 +150,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 beanAutoMapper.setTypeConvert(customTypeConvert);
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
             beanMapper = beanAutoMapper;
         }
         else {
@@ -153,6 +159,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 beanAutoMapper.setTypeConvert(customTypeConvert);
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
+            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
             beanMapper = beanAutoMapper;
         }
         return read(beanClass,beanMapper);
@@ -190,6 +197,11 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     public ExcelBeanReader setVerticalRead(boolean verticalRead) {
         this.verticalRead = verticalRead;
+        return this;
+    }
+
+    public ExcelBeanReader setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
+        this.cellIgnoreHandler = cellIgnoreHandler;
         return this;
     }
 

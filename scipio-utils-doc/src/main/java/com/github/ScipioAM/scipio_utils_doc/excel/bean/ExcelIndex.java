@@ -120,11 +120,13 @@ public class ExcelIndex {
             throw new IllegalArgumentException("rowStartIndex can not less then 0");
         }
 
-        if(rowLength == null) {
-            throw new NullPointerException("rowLength can not be null");
-        }
-        else if(rowLength < 0) {
-            throw new IllegalArgumentException("rowLength can not less then 0");
+        if(!useLastNumberOfRows && !usePhysicalNumberOfRows) {
+            if(rowLength == null) {
+                throw new NullPointerException("rowLength can not be null");
+            }
+            else if(rowLength < 0) {
+                throw new IllegalArgumentException("rowLength can not less then 0");
+            }
         }
 
         if(rowStep == null) {
@@ -141,11 +143,13 @@ public class ExcelIndex {
             throw new IllegalArgumentException("columnStartIndex can not less then 0");
         }
 
-        if(columnLength == null) {
-            throw new NullPointerException("columnLength can not be null");
-        }
-        else if(columnLength < 0) {
-            throw new IllegalArgumentException("columnLength can not less then 0");
+        if(!useLastNumberOfCells && !usePhysicalNumberOfCells) {
+            if(columnLength == null) {
+                throw new NullPointerException("columnLength can not be null");
+            }
+            else if(columnLength < 0) {
+                throw new IllegalArgumentException("columnLength can not less then 0");
+            }
         }
 
         if(columnStep == null) {

@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 日期工具类
@@ -111,6 +113,56 @@ public class DateUtil {
     public static String date2Str(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
         return date.format(formatter);
+    }
+
+    /**
+     * 智能检测并构成日期格式，目前支持以下格式：
+     *      <ul>
+     *          <li> yyyy-MM-dd </li>
+     *          <li> yyyy/MM/dd </li>
+     *          <li> yyyy.MM.dd </li>
+     *      </ul>
+     * @param str 待检测字符串
+     * @throws IllegalArgumentException 检测的字符串不在支持范围内
+     * @return 日期格式字符串
+     */
+    public static String smartPatternGet(String str) throws IllegalArgumentException {
+        String pattern0 = getDatePattern(str,"-");
+        if(pattern0 != null) {
+            return pattern0;
+        }
+        else {
+            String pattern1 = getDatePattern(str,"/");
+            if(pattern1 != null) {
+                return pattern1;
+            }
+            else {
+                String pattern2 = getDatePattern(str,"\\.");
+                if(pattern2 != null) {
+                    return pattern2;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Illegal date string: \"" + str + "\"");
+    }
+
+    private static String getDatePattern(String str, String split) {
+        Pattern pattern = Pattern.compile("(\\d{4})" + split + "(\\d{1,2})" + split + "(\\d{1,2})");
+        Matcher matcher = pattern.matcher(str);
+        if(matcher.matches()) {
+            String yearPattern = "yyyy", monthPattern, dayPattern;
+            //月份格式
+            String month = matcher.group(2);
+            monthPattern = (month.length() == 1 ? "M" : "MM");
+            //日格式
+            String day = matcher.group(3);
+            dayPattern = (day.length() == 1 ? "d" : "dd");
+            //合成最终的格式
+            return yearPattern + split + monthPattern + split + dayPattern;
+        }
+        else {
+            return null;
+        }
     }
 
 }

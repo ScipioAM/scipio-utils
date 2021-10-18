@@ -162,13 +162,13 @@ public class ExcelUtil {
                 }
                 break;
             case BLANK: // 空值类型的单元格
-                System.out.println("Cell type is blank");
+                System.out.println("Cell type is blank, sheetName[" + cell.getSheet().getSheetName() + "], rowIndex[" + cell.getRowIndex() + "], columnIndex[" + cell.getColumnIndex() + "]");
                 break;
             case ERROR: // 故障类型的单元格
-                System.err.println("Cell type is error! ");
+                System.err.println("Cell type is error! sheetName[" + cell.getSheet().getSheetName() + "], rowIndex[" + cell.getRowIndex() + "], columnIndex[" + cell.getColumnIndex() + "]");
                 break;
             default:
-                System.err.println("Unknown cell type " + cellType);
+                System.err.println("Unknown cell type " + cellType + ", sheetName[" + cell.getSheet().getSheetName() + "], rowIndex[" + cell.getRowIndex() + "], columnIndex[" + cell.getColumnIndex() + "]");
                 break;
         }
         return value;
