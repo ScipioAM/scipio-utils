@@ -5,6 +5,7 @@ import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.AutoExcelBeanMapper;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.BeanListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelBeanMapper;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -20,10 +21,11 @@ import java.util.Set;
  */
 public abstract class ExcelBeanOperator extends ExcelOperator {
 
-    /**
-     * 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过）
-     */
+    /** 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过） */
     protected final Set<Integer> rowWhitelist = new HashSet<>();
+
+    /**  */
+    protected BeanListener<?> beanListener;
 
     /**
      * 准备ExcelIndex
@@ -125,6 +127,8 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
             rowWhitelist.clear();
         }
     }
+
+    //==================================================================================================================
 
     /**
      * 内部类：操作前准备的对象数据

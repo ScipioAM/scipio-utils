@@ -4,9 +4,7 @@ import com.github.ScipioAM.scipio_utils_common.reflect.FieldUtil;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
-import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanCellWriter;
-import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
@@ -19,44 +17,18 @@ import java.util.List;
  * @since 1.0.2-p3
  * @date 2021/9/16
  */
-public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
-
-    /**
-     * 自定义映射信息(非null时优先级高于{@link ExcelMapping})
-     */
-    private List<ExcelMappingInfo> mappingInfo;
-
-    /**
-     * Java Bean的类型
-     */
-    private Class<T> beanClass;
-
-    /**
-     * 对于公式单元格，是获取公式计算的值，还是公式本身。
-     *      (为true代表获取公式计算的值)
-     */
-    private boolean getFormulaResult;
-
-    /** 单元格忽略处理器 */
-    private CellIgnoreHandler cellIgnoreHandler;
-
-    /**
-     * 类型转换器
-     */
-    private BeanTypeConvert typeConvert = new SimpleBeanTypeConvert();
-
-    /**
-     * JavaBean写入excel的具体实现者
-     */
+public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
+    
+    /** JavaBean写入excel的具体实现者 */
     private BeanCellWriter cellWriter = new SimpleBeanCellWriter();
 
     public AutoExcelBeanMapper(Class<T> beanClass) {
-        this.beanClass = beanClass;
+        super.beanClass = beanClass;
     }
 
     public AutoExcelBeanMapper(List<ExcelMappingInfo> mappingInfo, Class<T> beanClass) {
-        this.mappingInfo = mappingInfo;
-        this.beanClass = beanClass;
+        super.mappingInfo = mappingInfo;
+        super.beanClass = beanClass;
     }
 
     //==================================================================================================================
@@ -96,8 +68,19 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
                 System.err.println("Cell is null, rowIndex[" + rowIndex + "], cellIndex[" + cellIndex + "]");
                 continue;
             }
+            
+            //单元格处理监听器
+            if(cellHandler != null && !cellHandler.handle(cell,rowIndex,cellIndex,rowLength,mappingInfo.size())) {
+                break;
+            }
+            
             fieldCount++;
             ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
+
+            //对每个bean的监听回调
+            if(beanListener != null && !beanListener.onHandle(true,bean,cell,rowLength,mappingInfo.size())) {
+                break;
+            }
         }// end of for
         //如果所有映射字段都是空值，则不构成bean实例
         if(nullCount == fieldCount) {
@@ -129,6 +112,13 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
                 if(cell == null) {
                     cell = row.createCell(cellIndex);
                 }
+
+                //单元格处理监听器
+                if(cellHandler != null && !cellHandler.handle(cell,rowIndex,cellIndex,rowLength,mappingInfo.size())) {
+                    break;
+                }
+                //TODO 追加beanListener的调用
+                
                 //获取字段值
                 String fieldName = info.getFieldName();
                 Field field = beanClass.getDeclaredField(fieldName);
@@ -136,7 +126,7 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
                 Class<?> fieldClass = field.getType();
                 Object fieldValue = field.get(bean);
                 //写入单元格中
-                writeIntoCell(cell,fieldValue,fieldClass);
+                cellWriter.writeIntoCell(cell, fieldValue, fieldClass);
             }
         }
         //依据注解来映射
@@ -159,64 +149,31 @@ public class AutoExcelBeanMapper<T> implements ExcelBeanMapper<T>{
                 if(cell == null) {
                     cell = row.createCell(cellIndex);
                 }
+
+                //单元格处理监听器
+                if(cellHandler != null && !cellHandler.handle(cell,rowIndex,cellIndex,rowLength,fields.size())) {
+                    break;
+                }
+
+                //对每个bean的监听回调
+                if(beanListener != null && !beanListener.onHandle(false,bean,cell,rowLength,fields.size())) {
+                    break;
+                }
+                
                 //获取字段值
                 field.setAccessible(true);
                 Class<?> fieldClass = field.getType();
                 Object fieldValue = field.get(bean);
                 //写入单元格中
-                writeIntoCell(cell,fieldValue,fieldClass);
+                cellWriter.writeIntoCell(cell, fieldValue, fieldClass);
             }
         }
     }
 
     //==================================================================================================================
 
-    /**
-     * 将值写入单元格
-     * @param cell 单元格对象
-     * @param value 要写入的值
-     * @param valueType 要写入值的类型
-     * @throws IllegalStateException 未知的写入值类型
-     */
-    private void writeIntoCell(Cell cell, Object value, Class<?> valueType) throws IllegalStateException, NullPointerException {
-        cellWriter.writeIntoCell(cell, value, valueType);
-    }
-
-    //==================================================================================================================
-
-    public List<ExcelMappingInfo> getMappingInfo() {
-        return mappingInfo;
-    }
-
-    public void setMappingInfo(List<ExcelMappingInfo> mappingInfo) {
-        this.mappingInfo = mappingInfo;
-    }
-
-    public Class<T> getBeanClass() {
-        return beanClass;
-    }
-
-    public void setBeanClass(Class<T> beanClass) {
-        this.beanClass = beanClass;
-    }
-
-    public boolean isGetFormulaResult() {
-        return getFormulaResult;
-    }
-
-    public void setGetFormulaResult(boolean getFormulaResult) {
-        this.getFormulaResult = getFormulaResult;
-    }
-
-    public void setTypeConvert(BeanTypeConvert typeConvert) {
-        this.typeConvert = typeConvert;
-    }
-
     public void setCellWriter(BeanCellWriter cellWriter) {
         this.cellWriter = cellWriter;
     }
 
-    public void setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
-        this.cellIgnoreHandler = cellIgnoreHandler;
-    }
 }

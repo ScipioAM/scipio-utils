@@ -16,7 +16,7 @@ public interface ExcelCellHandler {
      * @param rowIndex 行索引(0-based)
      * @param columnIndex 列索引(0-based)
      * @param rowLength 要扫描的总行数
-     * @param columnLength 要扫描的总列数
+     * @param columnLength 要扫描的总列数(为-1则说明当前)
      * @return true代表继续执行，false代表中断对每个单元格的扫描
      */
     boolean handle(Cell cell, int rowIndex, int columnIndex, int rowLength, int columnLength);

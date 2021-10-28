@@ -5,6 +5,7 @@ import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelEndListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelRowHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExceptionHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -34,6 +35,10 @@ public abstract class ExcelOperatorBase implements Closeable {
     /** 操作结束时的回调 */
     @Nullable
     protected ExcelEndListener endListener;
+
+    /** 异常处理 */
+    @Nullable
+    protected ExceptionHandler exceptionHandler;
 
     /**
      * 加载excel文件

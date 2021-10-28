@@ -1,5 +1,7 @@
 package com.github.ScipioAM.scipio_utils_common.reflect;
 
+import net.jodah.typetools.TypeResolver;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -52,6 +54,26 @@ public class TypeHelper {
      */
     public static Class<?> getGenericClass(Object obj) {
         return getGenericClass(obj,0);
+    }
+
+    //==================================================================================================================
+
+    /**
+     * 使用{@link TypeResolver}解析目标对象的泛型类型，支持解析lambda表达式对象的泛型类型
+     * @param genericClass 含有泛型的类型（最终要解析谁）
+     * @param object 解析的源头（比如实现\继承了genericClass的最终子类的实例，或是lambda表达式）
+     * @return 泛型实际的类型
+     */
+    public static Class<?>[] resolveRawArguments(Class<?> genericClass, Object object) {
+        return TypeResolver.resolveRawArguments(genericClass, object.getClass());
+    }
+
+    public static Class<?> resolveRawArgument(Class<?> genericClass, Object object, int typeIndex) {
+        return resolveRawArguments(genericClass,object)[typeIndex];
+    }
+
+    public static Class<?> resolveRawArgument(Class<?> genericClass, Object object) {
+        return resolveRawArguments(genericClass,object)[0];
     }
 
     //==================================================================================================================

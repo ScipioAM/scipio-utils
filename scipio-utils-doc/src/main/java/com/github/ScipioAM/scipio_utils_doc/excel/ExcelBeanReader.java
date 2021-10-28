@@ -55,48 +55,58 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      * @return 映射后的JavaBean list
      */
     public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
-        //操作前准备(参数检查、确认扫描总行数等)
-        OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass);
-        Sheet sheet = prepareVo.sheet;
-        Integer rowLength = prepareVo.rowLength;
-        Integer rowStartIndex = excelIndex.getRowStartIndex();
-        //如果是垂直读取，则准备好垂直读取的mapper
-        VerticalExcelBeanMapper<T> verticalBeanMapper = null;
-        if(verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
-            verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
-            verticalBeanMapper.prepareMappingInfo();
-        }
-        // 开始扫描行
-        List<T> beanList = buildBeanList();
-        for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
-            //不在白名单中的行要跳过
-            if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
-                continue;
+        try {
+            //操作前准备(参数检查、确认扫描总行数等)
+            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass);
+            Sheet sheet = prepareVo.sheet;
+            Integer rowLength = prepareVo.rowLength;
+            Integer rowStartIndex = excelIndex.getRowStartIndex();
+            //如果是垂直读取，则准备好垂直读取的mapper
+            VerticalExcelBeanMapper<T> verticalBeanMapper = null;
+            if(verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
+                verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
+                verticalBeanMapper.prepareMappingInfo();
             }
-            Row row = sheet.getRow(i);
-
-            //行处理监听器
-            if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
-                break;
-            }
-
-            //垂直读取
-            if(verticalBeanMapper != null) {
-                //确定每列总行数(加上了起始列号)
-                Integer columnLength = determineColumnLength(excelIndex,row);
-                verticalBeanMapper.mappingExcel2Bean(row,i,excelIndex.getColumnStartIndex(),columnLength,beanList);
-            }
-            //正常水平读取
-            else {
-                T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
-                if(bean != null) {
-                    beanList.add(bean);
+            // 开始扫描行
+            List<T> beanList = buildBeanList();
+            for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
+                //不在白名单中的行要跳过
+                if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
+                    continue;
                 }
+                Row row = sheet.getRow(i);
+
+                //行处理监听器
+                if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                    break;
+                }
+
+                //垂直读取
+                if(verticalBeanMapper != null) {
+                    //确定每列总行数(加上了起始列号)
+                    Integer columnLength = determineColumnLength(excelIndex,row);
+                    verticalBeanMapper.mappingExcel2Bean(row,i,rowLength,excelIndex.getColumnStartIndex(),columnLength,beanList);
+                }
+                //正常水平读取
+                else {
+                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
+                    if(bean != null) {
+                        beanList.add(bean);
+                    }
+                }
+            }//end of for
+            //收尾
+            finish();
+            return beanList;
+        }catch (Exception e) {
+            if(exceptionHandler != null) {
+                exceptionHandler.handle(workbook,excelIndex,e);
             }
-        }//end of for
-        //收尾
-        finish();
-        return beanList;
+            else {
+                throw e;
+            }
+            return null;
+        }
     }
 
     /**
@@ -120,6 +130,8 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
             beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanAutoMapper.setCellHandler(cellHandler);
+            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
             beanMapper = beanAutoMapper;
         }
         else {
@@ -129,6 +141,8 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
             beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanAutoMapper.setCellHandler(cellHandler);
+            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
             beanMapper = beanAutoMapper;
         }
         return read(beanClass,beanMapper);
@@ -151,6 +165,8 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
             beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanAutoMapper.setCellHandler(cellHandler);
+            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
             beanMapper = beanAutoMapper;
         }
         else {
@@ -160,6 +176,8 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             }
             beanAutoMapper.setGetFormulaResult(getFormulaResult);
             beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+            beanAutoMapper.setCellHandler(cellHandler);
+            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
             beanMapper = beanAutoMapper;
         }
         return read(beanClass,beanMapper);

@@ -6,6 +6,7 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelEndListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelRowHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExceptionHandler;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -42,43 +43,52 @@ public class ExcelOperator extends ExcelOperatorBase {
      * @param missingCellPolicy 单元格缺失或为空时的策略，默认是RETURN_NULL_AND_BLANK，具体参看{@link Row.MissingCellPolicy}
      * @param createSheetIfNotExists 获取不到sheet时是否创建
      */
-    public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy, boolean createSheetIfNotExists)
+    public void operate(@Nullable Row.MissingCellPolicy missingCellPolicy, boolean createSheetIfNotExists) throws Exception
     {
-        // **************** 参数检查 ****************
-        paramsCheck();
-        if(missingCellPolicy == null) {
-            missingCellPolicy = workbook.getMissingCellPolicy();
-        }
-        // **************** 获取目标Sheet ****************
-        Sheet sheet = getSheet(excelIndex,workbook, createSheetIfNotExists);
-        //确定最终的行数(加上了起始行号)
-        Integer rowLength = determineRowLength(excelIndex,sheet);
-        // **************** 开始扫描行 ****************
-        OUTER:
-        for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
-            Row row = sheet.getRow(i);
-            if(rowHandler != null) {
-                if(!rowHandler.handle(row,i,rowLength)) {
-                    break;
-                }
+        try {
+            // **************** 参数检查 ****************
+            paramsCheck();
+            if(missingCellPolicy == null) {
+                missingCellPolicy = workbook.getMissingCellPolicy();
             }
-            if(cellHandler != null) {
-                //确定每次扫描时最终的列数(加上了起始列号)
-                Integer columnLength = determineColumnLength(excelIndex,row);
-                //开始扫描列
-                for(int j = excelIndex.getColumnStartIndex(); j < columnLength; j += excelIndex.getColumnStep()) {
-                    Cell cell = row.getCell(j,missingCellPolicy);
-                    if(!cellHandler.handle(cell,i,j,rowLength,columnLength)) {
-                        break OUTER;
+            // **************** 获取目标Sheet ****************
+            Sheet sheet = getSheet(excelIndex,workbook, createSheetIfNotExists);
+            //确定最终的行数(加上了起始行号)
+            Integer rowLength = determineRowLength(excelIndex,sheet);
+            // **************** 开始扫描行 ****************
+            OUTER:
+            for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
+                Row row = sheet.getRow(i);
+                if(rowHandler != null) {
+                    if(!rowHandler.handle(row,i,rowLength)) {
+                        break;
                     }
                 }
-            }//end of if(cellHandler != null)
-        }//end of row-scan for
-        // **************** 收尾操作 ****************
-        finish();
+                if(cellHandler != null) {
+                    //确定每次扫描时最终的列数(加上了起始列号)
+                    Integer columnLength = determineColumnLength(excelIndex,row);
+                    //开始扫描列
+                    for(int j = excelIndex.getColumnStartIndex(); j < columnLength; j += excelIndex.getColumnStep()) {
+                        Cell cell = row.getCell(j,missingCellPolicy);
+                        if(!cellHandler.handle(cell,i,j,rowLength,columnLength)) {
+                            break OUTER;
+                        }
+                    }
+                }//end of if(cellHandler != null)
+            }//end of row-scan for
+            // **************** 收尾操作 ****************
+            finish();
+        }catch (Exception e) {
+            if(exceptionHandler != null) {
+                exceptionHandler.handle(workbook,excelIndex,e);
+            }
+            else {
+                e.printStackTrace();
+            }
+        }
     }//end of read()
 
-    public void operate() {
+    public void operate() throws Exception {
         operate(null,false);
     }
 
@@ -204,6 +214,11 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     public ExcelOperator setEndListener(ExcelEndListener endListener) {
         super.endListener = endListener;
+        return this;
+    }
+
+    public ExcelOperator setExceptionHandler(ExceptionHandler exceptionHandler) {
+        super.exceptionHandler = exceptionHandler;
         return this;
     }
 

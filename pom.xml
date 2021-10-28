@@ -6,7 +6,7 @@
 
     <groupId>com.github.ScipioAM</groupId>
     <artifactId>scipio-utils</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <modules>
         <module>scipio-utils-common</module>
         <module>scipio-utils-io</module>
