@@ -117,7 +117,11 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
                 if(cellHandler != null && !cellHandler.handle(cell,rowIndex,cellIndex,rowLength,mappingInfo.size())) {
                     break;
                 }
-                //TODO 追加beanListener的调用
+
+                //对每个bean的监听回调
+                if(beanListener != null && !beanListener.onHandle(false,bean,cell,rowLength,mappingInfo.size())) {
+                    break;
+                }
                 
                 //获取字段值
                 String fieldName = info.getFieldName();
