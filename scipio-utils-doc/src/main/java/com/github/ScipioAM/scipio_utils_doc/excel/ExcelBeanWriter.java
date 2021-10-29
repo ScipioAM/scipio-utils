@@ -125,6 +125,12 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
+
+            //开始的监听回调
+            if(startListener != null && !startListener.firstOperation(workbook,sheet,excelIndex)) {
+                return;
+            }
+
             // 开始扫描行
             int j = 0;
             for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
@@ -243,6 +249,16 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     @Override
     public ExcelBeanWriter setEndListener(ExcelEndListener endListener) {
         return (ExcelBeanWriter) super.setEndListener(endListener);
+    }
+
+    @Override
+    public ExcelBeanWriter setStartListener(ExcelStartListener startListener) {
+        return (ExcelBeanWriter) super.setStartListener(startListener);
+    }
+
+    @Override
+    public ExcelBeanWriter setExceptionHandler(ExceptionHandler exceptionHandler) {
+        return (ExcelBeanWriter) super.setExceptionHandler(exceptionHandler);
     }
 
     @Override

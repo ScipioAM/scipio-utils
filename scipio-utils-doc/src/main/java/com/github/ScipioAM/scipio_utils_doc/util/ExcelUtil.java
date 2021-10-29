@@ -46,14 +46,14 @@ public class ExcelUtil {
     }
 
     /**
-     * 创建带式样的行
+     * copy带式样的行
      * @param sheet 工作表
      * @param styleRowIndex 式样行的行号（从0开始）
      * @param newRowIndex 要新建行的行号（从0开始），如果与式样行行号一样，则直接返回式样行
      * @param startColumn 起始列号（从0开始）
-     * @return 被创建的行（带式样）
+     * @return 被copy并新创建的行
      */
-    public static Row createRowWithStyle(Sheet sheet, int styleRowIndex, int newRowIndex, int startColumn) {
+    public static Row copyRowWithStyle(Sheet sheet, int styleRowIndex, int newRowIndex, int startColumn) {
         //获取式样行
         Row styleRow = sheet.getRow(styleRowIndex);
         //如果获取不到，就在第一行创建（一个空白式样行）
@@ -72,9 +72,10 @@ public class ExcelUtil {
         int maxColCnt = styleRow.getLastCellNum();
         Row newRow = sheet.createRow(newRowIndex);
         for (int i = startColumn; i < maxColCnt; i++) {
-            Cell cell = newRow.createCell(i);
-            if (styleRow.getCell(i) != null) {
-                cell.setCellStyle(styleRow.getCell(i).getCellStyle());
+            Cell newCell = newRow.createCell(i);
+            Cell styleCell = styleRow.getCell(i);
+            if (styleCell != null) {
+                newCell.setCellStyle(styleCell.getCellStyle());
             }
         }
         return newRow;

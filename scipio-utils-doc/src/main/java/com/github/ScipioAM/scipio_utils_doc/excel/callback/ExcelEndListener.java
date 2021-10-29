@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
@@ -10,14 +11,14 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public interface ExcelEndListener {
 
-    void lastOperation(Workbook workbook);
+    void lastOperation(Workbook workbook, ExcelIndex excelIndex);
 
     //==================================================================================================================
 
     /**
      * 默认实现，关闭工作簿对象
      */
-    ExcelEndListener SIMPLE_CLOSE = workbook -> {
+    ExcelEndListener SIMPLE_CLOSE = (workbook,excelIndex) -> {
         try {
             if(workbook != null) {
                 workbook.close();

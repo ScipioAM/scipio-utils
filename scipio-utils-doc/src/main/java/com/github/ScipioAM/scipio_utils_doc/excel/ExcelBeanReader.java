@@ -67,8 +67,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
                 verticalBeanMapper.prepareMappingInfo();
             }
-            // 开始扫描行
+
             List<T> beanList = buildBeanList();
+
+            //开始的监听回调
+            if(startListener != null && !startListener.firstOperation(workbook,sheet,excelIndex)) {
+                return beanList;
+            }
+
+            // 开始扫描行
             for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
                 //不在白名单中的行要跳过
                 if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
@@ -236,6 +243,16 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     @Override
     public ExcelBeanReader setEndListener(ExcelEndListener endListener) {
         return (ExcelBeanReader) super.setEndListener(endListener);
+    }
+
+    @Override
+    public ExcelBeanReader setStartListener(ExcelStartListener startListener) {
+        return (ExcelBeanReader) super.setStartListener(startListener);
+    }
+
+    @Override
+    public ExcelBeanReader setExceptionHandler(ExceptionHandler exceptionHandler) {
+        return (ExcelBeanReader) super.setExceptionHandler(exceptionHandler);
     }
 
     @Override

@@ -3,10 +3,7 @@ package com.github.ScipioAM.scipio_utils_doc.excel;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelEndListener;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelRowHandler;
-import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExceptionHandler;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -55,6 +52,12 @@ public class ExcelOperator extends ExcelOperatorBase {
             Sheet sheet = getSheet(excelIndex,workbook, createSheetIfNotExists);
             //确定最终的行数(加上了起始行号)
             Integer rowLength = determineRowLength(excelIndex,sheet);
+
+            //开始的监听回调
+            if(startListener != null && !startListener.firstOperation(workbook,sheet,excelIndex)) {
+                return;
+            }
+
             // **************** 开始扫描行 ****************
             OUTER:
             for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
@@ -180,10 +183,10 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     protected void finish() {
         if(endListener != null) {
-            endListener.lastOperation(workbook);
+            endListener.lastOperation(workbook,excelIndex);
         }
         else {
-            ExcelEndListener.SIMPLE_CLOSE.lastOperation(workbook);
+            ExcelEndListener.SIMPLE_CLOSE.lastOperation(workbook,excelIndex);
         }
     }
 
@@ -214,6 +217,11 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     public ExcelOperator setEndListener(ExcelEndListener endListener) {
         super.endListener = endListener;
+        return this;
+    }
+
+    public ExcelOperator setStartListener(ExcelStartListener startListener) {
+        super.startListener = startListener;
         return this;
     }
 
