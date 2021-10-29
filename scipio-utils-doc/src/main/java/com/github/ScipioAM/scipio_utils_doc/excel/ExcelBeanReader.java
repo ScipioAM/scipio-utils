@@ -230,6 +230,11 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         return this;
     }
 
+    public ExcelBeanReader setBeanListener(BeanListener<?> beanListener) {
+        super.beanListener = beanListener;
+        return this;
+    }
+
     @Override
     public ExcelBeanReader setRowHandler(ExcelRowHandler rowHandler) {
         return (ExcelBeanReader) super.setRowHandler(rowHandler);

@@ -236,6 +236,11 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         return this;
     }
 
+    public ExcelBeanWriter setBeanListener(BeanListener<?> beanListener) {
+        super.beanListener = beanListener;
+        return this;
+    }
+
     @Override
     public ExcelBeanWriter setRowHandler(ExcelRowHandler rowHandler) {
         return (ExcelBeanWriter) super.setRowHandler(rowHandler);

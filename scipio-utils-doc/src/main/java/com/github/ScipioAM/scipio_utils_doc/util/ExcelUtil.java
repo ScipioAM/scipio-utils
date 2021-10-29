@@ -201,4 +201,25 @@ public class ExcelUtil {
         setBorderAround(cellStyle,BorderStyle.THIN,IndexedColors.BLACK);
     }
 
+    /**
+     * 完全移除某行
+     * @param sheet 工作表对象
+     * @param rowIndex 要移除的行
+     */
+    public static void removeRow(Sheet sheet, int rowIndex) {
+        int lastRowIndex = sheet.getLastRowNum();//最后一行
+        if (rowIndex < 0) {
+            throw new IllegalArgumentException("removeRowIndex[" + rowIndex + "] can not less then 0");
+        } else if (rowIndex > lastRowIndex) {
+            throw new IllegalArgumentException("removeRowIndex[" + rowIndex + "] can not greater then lastRowNum[" + lastRowIndex + "]");
+        } else {
+            //清空数据和式样
+            sheet.removeRow(sheet.getRow(rowIndex));
+            //移除这行(下面行向上移1位)
+            if(rowIndex < lastRowIndex) {
+                sheet.shiftRows(rowIndex + 1,lastRowIndex,-1);
+            }
+        }
+    }
+
 }
