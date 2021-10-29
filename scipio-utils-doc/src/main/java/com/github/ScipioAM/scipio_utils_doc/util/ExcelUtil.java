@@ -175,4 +175,30 @@ public class ExcelUtil {
         return value;
     }
 
+    /**
+     * 设置单元格四周的边框
+     * @param cellStyle 样式对象，可以通过{@link Workbook#createCellStyle()}或{@link Cell#getCellStyle()}获得
+     * @param borderStyle 边框样式（实线、虚线、加粗等）
+     * @param color 边框颜色
+     */
+    public static void setBorderAround(CellStyle cellStyle, BorderStyle borderStyle, IndexedColors color) {
+        //设置边框
+        cellStyle.setBorderBottom(borderStyle);
+        cellStyle.setBorderTop(borderStyle);
+        cellStyle.setBorderLeft(borderStyle);
+        cellStyle.setBorderRight(borderStyle);
+        //设置边框颜色
+        cellStyle.setBottomBorderColor(color.getIndex());
+        cellStyle.setTopBorderColor(color.getIndex());
+        cellStyle.setLeftBorderColor(color.getIndex());
+        cellStyle.setRightBorderColor(color.getIndex());
+    }
+
+    /**
+     * 设置单元格四周的边框，固定黑色单实线边框（最常规的那种样式）
+     */
+    public static void setBorderAround(CellStyle cellStyle) {
+        setBorderAround(cellStyle,BorderStyle.THIN,IndexedColors.BLACK);
+    }
+
 }
