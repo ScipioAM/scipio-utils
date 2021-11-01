@@ -1,7 +1,6 @@
 package com.test;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanWriter;
-import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

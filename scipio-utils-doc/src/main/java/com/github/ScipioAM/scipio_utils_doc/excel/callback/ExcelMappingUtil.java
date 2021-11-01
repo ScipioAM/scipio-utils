@@ -67,8 +67,9 @@ class ExcelMappingUtil {
      * @throws InvocationTargetException 反射执行set方法失败
      * @throws IllegalAccessException 反射执行set方法失败（没有访问权限）
      * @throws ExcelException 数据转换错误
+     * @return cell的值是否为空，true代表为空
      */
-    static <T> void setValueIntoBean(Cell cell,
+    static <T> boolean setValueIntoBean(Cell cell,
                                      Class<T> beanClass,
                                      T bean,
                                      String fieldName,
@@ -84,7 +85,7 @@ class ExcelMappingUtil {
             Class<?> fieldClass = field.getType();
             //是否要忽略的处理
             if(ignoreHandler != null && ignoreHandler.ignore(cell,cellValue,cellValue.getClass(),fieldClass)){
-                return;
+                return true;
             }
             //类型检查和转换
             Object finalCellValue = typeConvert.convert(cell,cellValue,cellValue.getClass(),fieldClass);
@@ -93,6 +94,10 @@ class ExcelMappingUtil {
             Method setMethod = beanClass.getDeclaredMethod(setMethodName,fieldClass);
             //执行set方法
             setMethod.invoke(bean, finalCellValue);
+            return false;
+        }
+        else {
+            return true;
         }
     }
 

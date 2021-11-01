@@ -1,7 +1,9 @@
 package com.test;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanReader;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
+import com.github.ScipioAM.scipio_utils_doc.excel.callback.BeanListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
 import org.apache.poi.ss.usermodel.Cell;
@@ -113,6 +115,76 @@ public class ExcelReadTest {
             }
         }catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test3() {
+        File file = new File("D:\\temp\\dtms-price-test-2021.8.xlsx");
+        try {
+            //************** 准备解析工具对象 **************
+            ExcelBeanReader excelBeanReader = new ExcelBeanReader();
+            excelBeanReader.load(file) //加载excel文件
+                    .setRowStartIndex(2) //开始行号(0-based)
+                    .setRowStep(1) //行间距
+                    .setUseLastNumberOfRows(true) //自动识别总行数
+                    .setColumnStartIndex(2) //开始列号(0-based)
+                    .setColumnStep(1) //列间距
+                    .setColumnLength(12) //列长度
+                    .setCellIgnoreHandler((cell, cellValue, valueType, targetType) -> {
+                        if(cell.getColumnIndex() == 8 && valueType == String.class) { //FOB(美元)列
+                            String value = (String) cellValue;
+                            return (value.equals("-") || value.equals(""));
+                        }
+                        return false;
+                    });//如何忽略的规则
+
+            //************** 解析补给品 **************
+            excelBeanReader.setSheetIndex(0);
+            //每个bean的共通字段
+            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength) -> {
+                clearBlankChars(bean);//清除空白字符;
+                bean.setRemark0(bean.getCustCode());//将此时还是交易费缩写的custCode也存一份到remark0字段，以方便后面存储过程的转换
+                bean.setSaleType(1);//补给品
+                bean.setSaleOrderNo("*");
+            });
+            List<MPrice> supplyList = excelBeanReader.read(MPrice.class);//读取解析
+
+            //总数据list
+            List<MPrice> finalDataList = new ArrayList<>(supplyList);
+
+            //************** 解析号口（量产品） **************
+            excelBeanReader.setSheetIndex(1);
+            //每个bean的共通字段
+            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength) -> {
+                clearBlankChars(bean);//清除空白字符
+                bean.setRemark0(bean.getCustCode());//将此时还是交易费缩写的custCode也存一份到remark0字段，以方便后面存储过程的转换
+                bean.setSaleType(2);//量产品
+                bean.setSaleOrderNo("*");
+            });
+            List<MPrice> mpList = excelBeanReader.read(MPrice.class);//读取解析
+            finalDataList.addAll(mpList);
+
+
+            for(MPrice price : finalDataList) {
+                System.out.println(price);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 清除空白字符
+     */
+    private void clearBlankChars(MPrice bean) {
+        if(StringUtil.isNotNull(bean.getPartsNo())) {
+            String newPartsNo = bean.getPartsNo().replace(" ","");
+            bean.setPartsNo(newPartsNo);
+        }
+        if(StringUtil.isNotNull(bean.getCustCode())) {
+            String newCustCode = bean.getCustCode().replace(" ","");
+            bean.setCustCode(newCustCode);
         }
     }
 

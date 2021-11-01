@@ -94,7 +94,10 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
                 }
 
                 fieldCount++;
-                ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
+                boolean isCellNull = ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
+//                if(isCellNull) {
+//                    nullCount++;
+//                }
             } catch (Exception e) {
                 if(e instanceof ExcelException) {
                     throw (ExcelException) e;

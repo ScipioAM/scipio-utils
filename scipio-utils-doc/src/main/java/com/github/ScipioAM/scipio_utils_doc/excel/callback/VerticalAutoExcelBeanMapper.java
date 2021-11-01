@@ -94,6 +94,7 @@ public class VerticalAutoExcelBeanMapper<T> extends VerticalExcelBeanMapper<T> {
                     break;
                 }
 
+                //注意！此处未检查值全为null的bean
                 ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
                 if(isNewBean) {
                     beanList.add(bean);
