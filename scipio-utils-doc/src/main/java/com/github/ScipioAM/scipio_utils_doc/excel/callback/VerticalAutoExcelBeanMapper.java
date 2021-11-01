@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -56,49 +57,61 @@ public class VerticalAutoExcelBeanMapper<T> extends VerticalExcelBeanMapper<T> {
      * @param beanList javaBean列表（映射读取的总结果）
      */
     @Override
-    public void mappingExcel2Bean(Row row, int rowIndex, int rowLength, int columnStartIndex, int columnLength, List<T> beanList) throws Exception {
+    public void mappingExcel2Bean(Row row, int rowIndex, int rowLength, int columnStartIndex, int columnLength, List<T> beanList) throws ExcelException {
         if(row == null) { //跳过整行都是空的
             return;
         }
         //遍历一行中所有要扫描的列
         for(int i = columnStartIndex; i < columnLength; i++) {
-            //获取或创建bean
-            boolean isNewBean = false;
-            T bean;
-            int listIndex = i - columnStartIndex;
-            if(listIndex >= beanList.size()) {
-                isNewBean = true;
-                bean = beanClass.getDeclaredConstructor().newInstance();
-            }
-            else {
-                bean = beanList.get(listIndex);
-            }
-            ExcelMappingInfo info = mappingInfoMap.get(rowIndex);
+            try {
+                //获取或创建bean
+                boolean isNewBean = false;
+                T bean;
+                int listIndex = i - columnStartIndex;
+                if(listIndex >= beanList.size()) {
+                    isNewBean = true;
+                    bean = beanClass.getDeclaredConstructor().newInstance();
+                }
+                else {
+                    bean = beanList.get(listIndex);
+                }
+                ExcelMappingInfo info = mappingInfoMap.get(rowIndex);
 
-            String fieldName = info.getFieldName();
-            Integer cellIndex = info.getCellIndex();
-            if(cellIndex != null && cellIndex >= 0 && i != cellIndex) {
-                continue;//启用列索引(不为空且大于等于0)，且当前列不是指定的列，则跳过
-            }
-            //获取单元格的值
-            Cell cell = row.getCell(i);
-            if(cell == null) {
-                System.err.println("Cell is null, rowIndex[" + rowIndex + "], cellIndex[" + i + "]");
-                continue;
-            }
+                String fieldName = info.getFieldName();
+                Integer cellIndex = info.getCellIndex();
+                if(cellIndex != null && cellIndex >= 0 && i != cellIndex) {
+                    continue;//启用列索引(不为空且大于等于0)，且当前列不是指定的列，则跳过
+                }
+                //获取单元格的值
+                Cell cell = row.getCell(i);
+                if(cell == null) {
+                    System.err.println("Cell is null, rowIndex[" + rowIndex + "], cellIndex[" + i + "]");
+                    continue;
+                }
 
-            //单元格处理监听器
-            if(cellHandler != null && !cellHandler.handle(cell,rowIndex,i,rowLength,columnLength)) {
-                break;
-            }
-
-            ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
-            if(isNewBean) {
-                beanList.add(bean);
-
-                //对每个bean的监听回调
-                if(beanListener != null && !beanListener.onHandle(true,bean,cell,rowLength,columnLength)) {
+                //单元格处理监听器
+                if(cellHandler != null && !cellHandler.handle(cell,rowIndex,i,rowLength,columnLength)) {
                     break;
+                }
+
+                ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
+                if(isNewBean) {
+                    beanList.add(bean);
+
+                    //对每个bean的监听回调
+                    if(beanListener != null) {
+                        beanListener.onHandle(true,bean,row,rowLength,columnLength);
+                    }
+                }
+            } catch (Exception e) {
+                if(e instanceof ExcelException) {
+                    throw (ExcelException) e;
+                }
+                else {
+                    throw new ExcelException(e.getMessage(),e)
+                            .setSheetName(row.getSheet().getSheetName())
+                            .setRowIndex(rowIndex)
+                            .setCellIndex(i);
                 }
             }
         }//end of for

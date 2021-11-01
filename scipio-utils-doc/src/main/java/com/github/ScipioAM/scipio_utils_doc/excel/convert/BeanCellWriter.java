@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.convert;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Cell;
 
 /**
@@ -16,14 +17,14 @@ public interface BeanCellWriter {
      * @param cell 单元格对象
      * @param value 要写入的值
      * @param valueType 要写入值的类型
-     * @throws IllegalStateException 未知的写入值类型
+     * @throws ExcelException 未知的写入值类型
      */
-    void writeIntoCell(Cell cell, Object value, Class<?> valueType, NullWritingPolicy policy) throws IllegalStateException;
+    void writeIntoCell(Cell cell, Object value, Class<?> valueType, NullWritingPolicy policy) throws ExcelException;
 
     /**
      * 将值写入单元格 - 当value为null时跳过
      */
-    default void writeIntoCell(Cell cell, Object value, Class<?> valueType) throws IllegalStateException {
+    default void writeIntoCell(Cell cell, Object value, Class<?> valueType) throws ExcelException {
         writeIntoCell(cell, value, valueType, NullWritingPolicy.IGNORE);
     }
 

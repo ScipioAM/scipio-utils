@@ -4,7 +4,7 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
- * Excel处理时的异常处理
+ * Excel处理执行时的异常处理
  * @author Alan Scipio
  * @since 1.0.4
  * @date 2021/10/28

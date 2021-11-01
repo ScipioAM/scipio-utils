@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.convert;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.RichTextString;
 
@@ -17,7 +18,7 @@ import java.util.Date;
 public class SimpleBeanCellWriter implements BeanCellWriter{
 
     @Override
-    public void writeIntoCell(Cell cell, Object value, Class<?> valueType, NullWritingPolicy policy) throws IllegalStateException {
+    public void writeIntoCell(Cell cell, Object value, Class<?> valueType, NullWritingPolicy policy) throws ExcelException {
         if(value == null) { //值为null则等于不写入
             if (policy != NullWritingPolicy.IGNORE) {
                 cell.setBlank();
@@ -66,7 +67,10 @@ public class SimpleBeanCellWriter implements BeanCellWriter{
             cell.setCellValue((RichTextString) value);
         }
         else {
-            throw new IllegalStateException("Unknown type, while writing data into excel!");
+            throw new ExcelException("Unknown type, while writing data into excel!")
+                    .setSheetName(cell.getSheet().getSheetName())
+                    .setRowIndex(cell.getRowIndex())
+                    .setCellIndex(cell.getColumnIndex());
         }
     }
 

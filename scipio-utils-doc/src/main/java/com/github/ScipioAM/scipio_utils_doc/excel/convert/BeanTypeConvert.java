@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.convert;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Cell;
 
 /**
@@ -19,6 +20,6 @@ public interface BeanTypeConvert {
      * @param targetType 预期类型
      * @return 转换后的值
      */
-    Object convert(Cell cell, Object originalValue, Class<?> originalType, Class<?> targetType) throws IllegalStateException;
+    Object convert(Cell cell, Object originalValue, Class<?> originalType, Class<?> targetType) throws ExcelException;
 
 }

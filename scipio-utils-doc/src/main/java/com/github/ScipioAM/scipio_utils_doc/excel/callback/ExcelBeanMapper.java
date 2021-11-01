@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Row;
 
 /**
@@ -17,7 +18,7 @@ public interface ExcelBeanMapper<T> {
      * @param rowLength 要读取的总行数(加上了起始行号)
      * @return 通过映射，新生成的一个JavaBean实例
      */
-    default T mappingExcel2Bean(Row row, int rowIndex, int rowLength) throws Exception {
+    default T mappingExcel2Bean(Row row, int rowIndex, int rowLength) throws ExcelException {
         return null;
     }
 
@@ -28,7 +29,7 @@ public interface ExcelBeanMapper<T> {
      * @param rowLength 要读取的总行数(加上了起始列号)
      * @param bean JavaBean实例(将它的数据写入excel)
      */
-    default void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean) throws Exception {
+    default void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean) throws ExcelException {
     }
 
 }

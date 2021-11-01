@@ -3,6 +3,7 @@ package com.github.ScipioAM.scipio_utils_doc.excel.convert;
 import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_common.time.DateTimeUtil;
 import com.github.ScipioAM.scipio_utils_common.time.DateUtil;
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Cell;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
      * @return 转换后的值
      */
     @Override
-    public Object convert(Cell cell, Object originalValue, Class<?> originalType, Class<?> targetType) throws IllegalStateException {
+    public Object convert(Cell cell, Object originalValue, Class<?> originalType, Class<?> targetType) throws ExcelException {
         if(originalType == targetType) { //类型一致，直接放行
             return originalValue;
         }
@@ -59,11 +60,15 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
         }
 
         //不是预期可转换的，且类型又不一致，则抛出异常
-        throw new IllegalStateException("Type mismatch while read value from excel to javaBean, originalType["
+        ExcelException e = new ExcelException("Type mismatch while read value from excel to javaBean, originalType["
                 + originalType + "], targetType["
                 + targetType + "], rowIndex["
                 + cell.getRowIndex() + "], columnIndex["
                 + cell.getColumnIndex() + "]");
+        e.setSheetName(cell.getSheet().getSheetName())
+                .setRowIndex(cell.getRowIndex())
+                .setCellIndex(cell.getColumnIndex());
+        throw e;
     }
 
     /**
@@ -96,7 +101,7 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
     /**
      * 原始值是字符串的转换
      */
-    private Object convertString(String originalStr, Class<?> targetType, Cell cell) throws IllegalStateException {
+    private Object convertString(String originalStr, Class<?> targetType, Cell cell) throws ExcelException {
         if(targetType == Boolean.class) {
             if(originalStr.equalsIgnoreCase("true")) {
                 return Boolean.TRUE;
@@ -107,46 +112,61 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
         }
         else if(targetType == BigDecimal.class) {
             if(!StringUtil.isNumeric(originalStr)) {
-                throw new IllegalStateException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
+                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
                         + originalStr + "], rowIndex["
                         + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]");
+                        + cell.getColumnIndex() + "]")
+                        .setSheetName(cell.getSheet().getSheetName())
+                        .setRowIndex(cell.getRowIndex())
+                        .setCellIndex(cell.getColumnIndex());
             }
             return new BigDecimal(originalStr);
         }
         else if(targetType == Integer.class) {
             if(!StringUtil.isIntNumeric(originalStr)) {
-                throw new IllegalStateException("Type convert error while read value from excel to javaBean, cellValue is not a integer string: ["
+                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a integer string: ["
                         + originalStr + "], rowIndex["
                         + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]");
+                        + cell.getColumnIndex() + "]")
+                        .setSheetName(cell.getSheet().getSheetName())
+                        .setRowIndex(cell.getRowIndex())
+                        .setCellIndex(cell.getColumnIndex());
             }
             return Integer.valueOf(originalStr);
         }
         else if(targetType == Long.class) {
             if(!StringUtil.isIntNumeric(originalStr)) {
-                throw new IllegalStateException("Type convert error while read value from excel to javaBean, cellValue is not a integer string: ["
+                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a integer string: ["
                         + originalStr + "], rowIndex["
                         + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]");
+                        + cell.getColumnIndex() + "]")
+                        .setSheetName(cell.getSheet().getSheetName())
+                        .setRowIndex(cell.getRowIndex())
+                        .setCellIndex(cell.getColumnIndex());
             }
             return Long.valueOf(originalStr);
         }
         else if(targetType == Float.class) {
             if(!StringUtil.isNumeric(originalStr)) {
-                throw new IllegalStateException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
+                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
                         + originalStr + "], rowIndex["
                         + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]");
+                        + cell.getColumnIndex() + "]")
+                        .setSheetName(cell.getSheet().getSheetName())
+                        .setRowIndex(cell.getRowIndex())
+                        .setCellIndex(cell.getColumnIndex());
             }
             return Float.valueOf(originalStr);
         }
         else if(targetType == Double.class) {
             if(!StringUtil.isNumeric(originalStr)) {
-                throw new IllegalStateException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
+                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
                         + originalStr + "], rowIndex["
                         + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]");
+                        + cell.getColumnIndex() + "]")
+                        .setSheetName(cell.getSheet().getSheetName())
+                        .setRowIndex(cell.getRowIndex())
+                        .setCellIndex(cell.getColumnIndex());
             }
             return Double.valueOf(originalStr);
         }

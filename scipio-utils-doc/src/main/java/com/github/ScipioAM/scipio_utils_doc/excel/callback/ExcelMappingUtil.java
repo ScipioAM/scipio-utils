@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
@@ -65,9 +66,16 @@ class ExcelMappingUtil {
      * @throws NoSuchMethodException 没有字段对应的set方法
      * @throws InvocationTargetException 反射执行set方法失败
      * @throws IllegalAccessException 反射执行set方法失败（没有访问权限）
+     * @throws ExcelException 数据转换错误
      */
-    static <T> void setValueIntoBean(Cell cell, Class<T> beanClass, T bean, String fieldName, BeanTypeConvert typeConvert, boolean getFormulaResult, CellIgnoreHandler ignoreHandler)
-            throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, IllegalAccessException
+    static <T> void setValueIntoBean(Cell cell,
+                                     Class<T> beanClass,
+                                     T bean,
+                                     String fieldName,
+                                     BeanTypeConvert typeConvert,
+                                     boolean getFormulaResult,
+                                     CellIgnoreHandler ignoreHandler)
+            throws NoSuchFieldException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, ExcelException
     {
         Object cellValue = ExcelUtil.getCellValue(cell,getFormulaResult);
         if(cellValue != null) {

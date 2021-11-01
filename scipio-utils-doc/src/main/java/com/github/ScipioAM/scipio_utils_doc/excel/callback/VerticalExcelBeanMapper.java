@@ -1,5 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.ExcelException;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public abstract class VerticalExcelBeanMapper<T> extends BaseExcelBeanMapper<T> 
      * @param columnLength 要读取的总列数(加上了起始列号)
      * @param beanList javaBean列表（映射读取的总结果）
      */
-    public void mappingExcel2Bean(Row row, int rowIndex, int rowLength, int columnStartIndex, int columnLength, List<T> beanList) throws Exception {
+    public void mappingExcel2Bean(Row row, int rowIndex, int rowLength, int columnStartIndex, int columnLength, List<T> beanList) throws ExcelException {
     }
 
 }
