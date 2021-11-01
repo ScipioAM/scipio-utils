@@ -6,7 +6,7 @@
 
     <groupId>com.github.ScipioAM</groupId>
     <artifactId>scipio-utils</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <modules>
         <module>scipio-utils-common</module>
         <module>scipio-utils-io</module>
@@ -29,8 +29,8 @@
 
     <developers>
         <developer>
-            <id>scipioam</id>
-            <name>scipioam</name>
+            <id>ScipioAM</id>
+            <name>ScipioAM</name>
             <email>alanscipiox@outlook.com</email>
             <timezone>+8</timezone>
         </developer>

@@ -109,20 +109,8 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     public <T> void write(@NotNull ExcelBeanMapper<T> beanMapper, @NotEmpty List<T> beanList, @NotNull Class<T> beanClass) throws Exception {
         FileOutputStream out = null;
         try {
-            //如果未手动设定，则默认要写入的总行数等于beanList的总个数
-            if(excelIndex.getRowLength() == null || excelIndex.getRowLength() < 0) {
-                excelIndex.setRowLength(beanList.size());
-            }
-            //如果未手动设定，则默认从第一行写入
-            if(excelIndex.getRowStartIndex() == null || excelIndex.getRowStartIndex() < 0) {
-                excelIndex.setRowStartIndex(0);
-            }
-            //如果未手动设定，则默认在第一个sheet写入
-            if(excelIndex.getSheetIndex() == null || excelIndex.getSheetIndex() < 0 || StringUtil.isNull(excelIndex.getSheetName())) {
-                excelIndex.setSheetIndex(0);
-            }
             //操作前准备(参数检查、确认扫描总行数等)
-            OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass);
+            OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass,beanList);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
 

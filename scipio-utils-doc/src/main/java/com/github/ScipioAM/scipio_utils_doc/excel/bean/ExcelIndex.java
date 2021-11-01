@@ -111,8 +111,9 @@ public class ExcelIndex {
 
     /**
      * 自我合法性校验
+     * @param isReader 是否为读取模式
      */
-    public void checkSelf() throws NullPointerException, IllegalArgumentException {
+    public void checkSelf(boolean isReader) throws NullPointerException, IllegalArgumentException {
         if(rowStartIndex == null) {
             throw new NullPointerException("rowStartIndex can not be null");
         }
@@ -143,7 +144,7 @@ public class ExcelIndex {
             throw new IllegalArgumentException("columnStartIndex can not less then 0");
         }
 
-        if(!useLastNumberOfCells && !usePhysicalNumberOfCells) {
+        if(!useLastNumberOfCells && !usePhysicalNumberOfCells && isReader) {
             if(columnLength == null) {
                 throw new NullPointerException("columnLength can not be null");
             }
@@ -152,11 +153,13 @@ public class ExcelIndex {
             }
         }
 
-        if(columnStep == null) {
-            throw new NullPointerException("rowStep can not be null");
-        }
-        else if(columnStep < 1) {
-            throw new IllegalArgumentException("columnStep can not less then 1");
+        if(isReader) {
+            if(columnStep == null) {
+                throw new NullPointerException("rowStep can not be null");
+            }
+            else if(columnStep < 1) {
+                throw new IllegalArgumentException("columnStep can not less then 1");
+            }
         }
     }
 

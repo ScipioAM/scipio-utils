@@ -57,7 +57,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         try {
             //操作前准备(参数检查、确认扫描总行数等)
-            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass);
+            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass,null);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
             Integer rowStartIndex = excelIndex.getRowStartIndex();

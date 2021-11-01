@@ -44,7 +44,7 @@ public class ExcelOperator extends ExcelOperatorBase {
     {
         try {
             // **************** 参数检查 ****************
-            paramsCheck();
+            paramsCheck(!createSheetIfNotExists);
             if(missingCellPolicy == null) {
                 missingCellPolicy = workbook.getMissingCellPolicy();
             }
@@ -99,15 +99,16 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     /**
      * 参数检查
+     * @param isReader 是否为读取模式
      */
-    protected void paramsCheck() throws NullPointerException, IllegalArgumentException {
+    protected void paramsCheck(boolean isReader) throws NullPointerException, IllegalArgumentException {
         if(workbook == null) {
             throw new NullPointerException("workbook is null, maybe not loaded before read");
         }
         if(excelIndex == null) {
             throw new NullPointerException("argument[ExcelIndex] is null");
         }
-        excelIndex.checkSelf();//校验合法性，非法就抛异常
+        excelIndex.checkSelf(isReader);//校验合法性，非法就抛异常
         if(!excelIndex.useLastNumberOfRows() && !excelIndex.usePhysicalNumberOfRows()) {
             if(excelIndex.getRowLength() == null) {
                 throw new NullPointerException("rowLength is null");
