@@ -35,11 +35,31 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
      */
     protected void prepareExcelIndex(Class<?> beanClass, List<?> beanList) {
         //已设定的excelIndex优先级高于注解
-        if(excelIndex != null) {
-            return;
+        if(excelIndex == null) {
+            excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
+            //获取注解
+            ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
+            if(annotation == null) {
+                return;
+            }
+            //将注解的值转换为excelIndex对象
+            if(annotation.sheetIndex() >= 0) {
+                excelIndex.setSheetIndex(annotation.sheetIndex());
+            }
+            else {
+                excelIndex.setSheetName(annotation.sheetName());
+            }
+            excelIndex.setRowStartIndex(annotation.rowStartIndex())
+                    .setRowLength(annotation.rowLength())
+                    .setRowStep(annotation.rowStep())
+                    .setColumnStartIndex(annotation.columnStartIndex())
+                    .setColumnLength(annotation.columnLength())
+                    .setColumnStep(annotation.columnStep())
+                    .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
+                    .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
+                    .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
+                    .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
         }
-
-        excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
 
         if(beanList != null) { //writer专用的相关默认配置
             //如果未手动设定，则默认要写入的总行数等于beanList的总个数
@@ -59,29 +79,6 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
                 excelIndex.setSheetIndex(0);
             }
         }
-
-        //获取注解
-        ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
-        if(annotation == null) {
-            return;
-        }
-        //将注解的值转换为excelIndex对象
-        if(annotation.sheetIndex() >= 0) {
-            excelIndex.setSheetIndex(annotation.sheetIndex());
-        }
-        else {
-            excelIndex.setSheetName(annotation.sheetName());
-        }
-        excelIndex.setRowStartIndex(annotation.rowStartIndex())
-                .setRowLength(annotation.rowLength())
-                .setRowStep(annotation.rowStep())
-                .setColumnStartIndex(annotation.columnStartIndex())
-                .setColumnLength(annotation.columnLength())
-                .setColumnStep(annotation.columnStep())
-                .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
-                .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
-                .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
-                .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
     }
 
     /**

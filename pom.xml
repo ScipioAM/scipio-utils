@@ -6,7 +6,7 @@
 
     <groupId>com.github.ScipioAM</groupId>
     <artifactId>scipio-utils</artifactId>
-    <version>1.0.7-f1</version>
+    <version>1.0.7-f2</version>
     <modules>
         <module>scipio-utils-common</module>
         <module>scipio-utils-io</module>
@@ -61,7 +61,7 @@
         <javax.mail.version>1.6.2</javax.mail.version>
         <poi.version>5.0.0</poi.version>
         <pdfbox.version>3.0.0-RC1</pdfbox.version>
-        <itext.version>7.1.16</itext.version>
+        <itext.version>7.1.17</itext.version>
         <hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
         <jakarta.el.version>4.0.0</jakarta.el.version>
     </properties>
