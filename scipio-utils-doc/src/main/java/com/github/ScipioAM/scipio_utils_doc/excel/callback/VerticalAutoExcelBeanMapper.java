@@ -62,6 +62,7 @@ public class VerticalAutoExcelBeanMapper<T> extends VerticalExcelBeanMapper<T> {
             return;
         }
         //遍历一行中所有要扫描的列
+        int beanIndex = 0;
         for(int i = columnStartIndex; i < columnLength; i++) {
             try {
                 //获取或创建bean
@@ -98,11 +99,11 @@ public class VerticalAutoExcelBeanMapper<T> extends VerticalExcelBeanMapper<T> {
                 ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
                 if(isNewBean) {
                     beanList.add(bean);
-
                     //对每个bean的监听回调
                     if(beanListener != null) {
-                        beanListener.onHandle(true,bean,row,rowLength,columnLength);
+                        beanListener.onHandle(true,bean,row,rowLength,columnLength,beanIndex);
                     }
+                    beanIndex++;
                 }
             } catch (Exception e) {
                 if(e instanceof ExcelException) {

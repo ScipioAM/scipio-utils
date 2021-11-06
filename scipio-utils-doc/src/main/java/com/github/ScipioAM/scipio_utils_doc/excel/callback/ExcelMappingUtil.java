@@ -19,7 +19,7 @@ import java.util.List;
  * @since 1.0.2
  * @date 2021/9/27
  */
-class ExcelMappingUtil {
+public class ExcelMappingUtil {
 
     /**
      * 根据指定class中的注解情况，构建映射信息list
@@ -28,7 +28,7 @@ class ExcelMappingUtil {
      * @param checkRowIndex 是否检查rowIndex的值（检查值是否大于等于0）
      * @return 映射信息list，如果没有{@link ExcelMapping}注解，则为空list
      */
-    static List<ExcelMappingInfo> buildFromAnnotations(Class<?> beanClass, boolean checkCellIndex, boolean checkRowIndex) {
+    public static List<ExcelMappingInfo> buildFromAnnotations(Class<?> beanClass, boolean checkCellIndex, boolean checkRowIndex) {
         List<ExcelMappingInfo> infoList = new ArrayList<>();
         Field[] fields = beanClass.getDeclaredFields();
         for(Field field : fields) {
@@ -69,7 +69,7 @@ class ExcelMappingUtil {
      * @throws ExcelException 数据转换错误
      * @return cell的值是否为空，true代表为空
      */
-    static <T> boolean setValueIntoBean(Cell cell,
+    public static <T> boolean setValueIntoBean(Cell cell,
                                      Class<T> beanClass,
                                      T bean,
                                      String fieldName,

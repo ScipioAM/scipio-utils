@@ -76,6 +76,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             }
 
             // 开始扫描行
+            int beanIndex = 0;
             for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
                 //不在白名单中的行要跳过
                 if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
@@ -96,9 +97,10 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 }
                 //正常水平读取
                 else {
-                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength);
+                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength,beanIndex);
                     if(bean != null) {
                         beanList.add(bean);
+                        beanIndex++;
                     }
                 }
             }//end of for

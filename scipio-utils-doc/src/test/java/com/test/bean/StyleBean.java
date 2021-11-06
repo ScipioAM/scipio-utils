@@ -1,4 +1,4 @@
-package com.test;
+package com.test.bean;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;

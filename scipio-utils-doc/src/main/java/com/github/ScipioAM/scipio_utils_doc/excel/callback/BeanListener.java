@@ -21,7 +21,8 @@ public interface BeanListener<T> {
      * @param row 行对象
      * @param rowLength 要处理的总行数
      * @param columnLength 要处理的总列数
+     * @param beanIndex JavaBean在list中的下标
      */
-    void onHandle(boolean isReadMode, T bean, Row row, int rowLength, int columnLength);
+    void onHandle(boolean isReadMode, T bean, Row row, int rowLength, int columnLength, int beanIndex);
 
 }

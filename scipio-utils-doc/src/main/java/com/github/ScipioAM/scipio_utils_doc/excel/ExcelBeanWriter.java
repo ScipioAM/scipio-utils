@@ -1,6 +1,5 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
-import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotEmpty;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
@@ -39,14 +38,20 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     /** 自定义单元格写入实现 */
     private BeanCellWriter customCellWriter;
 
+    /** 是否创建新行后再写入 */
+    private boolean createNewRow = false;
+
     @Override
     public ExcelBeanWriter load(File file) throws IOException, InvalidFormatException, NullPointerException {
+        this.excelFile = file;
         return (ExcelBeanWriter) super.load(file);
     }
 
     @Override
     public ExcelBeanWriter load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
-        return (ExcelBeanWriter) super.load(fileFullPath);
+        File file = new File(fileFullPath);
+        this.excelFile = file;
+        return (ExcelBeanWriter) super.load(file);
     }
 
     /**
@@ -121,12 +126,24 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
 
             // 开始扫描行
             int j = 0;
-            for(int i = excelIndex.getRowStartIndex(); i < rowLength; i += excelIndex.getRowStep()) {
+            int rowStartIndex = excelIndex.getRowStartIndex();
+            int rowStep = excelIndex.getRowStep();
+            for(int i = rowStartIndex; i < rowLength; i += rowStep) {
                 //不在白名单中的行要跳过
                 if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
                     continue;
                 }
-                Row row = sheet.getRow(i);
+
+                Row row;
+                if(i != rowStartIndex && createNewRow) { //创建新行（复制第1行）
+                    //行下移
+                    sheet.shiftRows(i,sheet.getLastRowNum(),1,true,false);
+                    //行复制
+                    row = ExcelUtil.copyRowWithStyle(sheet,rowStartIndex,i,excelIndex.getColumnStartIndex());
+                }
+                else {
+                    row = sheet.getRow(i);
+                }
                 //行处理监听器
                 if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
                     break;
@@ -136,7 +153,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
                     row = sheet.createRow(i);
                 }
                 T bean = beanList.get(j);
-                beanMapper.mappingBean2Excel(row,i,rowLength,bean);
+                beanMapper.mappingBean2Excel(row,i,rowLength,bean,j);
                 j++;
             }
             //将workbook对象的数据真正写入文件里去
@@ -221,6 +238,15 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
 
     public ExcelBeanWriter setNeedCreate(boolean needCreate) {
         this.needCreate = needCreate;
+        return this;
+    }
+
+    public boolean isCreateNewRow() {
+        return createNewRow;
+    }
+
+    public ExcelBeanWriter setCreateNewRow(boolean createNewRow) {
+        this.createNewRow = createNewRow;
         return this;
     }
 

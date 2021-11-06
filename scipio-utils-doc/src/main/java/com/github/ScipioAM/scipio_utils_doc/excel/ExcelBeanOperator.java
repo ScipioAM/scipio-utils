@@ -63,7 +63,7 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
 
         if(beanList != null) { //writer专用的相关默认配置
             //如果未手动设定，则默认要写入的总行数等于beanList的总个数
-            if(excelIndex.getRowLength() == null || excelIndex.getRowLength() < 0) {
+            if(excelIndex.getRowLength() == null || excelIndex.getRowLength() <= 0) {
                 excelIndex.setRowLength(beanList.size());
             }
             //如果未手动设定，则默认从第一行写入

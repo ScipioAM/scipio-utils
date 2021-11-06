@@ -41,10 +41,11 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
      * @param row 行对象
      * @param rowIndex 行索引(0-based)
      * @param rowLength 要读取的总行数
+     * @param beanIndex JavaBean在list中的下标
      * @return 通过映射，新生成的一个JavaBean实例
      */
     @Override
-    public T mappingExcel2Bean(Row row, int rowIndex, int rowLength) throws ExcelException {
+    public T mappingExcel2Bean(Row row, int rowIndex, int rowLength, int beanIndex) throws ExcelException {
         if(row == null) { //跳过整行都是空的
             return null;
         }
@@ -117,7 +118,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
         else {
             //对每个bean的监听回调
             if(beanListener != null) {
-                beanListener.onHandle(true,bean,row,rowLength,mappingInfo.size());
+                beanListener.onHandle(true,bean,row,rowLength,mappingInfo.size(),beanIndex);
             }
         }
         return bean;
@@ -129,9 +130,10 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
      * @param rowIndex 行索引(0-based)
      * @param rowLength 要读取的总行数
      * @param bean JavaBean实例(将它的数据写入excel)
+     * @param beanIndex JavaBean在list中的下标
      */
     @Override
-    public void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean) throws ExcelException {
+    public void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean, int beanIndex) throws ExcelException {
         //依据自定义list来映射
         if(mappingInfo != null) {
             //开始循环的从bean写入到excel
@@ -177,7 +179,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
             }
             //对每个bean的监听回调
             if(beanListener != null) {
-                beanListener.onHandle(false,bean,row,rowLength,mappingInfo.size());
+                beanListener.onHandle(false,bean,row,rowLength,mappingInfo.size(),beanIndex);
             }
         }
         //依据注解来映射
@@ -231,7 +233,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
             }
             //对每个bean的监听回调
             if(beanListener != null) {
-                beanListener.onHandle(false,bean,row,rowLength,fields.size());
+                beanListener.onHandle(false,bean,row,rowLength,fields.size(),beanIndex);
             }
         }
     }

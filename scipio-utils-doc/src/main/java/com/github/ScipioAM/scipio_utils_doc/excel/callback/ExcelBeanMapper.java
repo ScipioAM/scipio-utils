@@ -16,9 +16,10 @@ public interface ExcelBeanMapper<T> {
      * @param row 行对象
      * @param rowIndex 行索引(0-based)
      * @param rowLength 要读取的总行数(加上了起始行号)
+     * @param beanIndex JavaBean在list中的下标
      * @return 通过映射，新生成的一个JavaBean实例
      */
-    default T mappingExcel2Bean(Row row, int rowIndex, int rowLength) throws ExcelException {
+    default T mappingExcel2Bean(Row row, int rowIndex, int rowLength, int beanIndex) throws ExcelException {
         return null;
     }
 
@@ -28,8 +29,9 @@ public interface ExcelBeanMapper<T> {
      * @param rowIndex 行索引(0-based)
      * @param rowLength 要读取的总行数(加上了起始列号)
      * @param bean JavaBean实例(将它的数据写入excel)
+     * @param beanIndex JavaBean在list中的下标
      */
-    default void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean) throws ExcelException {
+    default void mappingBean2Excel(Row row, int rowIndex, int rowLength, T bean, int beanIndex) throws ExcelException {
     }
 
 }

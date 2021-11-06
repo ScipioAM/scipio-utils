@@ -6,6 +6,9 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.BeanListener;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.ExcelCellHandler;
 import com.github.ScipioAM.scipio_utils_doc.excel.ExcelOperator;
+import com.test.bean.MPrice;
+import com.test.bean.StyleBean;
+import com.test.bean.TestBean;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -142,7 +145,7 @@ public class ExcelReadTest {
             //************** 解析补给品 **************
             excelBeanReader.setSheetIndex(0);
             //每个bean的共通字段
-            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength) -> {
+            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength, beanIndex) -> {
                 clearBlankChars(bean);//清除空白字符;
                 bean.setRemark0(bean.getCustCode());//将此时还是交易费缩写的custCode也存一份到remark0字段，以方便后面存储过程的转换
                 bean.setSaleType(1);//补给品
@@ -156,7 +159,7 @@ public class ExcelReadTest {
             //************** 解析号口（量产品） **************
             excelBeanReader.setSheetIndex(1);
             //每个bean的共通字段
-            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength) -> {
+            excelBeanReader.setBeanListener((BeanListener<MPrice>) (isReadMode, bean, cell, rowLength, columnLength, beanIndex) -> {
                 clearBlankChars(bean);//清除空白字符
                 bean.setRemark0(bean.getCustCode());//将此时还是交易费缩写的custCode也存一份到remark0字段，以方便后面存储过程的转换
                 bean.setSaleType(2);//量产品

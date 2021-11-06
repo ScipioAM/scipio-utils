@@ -69,8 +69,13 @@ public class ExcelUtil {
             return styleRow;
         }
 
+        CellStyle rowStyle = styleRow.getRowStyle();
+        short styleRowHeight = styleRow.getHeight();
+
         int maxColCnt = styleRow.getLastCellNum();
         Row newRow = sheet.createRow(newRowIndex);
+        newRow.setRowStyle(rowStyle);
+        newRow.setHeight(styleRowHeight);
         for (int i = startColumn; i < maxColCnt; i++) {
             Cell newCell = newRow.createCell(i);
             Cell styleCell = styleRow.getCell(i);
