@@ -61,12 +61,12 @@ public abstract class ExcelOperatorBase implements Closeable {
         }
         Workbook workbook;
         isOldVersion = ExcelUtil.isOldVersion(file);
+        FileInputStream fis = new FileInputStream(file);
         if(isOldVersion) {
-            FileInputStream fis = new FileInputStream(file);
             workbook = new HSSFWorkbook(fis);
         }
         else {
-            workbook = new XSSFWorkbook(file);
+            workbook = new XSSFWorkbook(fis);
         }
         this.workbook = workbook;
         return this;
