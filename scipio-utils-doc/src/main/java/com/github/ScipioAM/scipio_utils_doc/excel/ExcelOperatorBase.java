@@ -21,6 +21,9 @@ public abstract class ExcelOperatorBase implements Closeable {
     protected Workbook workbook;
     protected Boolean isOldVersion;
 
+    /** 要读取excel的文件对象 */
+    protected File excelFile;
+
     /** 行处理器(每行) */
     @Nullable
     protected ExcelRowHandler rowHandler;
@@ -69,6 +72,7 @@ public abstract class ExcelOperatorBase implements Closeable {
             workbook = new XSSFWorkbook(fis);
         }
         this.workbook = workbook;
+        this.excelFile = file;
         return this;
     }
 
@@ -80,6 +84,16 @@ public abstract class ExcelOperatorBase implements Closeable {
     public void close() throws IOException {
         if(workbook != null) {
             workbook.close();
+        }
+    }
+
+    /**
+     * 保存更改并关闭读取流
+     * @throws IOException 关闭失败
+     */
+    public void saveAndClose() throws IOException {
+        try (FileOutputStream out = new FileOutputStream(excelFile)) {
+            workbook.write(out);
         }
     }
 

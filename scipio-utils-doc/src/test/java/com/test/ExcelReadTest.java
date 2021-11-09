@@ -177,6 +177,30 @@ public class ExcelReadTest {
         }
     }
 
+    @Test
+    public void testStreamRead() {
+        //设定要读取的文件
+        File file = new File("D:\\temp\\test.xlsx");
+
+        try(ExcelBeanReader reader = new ExcelBeanReader()) {
+            reader.load(file)
+                    .setSheetIndex(0)
+                    .setUseLastNumberOfRows(true)
+                    .setBeanClass(TestBean.class);
+
+            List<TestBean> beanList = new ArrayList<>();
+            TestBean bean;
+            while((bean = reader.readNext()) != null) {
+                beanList.add(bean);
+                System.out.println(bean);
+            }
+            reader.close();
+            System.out.println("\n" + beanList);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 清除空白字符
      */

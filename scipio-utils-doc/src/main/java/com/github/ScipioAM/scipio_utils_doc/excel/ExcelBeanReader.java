@@ -44,6 +44,14 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     /** 单元格忽略处理器 */
     private CellIgnoreHandler cellIgnoreHandler;
 
+    //流式读取专用
+    /**  */
+    private Integer currentBeanIndex;
+    /**  */
+    private AutoExcelBeanMapper<?> autoExcelBeanMapper;
+    /**  */
+    private Class<?> beanClass;
+
     @Override
     public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
         return (ExcelBeanReader) super.load(file);
@@ -63,7 +71,8 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         try {
             //操作前准备(参数检查、确认扫描总行数等)
-            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass,null);
+            //只有垂直读取时才需要检查列长度
+            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass,null,verticalRead);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
             Integer rowStartIndex = excelIndex.getRowStartIndex();
@@ -162,7 +171,59 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         return read(beanClass,beanAutoMapper);
     }
 
-    private <T> void buildBeanAutoMapper(BaseExcelBeanMapper<T> beanAutoMapper, Class<T> beanClass) {
+    //==================================================================================================================
+
+    /**
+     * 流式读取bean
+     *  <p>注意：读取完后要记得调用{@link #close()}或{@link #saveAndClose()}关闭</p>
+     * @param <T> JavaBean的类型
+     * @return 当前读取到的bean
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readNext() {
+        //TODO 类型是否一致的问题，检查还是不检查？是否有其他奇怪情况？
+        Row row = readNextRow();
+        if(autoExcelBeanMapper == null) { //第一次读取，初始化mapper
+            isNeedReset = false;
+            currentBeanIndex = 0;
+            autoExcelBeanMapper = new AutoExcelBeanMapper<>(beanClass);
+            buildBeanAutoMapper(autoExcelBeanMapper,beanClass);
+        }
+        T bean = (T) autoExcelBeanMapper.mappingExcel2Bean(row, currentRowIndex, lastRowIndex, (currentBeanIndex++));
+        if(bean == null) {
+            resetForStreamRead(true);
+        }
+        return bean;
+    }
+
+    @Override
+    protected void prepareForStreamRead() {
+        //准备ExcelIndex
+        prepareExcelIndex(beanClass,null);
+        super.prepareForStreamRead();
+
+    }
+    @Override
+    protected void resetForStreamRead(boolean isNeedReset) {
+        if(isNeedReset) {
+            firstCheck = true;
+            createSheetIfNotExists = true;
+            currentSheet = null;
+            currentRowIndex = null;
+            lastRowIndex = null;
+            autoExcelBeanMapper = null;
+            beanClass = null;
+        }
+    }
+
+    public ExcelBeanReader setBeanClass(Class<?> beanClass) {
+        this.beanClass = beanClass;
+        return this;
+    }
+
+    //==================================================================================================================
+
+    private void buildBeanAutoMapper(BaseExcelBeanMapper<?> beanAutoMapper, Class<?> beanClass) {
         if(customTypeConvert != null) {
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }

@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * excel读取者
@@ -24,6 +25,20 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     /** 指定的Sheet和Sheet里的扫描范围 */
     protected ExcelIndex excelIndex;
+
+    //流式读取（readNextRow）专用
+    /** 是否为第一次检查参数 */
+    protected boolean firstCheck = true;
+    /** 当前处理的sheet */
+    protected Sheet currentSheet;
+    /** 获取不到sheet时是否创建 */
+    protected boolean createSheetIfNotExists = true;
+    /** 当前读取的行下标 */
+    protected Integer currentRowIndex;
+    /** 最大行下标 */
+    protected Integer lastRowIndex;
+    /** 是否需要重置流式读取时的各项内部参数 */
+    protected boolean isNeedReset = true;
 
     @Override
     public ExcelOperator load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
@@ -44,7 +59,7 @@ public class ExcelOperator extends ExcelOperatorBase {
     {
         try {
             // **************** 参数检查 ****************
-            paramsCheck(!createSheetIfNotExists);
+            paramsCheck(!createSheetIfNotExists,true);
             if(missingCellPolicy == null) {
                 missingCellPolicy = workbook.getMissingCellPolicy();
             }
@@ -98,17 +113,72 @@ public class ExcelOperator extends ExcelOperatorBase {
     //==================================================================================================================
 
     /**
+     * 流式读取行（并自行处理）
+     *  <p>注意：读取完后要记得调用{@link #close()}或{@link #saveAndClose()}关闭</p>
+     * @return 当前行
+     */
+    public Row readNextRow() {
+        //参数检查
+        if(firstCheck) {
+            paramsCheck(createSheetIfNotExists,false);
+            firstCheck = false;
+        }
+        //如果第一次读取，确定当前处理的sheet
+        if(currentSheet == null) {
+            prepareForStreamRead();
+        }
+        //读取行
+        Row row = currentSheet.getRow(currentRowIndex);
+        if(row == null || Objects.equals(currentRowIndex, lastRowIndex)) { //读取到末尾（第1次碰到null或到达末尾则视为结束）
+           resetForStreamRead(isNeedReset);
+        }
+        else { //否则正常递增当前行下标
+            currentRowIndex += excelIndex.getRowStep();
+        }
+        return row;
+    }
+
+    protected void prepareForStreamRead() {
+        if(excelIndex.getSheetIndex() != null && excelIndex.getSheetIndex() >= 0) {
+            currentSheet = workbook.getSheetAt(excelIndex.getSheetIndex());
+        }
+        else {
+            currentSheet = workbook.getSheet(excelIndex.getSheetName());
+        }
+        //确定起始行下标
+        currentRowIndex = excelIndex.getRowStartIndex();
+        lastRowIndex = determineRowLength(excelIndex,currentSheet);
+    }
+
+    /**
+     * 重置流式读取时的参数
+     * @param isNeedReset 是否需要重置
+     */
+    protected void resetForStreamRead(boolean isNeedReset) {
+        if(isNeedReset) {
+            firstCheck = true;
+            createSheetIfNotExists = true;
+            currentSheet = null;
+            currentRowIndex = null;
+            lastRowIndex = null;
+        }
+    }
+
+    //==================================================================================================================
+
+    /**
      * 参数检查
      * @param isReader 是否为读取模式
+     * @param needCheckColLength 是否需要检查列长度
      */
-    protected void paramsCheck(boolean isReader) throws NullPointerException, IllegalArgumentException {
+    protected void paramsCheck(boolean isReader, boolean needCheckColLength) throws NullPointerException, IllegalArgumentException {
         if(workbook == null) {
             throw new NullPointerException("workbook is null, maybe not loaded before read");
         }
         if(excelIndex == null) {
             throw new NullPointerException("argument[ExcelIndex] is null");
         }
-        excelIndex.checkSelf(isReader);//校验合法性，非法就抛异常
+        excelIndex.checkSelf(isReader,needCheckColLength);//校验合法性，非法就抛异常
         if(!excelIndex.useLastNumberOfRows() && !excelIndex.usePhysicalNumberOfRows()) {
             if(excelIndex.getRowLength() == null) {
                 throw new NullPointerException("rowLength is null");

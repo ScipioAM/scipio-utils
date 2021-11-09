@@ -112,8 +112,9 @@ public class ExcelIndex {
     /**
      * 自我合法性校验
      * @param isReader 是否为读取模式
+     * @param needCheckColLength 是否需要检查列长度
      */
-    public void checkSelf(boolean isReader) throws NullPointerException, IllegalArgumentException {
+    public void checkSelf(boolean isReader, boolean needCheckColLength) throws NullPointerException, IllegalArgumentException {
         if(rowStartIndex == null) {
             throw new NullPointerException("rowStartIndex can not be null");
         }
@@ -144,7 +145,7 @@ public class ExcelIndex {
             throw new IllegalArgumentException("columnStartIndex can not less then 0");
         }
 
-        if(!useLastNumberOfCells && !usePhysicalNumberOfCells && isReader) {
+        if(!useLastNumberOfCells && !usePhysicalNumberOfCells && isReader && needCheckColLength) {
             if(columnLength == null) {
                 throw new NullPointerException("columnLength can not be null");
             }

@@ -43,7 +43,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
      * @throws IllegalArgumentException 监听器的泛型类型与预期类型不一致
      */
     @SuppressWarnings("unchecked")
-    public void checkAndSetBeanListener(Class<T> targetClass, BeanListener<?> beanListener) throws IllegalArgumentException {
+    public void checkAndSetBeanListener(Class<?> targetClass, BeanListener<?> beanListener) throws IllegalArgumentException {
         if(beanListener != null) { //beanListener为null则略过
             Class<?> listenerGenericType = TypeHelper.resolveRawArgument(BeanListener.class,beanListener);
             if(targetClass == listenerGenericType) { //检查BeanListener类型与预期类型是否一致
@@ -62,7 +62,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
      * @param beanListener 监听器对象
      */
     @SuppressWarnings("unchecked")
-    public void forceSetBeanListener(Class<T> targetClass, BeanListener<?> beanListener) {
+    public void forceSetBeanListener(Class<?> targetClass, BeanListener<?> beanListener) {
         setBeanListener((BeanListener<T>) beanListener);
     }
 

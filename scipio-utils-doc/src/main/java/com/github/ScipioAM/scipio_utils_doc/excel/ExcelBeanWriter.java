@@ -32,9 +32,6 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     /** excel文件及sheet不存在时，是否要自动创建 */
     private boolean needCreate = false;
 
-    /** 要读取excel的文件对象 */
-    private File excelFile;
-
     /** 自定义单元格写入实现 */
     private BeanCellWriter customCellWriter;
 
@@ -43,14 +40,12 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
 
     @Override
     public ExcelBeanWriter load(File file) throws IOException, InvalidFormatException, NullPointerException {
-        this.excelFile = file;
         return (ExcelBeanWriter) super.load(file);
     }
 
     @Override
     public ExcelBeanWriter load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
         File file = new File(fileFullPath);
-        this.excelFile = file;
         return (ExcelBeanWriter) super.load(file);
     }
 
@@ -76,7 +71,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             workbook = needCreate ? new XSSFWorkbook() : new XSSFWorkbook(new FileInputStream(file));
         }
         super.workbook = workbook;
-        this.excelFile = file;
+        super.excelFile = file;
         return this;
     }
 
@@ -115,7 +110,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         FileOutputStream out = null;
         try {
             //操作前准备(参数检查、确认扫描总行数等)
-            OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass,beanList);
+            OpPrepareVo prepareVo = operationPrepare(beanMapper,true,beanClass,beanList,false);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
 

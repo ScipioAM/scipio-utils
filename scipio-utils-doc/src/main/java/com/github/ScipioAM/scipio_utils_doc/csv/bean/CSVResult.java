@@ -25,6 +25,14 @@ public class CSVResult {
         return rows.get(rowIndex);
     }
 
+    public String getColumn(int rowIndex, int columnIndex) {
+        if(rows == null) {
+            return null;
+        }
+        CSVRow row = rows.get(rowIndex);
+        return row.getColumn(columnIndex);
+    }
+
     public void setRows(List<CSVRow> rows) {
         this.rows = rows;
     }

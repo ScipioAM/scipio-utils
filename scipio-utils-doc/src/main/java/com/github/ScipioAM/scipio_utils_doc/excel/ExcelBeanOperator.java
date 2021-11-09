@@ -90,16 +90,21 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
      * @param createIfNotExists 是否不存在就创建
      * @param <T> javaBean类型
      * @param beanList [writer专用]要写入的beanList
+     * @param needCheckColLength 是否需要检查列长度
      * @return 准备信息
      */
-    protected <T> OpPrepareVo operationPrepare(ExcelBeanMapper<T> beanMapper, boolean createIfNotExists, Class<T> beanClass, List<T> beanList) {
+    protected <T> OpPrepareVo operationPrepare(ExcelBeanMapper<T> beanMapper,
+                                               boolean createIfNotExists,
+                                               Class<T> beanClass,
+                                               List<T> beanList,
+                                               boolean needCheckColLength) {
         //准备ExcelIndex
         prepareExcelIndex(beanClass,beanList);
         //参数检查
         if(beanMapper == null) {
             throw new NullPointerException("argument \"ExcelBeanMapper\" is null");
         }
-        paramsCheck(beanList == null);
+        paramsCheck(beanList == null,needCheckColLength);
         //获取目标Sheet
         Sheet sheet = getSheet(excelIndex,workbook,createIfNotExists);
         //确定最终的总行数
