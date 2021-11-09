@@ -35,6 +35,12 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     /** 垂直读取标志 */
     private boolean verticalRead = false;
 
+    /**
+     * 连续多少次空行后，认为读取结束了（0则永远不会这样强行结束）
+     * （仅限常规的水平读取）
+     */
+    private int emptyRowLimit = 3;
+
     /** 单元格忽略处理器 */
     private CellIgnoreHandler cellIgnoreHandler;
 
@@ -77,6 +83,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
             // 开始扫描行
             int beanIndex = 0;
+            int nullRowCount = 0;
             for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
                 //不在白名单中的行要跳过
                 if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
@@ -89,19 +96,24 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                     break;
                 }
 
+                //正常水平读取
+                if(verticalBeanMapper == null) {
+                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength,beanIndex);
+                    if(bean != null) {
+                        if(emptyRowLimit > 0 && emptyRowLimit == nullRowCount) { //达到空行上限，强行结束读取
+                            System.out.println("Reach the emptyRowLimit[" + emptyRowLimit + "], finish reading");
+                            break;
+                        }
+                        beanList.add(bean);
+                        beanIndex++;
+                        nullRowCount++;
+                    }
+                }
                 //垂直读取
-                if(verticalBeanMapper != null) {
+                else {
                     //确定每列总行数(加上了起始列号)
                     Integer columnLength = determineColumnLength(excelIndex,row);
                     verticalBeanMapper.mappingExcel2Bean(row,i,rowLength,excelIndex.getColumnStartIndex(),columnLength,beanList);
-                }
-                //正常水平读取
-                else {
-                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength,beanIndex);
-                    if(bean != null) {
-                        beanList.add(bean);
-                        beanIndex++;
-                    }
                 }
             }//end of for
             //收尾
@@ -131,30 +143,9 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanMapper<T> beanMapper;
-        if(verticalRead) {
-            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(mappingInfo,beanClass);
-            if(customTypeConvert != null) {
-                beanAutoMapper.setTypeConvert(customTypeConvert);
-            }
-            beanAutoMapper.setGetFormulaResult(getFormulaResult);
-            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
-            beanAutoMapper.setCellHandler(cellHandler);
-            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
-            beanMapper = beanAutoMapper;
-        }
-        else {
-            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(mappingInfo,beanClass);
-            if(customTypeConvert != null) {
-                beanAutoMapper.setTypeConvert(customTypeConvert);
-            }
-            beanAutoMapper.setGetFormulaResult(getFormulaResult);
-            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
-            beanAutoMapper.setCellHandler(cellHandler);
-            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
-            beanMapper = beanAutoMapper;
-        }
-        return read(beanClass,beanMapper);
+        BaseExcelBeanMapper<T> beanAutoMapper = verticalRead ? new VerticalAutoExcelBeanMapper<>(mappingInfo,beanClass) : new AutoExcelBeanMapper<>(mappingInfo,beanClass);
+        buildBeanAutoMapper(beanAutoMapper,beanClass);
+        return read(beanClass,beanAutoMapper);
     }
 
     /**
@@ -166,30 +157,24 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         if(beanClass == null ) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        ExcelBeanMapper<T> beanMapper;
-        if(verticalRead) {
-            VerticalAutoExcelBeanMapper<T> beanAutoMapper = new VerticalAutoExcelBeanMapper<>(beanClass);
-            if(customTypeConvert != null) {
-                beanAutoMapper.setTypeConvert(customTypeConvert);
-            }
-            beanAutoMapper.setGetFormulaResult(getFormulaResult);
-            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
-            beanAutoMapper.setCellHandler(cellHandler);
-            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
-            beanMapper = beanAutoMapper;
+        BaseExcelBeanMapper<T> beanAutoMapper = verticalRead ? new VerticalAutoExcelBeanMapper<>(beanClass) : new AutoExcelBeanMapper<>(beanClass);
+        buildBeanAutoMapper(beanAutoMapper,beanClass);
+        return read(beanClass,beanAutoMapper);
+    }
+
+    private <T> void buildBeanAutoMapper(BaseExcelBeanMapper<T> beanAutoMapper, Class<T> beanClass) {
+        if(customTypeConvert != null) {
+            beanAutoMapper.setTypeConvert(customTypeConvert);
+        }
+        beanAutoMapper.setGetFormulaResult(getFormulaResult);
+        beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
+        beanAutoMapper.setCellHandler(cellHandler);
+        if(super.isForceSetBeanListener) {
+            beanAutoMapper.forceSetBeanListener(beanClass,beanListener);
         }
         else {
-            AutoExcelBeanMapper<T> beanAutoMapper = new AutoExcelBeanMapper<>(beanClass);
-            if(customTypeConvert != null) {
-                beanAutoMapper.setTypeConvert(customTypeConvert);
-            }
-            beanAutoMapper.setGetFormulaResult(getFormulaResult);
-            beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
-            beanAutoMapper.setCellHandler(cellHandler);
             beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
-            beanMapper = beanAutoMapper;
         }
-        return read(beanClass,beanMapper);
     }
 
     /**
@@ -227,6 +212,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         return this;
     }
 
+    public int getEmptyRowLimit() {
+        return emptyRowLimit;
+    }
+
+    public ExcelBeanReader setEmptyRowLimit(int emptyRowLimit) {
+        this.emptyRowLimit = emptyRowLimit;
+        return this;
+    }
+
     public ExcelBeanReader setCellIgnoreHandler(CellIgnoreHandler cellIgnoreHandler) {
         this.cellIgnoreHandler = cellIgnoreHandler;
         return this;
@@ -234,6 +228,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     public ExcelBeanReader setBeanListener(BeanListener<?> beanListener) {
         super.beanListener = beanListener;
+        return this;
+    }
+
+    public boolean isForceSetBeanListener() {
+        return super.isForceSetBeanListener;
+    }
+
+    public ExcelBeanReader setForceSetBeanListener(boolean forceSetBeanListener) {
+        super.isForceSetBeanListener = forceSetBeanListener;
         return this;
     }
 

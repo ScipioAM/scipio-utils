@@ -255,6 +255,15 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         return this;
     }
 
+    public boolean isForceSetBeanListener() {
+        return super.isForceSetBeanListener;
+    }
+
+    public ExcelBeanWriter setForceSetBeanListener(boolean forceSetBeanListener) {
+        super.isForceSetBeanListener = forceSetBeanListener;
+        return this;
+    }
+
     @Override
     public ExcelBeanWriter setRowHandler(ExcelRowHandler rowHandler) {
         return (ExcelBeanWriter) super.setRowHandler(rowHandler);

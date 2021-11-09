@@ -56,6 +56,16 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
         }
     }
 
+    /**
+     * 强制设置{@link BeanListener}
+     * @param targetClass 预期类型
+     * @param beanListener 监听器对象
+     */
+    @SuppressWarnings("unchecked")
+    public void forceSetBeanListener(Class<T> targetClass, BeanListener<?> beanListener) {
+        setBeanListener((BeanListener<T>) beanListener);
+    }
+
     public void setBeanListener(BeanListener<T> beanListener) {
         this.beanListener = beanListener;
     }

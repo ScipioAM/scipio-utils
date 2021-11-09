@@ -25,8 +25,11 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
     /** 行检查白名单（不在此清单中的都是要跳过的）（为null则视为都不跳过） */
     protected final Set<Integer> rowWhitelist = new HashSet<>();
 
-    /**  */
+    /** {@link ExcelBeanReader}或{@link ExcelBeanWriter}对每个JavaBean处理时的监听回调 */
     protected BeanListener<?> beanListener;
+
+    /** 是否强制设置{@link BeanListener}(不检查类型是否一致) */
+    protected boolean isForceSetBeanListener = false;
 
     /**
      * 准备ExcelIndex
