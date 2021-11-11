@@ -1,5 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.csv.bean;
 
+import java.util.Arrays;
+
 /**
  * @author Alan Scipio
  * @since 1.0.8
@@ -7,21 +9,44 @@ package com.github.ScipioAM.scipio_utils_doc.csv.bean;
  */
 public class CSVRow {
 
+    /** 切割时用的分隔符，一般默认是英文逗号 */
     private String delimiter;
 
+    /** 行原始内容，写入时优先级最低 */
     private String line;
 
+    /** 行内容（切割后），写入时优先级高于line */
     private String[] columnArr;
 
+    /** 行序号(0-based) */
     private int rowIndex;
+
+    /** 切割出的行内容总数 */
+    private int length;
 
     public CSVRow() {}
 
     public CSVRow(String delimiter, String line, String[] columnArr, int rowIndex) {
         this.delimiter = delimiter;
         this.line = line;
-        this.columnArr = columnArr;
         this.rowIndex = rowIndex;
+        setColumnArr(columnArr);
+    }
+
+    public CSVRow(String line, int rowIndex) {
+        this.line = line;
+        this.rowIndex = rowIndex;
+    }
+
+    @Override
+    public String toString() {
+        return "CSVRow{" +
+                "delimiter='" + delimiter + '\'' +
+                ", line='" + line + '\'' +
+                ", columnArr=" + Arrays.toString(columnArr) +
+                ", rowIndex=" + rowIndex +
+                ", length=" + length +
+                '}';
     }
 
     public String getDelimiter() {
@@ -53,6 +78,9 @@ public class CSVRow {
 
     public void setColumnArr(String[] columnArr) {
         this.columnArr = columnArr;
+        if(columnArr != null) {
+            this.length = columnArr.length;
+        }
     }
 
     public int getRowIndex() {
@@ -61,5 +89,13 @@ public class CSVRow {
 
     public void setRowIndex(int rowIndex) {
         this.rowIndex = rowIndex;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
     }
 }

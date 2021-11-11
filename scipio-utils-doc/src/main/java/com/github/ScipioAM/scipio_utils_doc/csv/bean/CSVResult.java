@@ -10,9 +10,19 @@ import java.util.List;
  */
 public class CSVResult {
 
+    /** 读取的行对象 */
     private List<CSVRow> rows;
 
+    /** 读取的行原始内容 */
     private List<String> originalLines;
+
+    @Override
+    public String toString() {
+        return "CSVResult{" +
+                "rows=" + rows +
+                ", originalLines=" + originalLines +
+                '}';
+    }
 
     public List<CSVRow> getRows() {
         return rows;

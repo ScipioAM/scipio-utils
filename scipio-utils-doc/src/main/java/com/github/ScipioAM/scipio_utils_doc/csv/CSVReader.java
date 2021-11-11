@@ -30,7 +30,7 @@ public class CSVReader extends BaseCSVOperator {
      * @throws IOException 文件不存在；读取行时发生IO异常；关闭流时发生异常
      */
     public CSVResult readAll(File file) throws IOException {
-        try (BufferedReader reader = (bufferedReader == null ? loadFile(file) : bufferedReader)) {
+        try (BufferedReader reader = (bufferedReader == null ? loadForRead(file) : bufferedReader)) {
             //加载文件
             //准备工作
             int rowIndex = 0;
@@ -61,7 +61,7 @@ public class CSVReader extends BaseCSVOperator {
      * @return 读取结果
      */
     private CSVRow handleLine(String line, int rowIndex) {
-        //行处理
+        //行处理回调
         if(rowHandler != null && !rowHandler.handle(line,rowIndex)) {
             return null;
         }
@@ -101,7 +101,7 @@ public class CSVReader extends BaseCSVOperator {
      * @throws FileNotFoundException 文件不存在
      */
     public CSVReader parse(File file) throws FileNotFoundException {
-        bufferedReader = loadFile(file);
+        bufferedReader = loadForRead(file);
         globalRowIndex = 0;
         return this;
     }

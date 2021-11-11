@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.csv.callback;
 
 /**
+ * 列的回调处理(对Writer无效)
  * @author Alan Scipio
  * @since 1.0.8
  * @date 2021/11/9
