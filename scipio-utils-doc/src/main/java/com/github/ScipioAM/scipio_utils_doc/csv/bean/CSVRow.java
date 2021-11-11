@@ -1,6 +1,8 @@
 package com.github.ScipioAM.scipio_utils_doc.csv.bean;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Alan Scipio
@@ -16,7 +18,7 @@ public class CSVRow {
     private String line;
 
     /** 行内容（切割后），写入时优先级高于line */
-    private String[] columnArr;
+    private List<String> columnArr;
 
     /** 行序号(0-based) */
     private int rowIndex;
@@ -30,7 +32,7 @@ public class CSVRow {
         this.delimiter = delimiter;
         this.line = line;
         this.rowIndex = rowIndex;
-        setColumnArr(columnArr);
+        setColumnArr(Arrays.asList(columnArr));
     }
 
     public CSVRow(String line, int rowIndex) {
@@ -43,7 +45,7 @@ public class CSVRow {
         return "CSVRow{" +
                 "delimiter='" + delimiter + '\'' +
                 ", line='" + line + '\'' +
-                ", columnArr=" + Arrays.toString(columnArr) +
+                ", columnArr=" + columnArr +
                 ", rowIndex=" + rowIndex +
                 ", length=" + length +
                 '}';
@@ -65,22 +67,26 @@ public class CSVRow {
         this.line = line;
     }
 
-    public String[] getColumnArr() {
+    public List<String> getColumnArr() {
         return columnArr;
     }
 
     public String getColumn(int index) {
-        if(columnArr == null) {
-            return null;
-        }
-        return columnArr[index];
+        return columnArr.get(index);
     }
 
-    public void setColumnArr(String[] columnArr) {
+    public void setColumnArr(List<String> columnArr) {
         this.columnArr = columnArr;
         if(columnArr != null) {
-            this.length = columnArr.length;
+            this.length = columnArr.size();
         }
+    }
+
+    public void addColumn(String column) {
+        if(columnArr == null) {
+            columnArr = new ArrayList<>();
+        }
+        columnArr.add(column);
     }
 
     public int getRowIndex() {

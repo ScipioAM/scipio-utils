@@ -29,16 +29,10 @@ public class CSVResult {
     }
 
     public CSVRow getRow(int rowIndex) {
-        if(rows == null) {
-            return null;
-        }
         return rows.get(rowIndex);
     }
 
     public String getColumn(int rowIndex, int columnIndex) {
-        if(rows == null) {
-            return null;
-        }
         CSVRow row = rows.get(rowIndex);
         return row.getColumn(columnIndex);
     }
@@ -59,14 +53,18 @@ public class CSVResult {
     }
 
     public String getOriginalLine(int lineIndex) {
-        if(originalLines == null) {
-            return null;
-        }
         return originalLines.get(lineIndex);
     }
 
     public void setOriginalLines(List<String> originalLines) {
         this.originalLines = originalLines;
+    }
+
+    public void addOriginalLine(String line) {
+        if(originalLines == null) {
+            originalLines = new ArrayList<>();
+        }
+        originalLines.add(line);
     }
 
 }

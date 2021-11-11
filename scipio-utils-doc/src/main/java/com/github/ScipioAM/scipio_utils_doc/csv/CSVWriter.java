@@ -37,9 +37,9 @@ public class CSVWriter extends BaseCSVOperator{
             for(int i = 0; i < rowList.size(); i++) {
                 CSVRow row = rowList.get(i);
                 StringBuilder line;
-                String[] columnArr = row.getColumnArr();
+                List<String> columnArr = row.getColumnArr();
                 //用line填写
-                if(columnArr == null || columnArr.length == 0) {
+                if(columnArr == null || columnArr.size() == 0) {
                     line = new StringBuilder(row.getLine());
                     if(StringUtil.isNull(line.toString())) {
                         System.err.println("CSVRow`s content is empty, rowIndex[" + i + "]");
