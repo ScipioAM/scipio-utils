@@ -53,12 +53,22 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     private Class<?> beanClass;
 
     @Override
-    public ExcelBeanReader load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelBeanReader load(File file, String password) throws IOException, NullPointerException {
+        return (ExcelBeanReader) super.load(file, password);
+    }
+
+    @Override
+    public ExcelBeanReader load(File file) throws IOException, NullPointerException {
         return (ExcelBeanReader) super.load(file);
     }
 
     @Override
-    public ExcelBeanReader load(@NotNull String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelBeanReader load(String fileFullPath, String password) throws IOException, NullPointerException {
+        return (ExcelBeanReader) super.load(fileFullPath, password);
+    }
+
+    @Override
+    public ExcelBeanReader load(String fileFullPath) throws IOException, NullPointerException {
         return (ExcelBeanReader) super.load(fileFullPath);
     }
 

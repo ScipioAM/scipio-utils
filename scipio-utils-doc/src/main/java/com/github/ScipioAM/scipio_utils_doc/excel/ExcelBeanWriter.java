@@ -8,15 +8,12 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -39,14 +36,23 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     private boolean createNewRow = false;
 
     @Override
-    public ExcelBeanWriter load(File file) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelBeanWriter load(File file, String password) throws IOException, NullPointerException {
+        return (ExcelBeanWriter) super.load(file, password);
+    }
+
+    @Override
+    public ExcelBeanWriter load(File file) throws IOException, NullPointerException {
         return (ExcelBeanWriter) super.load(file);
     }
 
     @Override
-    public ExcelBeanWriter load(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
-        File file = new File(fileFullPath);
-        return (ExcelBeanWriter) super.load(file);
+    public ExcelBeanWriter load(String fileFullPath, String password) throws IOException, NullPointerException {
+        return (ExcelBeanWriter) super.load(fileFullPath, password);
+    }
+
+    @Override
+    public ExcelBeanWriter load(String fileFullPath) throws IOException, NullPointerException {
+        return (ExcelBeanWriter) super.load(fileFullPath);
     }
 
     /**
@@ -62,15 +68,8 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         else if(!file.exists()) {
             needCreate = true;
         }
-        Workbook workbook;
         super.isOldVersion = ExcelUtil.isOldVersion(file);
-        if(super.isOldVersion) {
-            workbook = needCreate ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(file));
-        }
-        else {
-            workbook = needCreate ? new XSSFWorkbook() : new XSSFWorkbook(new FileInputStream(file));
-        }
-        super.workbook = workbook;
+        super.workbook = needCreate ? WorkbookFactory.create(!isOldVersion) : WorkbookFactory.create(file);
         super.excelFile = file;
         return this;
     }
@@ -78,7 +77,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
     /**
      * 加载，不存在就创建
      */
-    public ExcelBeanWriter loadOrCreate(String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
+    public ExcelBeanWriter loadOrCreate(String fileFullPath) throws IOException, NullPointerException {
         return this.load(new File(fileFullPath));
     }
 

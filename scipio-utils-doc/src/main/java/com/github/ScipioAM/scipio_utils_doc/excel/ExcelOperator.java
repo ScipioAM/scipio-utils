@@ -1,18 +1,14 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
+import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Objects;
 
 /**
@@ -21,12 +17,41 @@ import java.util.Objects;
  * @since 1.0.2-p3
  * @date 2021/8/27
  */
-public class ExcelOperator extends ExcelOperatorBase {
+public class ExcelOperator implements Closeable {
+
+    /** 工作簿对象 */
+    protected Workbook workbook;
+
+    /** 是否为excel旧版本 */
+    protected Boolean isOldVersion;
+
+    /** 要读取excel的文件对象 */
+    protected File excelFile;
+
+    /** 行处理器(每行) */
+    @Nullable
+    protected ExcelRowHandler rowHandler;
+
+    /** 列处理器(每个单元格) */
+    @Nullable
+    protected ExcelCellHandler cellHandler;
+
+    /** 操作结束时的回调 */
+    @Nullable
+    protected ExcelEndListener endListener;
+
+    /** 操作开始时的回调 */
+    @Nullable
+    protected ExcelStartListener startListener;
+
+    /** 异常处理 */
+    @Nullable
+    protected ExceptionHandler exceptionHandler;
 
     /** 指定的Sheet和Sheet里的扫描范围 */
     protected ExcelIndex excelIndex;
 
-    //流式读取（readNextRow）专用
+    //↓↓↓ 流式读取（readNextRow）专用 ↓↓↓
     /** 是否为第一次检查参数 */
     protected boolean firstCheck = true;
     /** 当前处理的sheet */
@@ -39,15 +64,61 @@ public class ExcelOperator extends ExcelOperatorBase {
     protected Integer lastRowIndex;
     /** 是否需要重置流式读取时的各项内部参数 */
     protected boolean isNeedReset = true;
+    //↑↑↑ 流式读取（readNextRow）专用 ↑↑↑
 
-    @Override
-    public ExcelOperator load(@NotNull File file) throws IOException, InvalidFormatException, NullPointerException {
-        return (ExcelOperator) super.load(file);
+    //==================================================================================================================
+
+    /**
+     * 加载excel文件
+     * @param file 目标文件
+     * @param password excel文件的密码，可为null
+     * @return 加载出来的工作簿对象
+     * @throws IOException 加载失败
+     * @throws NullPointerException file对象为null
+     */
+    public ExcelOperator load(@NotNull File file, @Nullable String password) throws IOException, NullPointerException {
+        if(file == null) {
+            throw new NullPointerException("argument \"file\" is null");
+        }
+        else if(file.isDirectory()) {
+            throw new IllegalArgumentException("argument \"file\" must be a excel file");
+        }
+        else if(!file.exists()) {
+            throw new FileNotFoundException("file[" + file.getAbsolutePath() + "] does not exists");
+        }
+        isOldVersion = ExcelUtil.isOldVersion(file);
+        this.workbook = StringUtil.isNull(password) ? WorkbookFactory.create(file) : WorkbookFactory.create(file,password);
+        this.excelFile = file;
+        return this;
+    }
+
+    public ExcelOperator load(@NotNull File file) throws IOException, NullPointerException {
+        return load(file,null);
+    }
+
+    public ExcelOperator load(@NotNull String fileFullPath, String password) throws IOException, NullPointerException {
+        return load(new File(fileFullPath), password);
+    }
+
+    public ExcelOperator load(@NotNull String fileFullPath) throws IOException, NullPointerException {
+        return load(new File(fileFullPath), null);
     }
 
     @Override
-    public ExcelOperator load(@NotNull String fileFullPath) throws IOException, InvalidFormatException, NullPointerException {
-        return (ExcelOperator) super.load(fileFullPath);
+    public void close() throws IOException {
+        if(workbook != null) {
+            workbook.close();
+        }
+    }
+
+    /**
+     * 保存更改并关闭读取流
+     * @throws IOException 关闭失败
+     */
+    public void saveAndClose() throws IOException {
+        try (FileOutputStream out = new FileOutputStream(excelFile)) {
+            workbook.write(out);
+        }
     }
 
     /**
@@ -263,16 +334,28 @@ public class ExcelOperator extends ExcelOperatorBase {
 
     //==================================================================================================================
 
+    public Workbook getWorkbook() {
+        return workbook;
+    }
+
+    public void setWorkbook(Workbook workbook) {
+        this.workbook = workbook;
+    }
+
+    public Boolean isOldVersion() {
+        return isOldVersion;
+    }
+
     public void clearCallbacks() {
-        super.cellHandler = null;
-        super.rowHandler = null;
-        super.endListener = null;
+        this.cellHandler = null;
+        this.rowHandler = null;
+        this.endListener = null;
     }
 
     public void clearAllSettings() {
         this.excelIndex = new ExcelIndex();
-        super.workbook = null;
-        super.isOldVersion = null;
+        this.workbook = null;
+        this.isOldVersion = null;
         clearCallbacks();
     }
 
@@ -287,17 +370,17 @@ public class ExcelOperator extends ExcelOperatorBase {
     }
 
     public ExcelOperator setEndListener(ExcelEndListener endListener) {
-        super.endListener = endListener;
+        this.endListener = endListener;
         return this;
     }
 
     public ExcelOperator setStartListener(ExcelStartListener startListener) {
-        super.startListener = startListener;
+        this.startListener = startListener;
         return this;
     }
 
     public ExcelOperator setExceptionHandler(ExceptionHandler exceptionHandler) {
-        super.exceptionHandler = exceptionHandler;
+        this.exceptionHandler = exceptionHandler;
         return this;
     }
 
