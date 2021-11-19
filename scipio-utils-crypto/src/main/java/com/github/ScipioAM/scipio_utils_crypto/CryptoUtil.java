@@ -700,5 +700,12 @@ public class CryptoUtil {
     public long getSymmetricEncryptFileSize(File srcFile) {
         return scObject.getEncryptFileSize(srcFile);
     }
+
+    /**
+     * 获取默认加盐层数
+     */
+    public SaltLevel getDefaultSaleLevel() {
+        return mdObject.getDefaultSaltLevel();
+    }
     
 }
