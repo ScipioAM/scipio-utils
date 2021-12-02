@@ -42,26 +42,25 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
             excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
             //获取注解
             ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
-            if(annotation == null) {
-                return;
+            if(annotation != null) {
+                //将注解的值转换为excelIndex对象
+                if(annotation.sheetIndex() >= 0) {
+                    excelIndex.setSheetIndex(annotation.sheetIndex());
+                }
+                else {
+                    excelIndex.setSheetName(annotation.sheetName());
+                }
+                excelIndex.setRowStartIndex(annotation.rowStartIndex())
+                        .setRowLength(annotation.rowLength())
+                        .setRowStep(annotation.rowStep())
+                        .setColumnStartIndex(annotation.columnStartIndex())
+                        .setColumnLength(annotation.columnLength())
+                        .setColumnStep(annotation.columnStep())
+                        .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
+                        .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
+                        .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
+                        .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
             }
-            //将注解的值转换为excelIndex对象
-            if(annotation.sheetIndex() >= 0) {
-                excelIndex.setSheetIndex(annotation.sheetIndex());
-            }
-            else {
-                excelIndex.setSheetName(annotation.sheetName());
-            }
-            excelIndex.setRowStartIndex(annotation.rowStartIndex())
-                    .setRowLength(annotation.rowLength())
-                    .setRowStep(annotation.rowStep())
-                    .setColumnStartIndex(annotation.columnStartIndex())
-                    .setColumnLength(annotation.columnLength())
-                    .setColumnStep(annotation.columnStep())
-                    .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
-                    .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
-                    .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
-                    .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
         }
 
         if(beanList != null) { //writer专用的相关默认配置
