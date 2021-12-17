@@ -2,9 +2,7 @@ package com.github.ScipioAM.scipio_utils_common.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * JavaBean转换工具类
@@ -57,6 +55,58 @@ public class TransformUtil {
             field.set(bean,value);
         }
         return bean;
+    }
+
+    //==========================================================================================================================================
+
+    /**
+     * javaBean转为map，map的key是javaBean的字段名（大小写敏感）
+     * @param bean javaBean对象
+     * @param mapInitializer [可为null]map初始化（指定生成什么类型的map）
+     * @param <T> javaBean的类型
+     * @return 转换后的map
+     * @throws IllegalAccessException 访问字段出现访问非法的问题
+     */
+    public static <T> Map<String,Object> transformToMap(T bean, MapInitializer mapInitializer) throws IllegalAccessException {
+        Map<String,Object> map = (mapInitializer != null ? mapInitializer.init() : MapInitializer.DEFAULT.init());
+        Field[] fields = bean.getClass().getDeclaredFields();
+        for(Field field : fields) {
+            String fieldName = field.getName();
+            field.setAccessible(true);
+            Object value = field.get(bean);
+            map.put(fieldName,value);
+        }
+        return map;
+    }
+
+    /**
+     * javaBean转为map，map的key是javaBean的字段名（大小写敏感），默认为{@link HashMap}
+     * @param bean javaBean对象
+     * @param <T> javaBean的类型
+     * @return 转换后的map
+     * @throws IllegalAccessException 访问字段出现访问非法的问题
+     */
+    public static <T> Map<String,Object> transformToMap(T bean) throws IllegalAccessException {
+        return transformToMap(bean,null);
+    }
+
+    /**
+     * Map构造器
+     */
+    @FunctionalInterface
+    public interface MapInitializer {
+
+        /**
+         * 构造map
+         * @return map的类型自行指定
+         */
+        Map<String,Object> init();
+
+        /**
+         * 默认构造器：构造为{@link HashMap}
+         */
+        MapInitializer DEFAULT = HashMap::new;
+
     }
 
 }
