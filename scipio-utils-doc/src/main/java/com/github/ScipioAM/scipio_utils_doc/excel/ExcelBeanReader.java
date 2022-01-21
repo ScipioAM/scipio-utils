@@ -6,7 +6,6 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -119,13 +118,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 if(verticalBeanMapper == null) {
                     T bean = beanMapper.mappingExcel2Bean(row, i, rowLength,beanIndex);
                     if(bean != null) {
-                        if(emptyRowLimit > 0 && emptyRowLimit == nullRowCount) { //达到空行上限，强行结束读取
-                            System.out.println("Reach the emptyRowLimit[" + emptyRowLimit + "], finish reading");
-                            break;
-                        }
                         beanList.add(bean);
                         beanIndex++;
+                    }
+                    else {
                         nullRowCount++;
+                    }
+                    if(emptyRowLimit > 0 && emptyRowLimit == nullRowCount) { //达到空行上限，强行结束读取
+                        System.out.println("Reach the emptyRowLimit[" + emptyRowLimit + "], finish reading");
+                        break;
                     }
                 }
                 //垂直读取
@@ -191,7 +192,6 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      */
     @SuppressWarnings("unchecked")
     public <T> T readNext() {
-        //TODO 类型是否一致的问题，检查还是不检查？是否有其他奇怪情况？
         Row row = readNextRow();
         if(autoExcelBeanMapper == null) { //第一次读取，初始化mapper
             isNeedReset = false;

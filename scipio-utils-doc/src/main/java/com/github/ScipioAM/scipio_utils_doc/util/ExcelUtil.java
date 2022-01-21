@@ -227,4 +227,33 @@ public class ExcelUtil {
         }
     }
 
+    /**
+     * 插入并复制式样行
+     * @param sheet 工作表对象
+     * @param rowIndex 当前行号（在此行开始复制插入）（0-based）
+     * @param styleRowIndex 式样行的行号（0-based）
+     * @param columnStartIndex 复制的起始列号（0-based）
+     * @return 新复制的行
+     */
+    public static Row insertAndCopyRow(Sheet sheet, int rowIndex, int styleRowIndex, int columnStartIndex) {
+        //行下移
+        sheet.shiftRows(rowIndex,sheet.getLastRowNum(),1,true,false);
+        //行复制
+        return ExcelUtil.copyRowWithStyle(sheet,styleRowIndex,rowIndex,columnStartIndex);
+    }
+
+    /**
+     * 插入并复制式样行（从第0列开始复制式样）
+     * @param sheet 工作表对象
+     * @param rowIndex 当前行号（在此行开始复制插入）（0-based）
+     * @param styleRowIndex 式样行的行号（0-based）
+     * @return 新复制的行
+     */
+    public static Row insertAndCopyRow(Sheet sheet, int rowIndex, int styleRowIndex) {
+        //行下移
+        sheet.shiftRows(rowIndex,sheet.getLastRowNum(),1,true,false);
+        //行复制
+        return ExcelUtil.copyRowWithStyle(sheet,styleRowIndex,rowIndex,0);
+    }
+
 }

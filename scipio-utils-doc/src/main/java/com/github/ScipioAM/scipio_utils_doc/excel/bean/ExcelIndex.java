@@ -22,7 +22,7 @@ public class ExcelIndex {
     /** 开始行索引(0-based) */
     @NotNull(message = "rowStartIndex can not be null")
     @Min(value = 0, message = "rowStartIndex can not less then 0")
-    private Integer rowStartIndex = 0;
+    private Integer rowStartIndex;
 
     /** 要扫描的行数 */
     @Min(value = 0, message = "rowLength can not less then 0")
@@ -31,12 +31,12 @@ public class ExcelIndex {
     /** 扫描行数时的步长 */
     @NotNull(message = "rowStep can not be null")
     @Min(value = 1, message = "rowStep can not less then 1")
-    private Integer rowStep = 1;
+    private Integer rowStep;
 
     /** 开始列索引(0-based) */
     @NotNull(message = "columnStartIndex can not be null")
     @Min(value = 0, message = "columnStartIndex can not less then 0")
-    private Integer columnStartIndex = 0;
+    private Integer columnStartIndex;
 
     /** 要扫描的列数 */
     @Min(value = 0, message = "columnLength can not greater then 16384")
@@ -45,19 +45,19 @@ public class ExcelIndex {
     /** 扫描列数时的步长 */
     @NotNull(message = "columnStep can not be null")
     @Min(value = 1, message = "columnStep can not less then 1")
-    private Integer columnStep = 1;
+    private Integer columnStep;
 
     /** 使用{@link Sheet#getLastRowNum()}来自行判断rowLength，优先于usePhysicalNumberOfRows */
-    private boolean useLastNumberOfRows = false;
+    private Boolean useLastNumberOfRows;
 
     /** 使用{@link Row#getLastCellNum()}来自行判断columnLength，优先于usePhysicalNumberOfCells */
-    private boolean useLastNumberOfCells = false;
+    private Boolean useLastNumberOfCells;
 
     /** 使用{@link Sheet#getPhysicalNumberOfRows()}来自行判断rowLength */
-    private boolean usePhysicalNumberOfRows = false;
+    private Boolean usePhysicalNumberOfRows;
 
     /** 使用{@link Row#getPhysicalNumberOfCells()}来自行判断columnLength */
-    private boolean usePhysicalNumberOfCells = false;
+    private Boolean usePhysicalNumberOfCells;
 
     public ExcelIndex() {}
 
@@ -236,7 +236,7 @@ public class ExcelIndex {
         return this;
     }
 
-    public boolean usePhysicalNumberOfRows() {
+    public Boolean usePhysicalNumberOfRows() {
         return usePhysicalNumberOfRows;
     }
 
@@ -245,7 +245,7 @@ public class ExcelIndex {
         return this;
     }
 
-    public boolean usePhysicalNumberOfCells() {
+    public Boolean usePhysicalNumberOfCells() {
         return usePhysicalNumberOfCells;
     }
 
@@ -254,7 +254,7 @@ public class ExcelIndex {
         return this;
     }
 
-    public boolean useLastNumberOfRows() {
+    public Boolean useLastNumberOfRows() {
         return useLastNumberOfRows;
     }
 
@@ -263,7 +263,7 @@ public class ExcelIndex {
         return this;
     }
 
-    public boolean useLastNumberOfCells() {
+    public Boolean useLastNumberOfCells() {
         return useLastNumberOfCells;
     }
 

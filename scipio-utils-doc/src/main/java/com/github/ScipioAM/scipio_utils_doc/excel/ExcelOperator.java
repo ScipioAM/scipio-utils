@@ -1,12 +1,16 @@
 package com.github.ScipioAM.scipio_utils_doc.excel;
 
-import com.github.ScipioAM.scipio_utils_common.StringUtil;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.NotNull;
 import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.Objects;
@@ -87,7 +91,13 @@ public class ExcelOperator implements Closeable {
             throw new FileNotFoundException("file[" + file.getAbsolutePath() + "] does not exists");
         }
         isOldVersion = ExcelUtil.isOldVersion(file);
-        this.workbook = StringUtil.isNull(password) ? WorkbookFactory.create(file) : WorkbookFactory.create(file,password);
+        if(isOldVersion) {
+            this.workbook = new HSSFWorkbook(new FileInputStream(file));
+        }
+        else {
+            this.workbook = new XSSFWorkbook(new FileInputStream(file));
+        }
+//        this.workbook = StringUtil.isNull(password) ? WorkbookFactory.create(file) : WorkbookFactory.create(file,password);
         this.excelFile = file;
         return this;
     }

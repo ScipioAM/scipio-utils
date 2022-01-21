@@ -37,26 +37,17 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
         //原始值是数字
         if(originalType == Double.class) {
             Double originalDV = (Double) originalValue;
-            Object value = convertNumeric(originalDV,targetType);
-            if(value != null) {
-                return value;
-            }
+            return convertNumeric(originalDV,targetType);
         }
         //原始值是字符串
         else if(originalType == String.class) {
             String originalStr = (String) originalValue;
-            Object value = convertString(originalStr,targetType,cell);
-            if(value != null) {
-                return value;
-            }
+            return convertString(originalStr,targetType,cell);
         }
         //原始值是日期
         else if(originalType == LocalDateTime.class) {
             LocalDateTime dateTime = (LocalDateTime) originalValue;
-            Object value = convertDateTime(dateTime,targetType);
-            if(value != null) {
-                return value;
-            }
+            return convertDateTime(dateTime,targetType);
         }
 
         //不是预期可转换的，且类型又不一致，则抛出异常
@@ -112,13 +103,14 @@ public class SimpleBeanTypeConvert implements BeanTypeConvert{
         }
         else if(targetType == BigDecimal.class) {
             if(!StringUtil.isNumeric(originalStr)) {
-                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
-                        + originalStr + "], rowIndex["
-                        + cell.getRowIndex() + "], columnIndex["
-                        + cell.getColumnIndex() + "]")
-                        .setSheetName(cell.getSheet().getSheetName())
-                        .setRowIndex(cell.getRowIndex())
-                        .setCellIndex(cell.getColumnIndex());
+                return null;
+//                throw new ExcelException("Type convert error while read value from excel to javaBean, cellValue is not a numeric string: ["
+//                        + originalStr + "], rowIndex["
+//                        + cell.getRowIndex() + "], columnIndex["
+//                        + cell.getColumnIndex() + "]")
+//                        .setSheetName(cell.getSheet().getSheetName())
+//                        .setRowIndex(cell.getRowIndex())
+//                        .setCellIndex(cell.getColumnIndex());
             }
             return new BigDecimal(originalStr);
         }

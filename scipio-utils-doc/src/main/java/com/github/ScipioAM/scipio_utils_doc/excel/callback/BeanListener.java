@@ -1,11 +1,9 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
-import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanReader;
-import com.github.ScipioAM.scipio_utils_doc.excel.ExcelBeanWriter;
 import org.apache.poi.ss.usermodel.Row;
 
 /**
- * {@link ExcelBeanReader}或{@link ExcelBeanWriter}对每个JavaBean处理时的监听回调
+ * ExcelBeanReader或ExcelBeanWriter对每个JavaBean处理时的监听回调
  * @param <T> JavaBean的具体类型
  * @author Alan Scipio
  * @since 1.0.4

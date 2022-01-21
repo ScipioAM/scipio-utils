@@ -18,7 +18,7 @@ public interface ExcelEndListener {
     /**
      * 默认实现，关闭工作簿对象
      */
-    ExcelEndListener SIMPLE_CLOSE = (workbook,excelIndex) -> {
+    ExcelEndListener SIMPLE_CLOSE = (workbook, excelIndex) -> {
         try {
             if(workbook != null) {
                 workbook.close();

@@ -19,7 +19,7 @@ import java.util.List;
  * @date 2021/9/16
  */
 public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
-    
+
     /** JavaBean写入excel的具体实现者 */
     private BeanCellWriter cellWriter = new SimpleBeanCellWriter();
 
@@ -185,7 +185,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
         //依据注解来映射
         else {
             if(fields == null) {
-                fields = FieldUtil.getFieldsByAnnotationPresent(beanClass,ExcelMapping.class);
+                fields = FieldUtil.getFieldsByAnnotationPresent(beanClass, ExcelMapping.class);
             }
             if(fields.size() <= 0) {
                 throw new ExcelException("There has no field annotated by [@ExcelMapping]")

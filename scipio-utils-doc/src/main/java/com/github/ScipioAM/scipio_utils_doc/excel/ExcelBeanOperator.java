@@ -37,30 +37,75 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
      * @param beanList [writer专用]要写入的beanList
      */
     protected void prepareExcelIndex(Class<?> beanClass, List<?> beanList) {
-        //已设定的excelIndex优先级高于注解
         if(excelIndex == null) {
             excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
-            //获取注解
-            ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
-            if(annotation != null) {
-                //将注解的值转换为excelIndex对象
-                if(annotation.sheetIndex() >= 0) {
-                    excelIndex.setSheetIndex(annotation.sheetIndex());
-                }
-                else {
-                    excelIndex.setSheetName(annotation.sheetName());
-                }
-                excelIndex.setRowStartIndex(annotation.rowStartIndex())
-                        .setRowLength(annotation.rowLength())
-                        .setRowStep(annotation.rowStep())
-                        .setColumnStartIndex(annotation.columnStartIndex())
-                        .setColumnLength(annotation.columnLength())
-                        .setColumnStep(annotation.columnStep())
-                        .setUseLastNumberOfRows(annotation.useLastNumberOfRows())
-                        .setUseLastNumberOfCells(annotation.useLastNumberOfCells())
-                        .setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows())
-                        .setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
+        }
+        //获取注解(但已设定的excelIndex优先级高于注解)
+        ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);
+        if(annotation != null) {
+            //将注解的值转换为excelIndex对象
+            if(excelIndex.getSheetIndex() == null && annotation.sheetIndex() >= 0) {
+                excelIndex.setSheetIndex(annotation.sheetIndex());
             }
+            else if(StringUtil.isNull(excelIndex.getSheetName())) {
+                excelIndex.setSheetName(annotation.sheetName());
+            }
+            if(excelIndex.getRowStartIndex() == null) {
+                excelIndex.setRowStartIndex(annotation.rowStartIndex());
+            }
+            if(excelIndex.getRowLength() == null && annotation.rowLength() >= 0) {
+                excelIndex.setRowLength(annotation.rowLength());
+            }
+            if(excelIndex.getRowStep() == null) {
+                excelIndex.setRowStep(annotation.rowStep());
+            }
+            if(excelIndex.getColumnStartIndex() == null) {
+                excelIndex.setColumnStartIndex(annotation.columnStartIndex());
+            }
+            if(excelIndex.getColumnLength() == null && annotation.columnLength() >= 0) {
+                excelIndex.setColumnLength(annotation.columnLength());
+            }
+            if(excelIndex.getColumnStep() == null) {
+                excelIndex.setColumnStep(annotation.columnStep());
+            }
+            if(excelIndex.useLastNumberOfRows() == null) {
+                excelIndex.setUseLastNumberOfRows(annotation.useLastNumberOfRows());
+            }
+            if(excelIndex.usePhysicalNumberOfRows() == null) {
+                excelIndex.setUsePhysicalNumberOfRows(annotation.usePhysicalNumberOfRows());
+            }
+            if(excelIndex.useLastNumberOfCells() == null) {
+                excelIndex.setUseLastNumberOfCells(annotation.useLastNumberOfCells());
+            }
+            if(excelIndex.usePhysicalNumberOfCells() == null) {
+                excelIndex.setUsePhysicalNumberOfCells(annotation.usePhysicalNumberOfCells());
+            }
+        }
+
+        //查漏补缺
+        if(excelIndex.getRowStartIndex() == null) {
+            excelIndex.setRowStartIndex(0);
+        }
+        if(excelIndex.getRowStep() == null) {
+            excelIndex.setRowStep(1);
+        }
+        if(excelIndex.getColumnStartIndex() == null) {
+            excelIndex.setColumnStartIndex(0);
+        }
+        if(excelIndex.getColumnStep() == null) {
+            excelIndex.setColumnStep(1);
+        }
+        if(excelIndex.useLastNumberOfRows() == null) {
+            excelIndex.setUseLastNumberOfRows(false);
+        }
+        if(excelIndex.usePhysicalNumberOfRows() == null) {
+            excelIndex.setUsePhysicalNumberOfRows(false);
+        }
+        if(excelIndex.useLastNumberOfCells() == null) {
+            excelIndex.setUseLastNumberOfCells(false);
+        }
+        if(excelIndex.usePhysicalNumberOfCells() == null) {
+            excelIndex.setUsePhysicalNumberOfCells(false);
         }
 
         if(beanList != null) { //writer专用的相关默认配置

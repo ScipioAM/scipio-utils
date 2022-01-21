@@ -26,16 +26,19 @@ public class SimpleBeanCellWriter implements BeanCellWriter{
             return;
         }
         if(valueType == Integer.class) {
-            cell.setCellValue(value + "");
+            Integer trueValue = (Integer) value;
+            cell.setCellValue(trueValue.doubleValue());
         }
         else if(valueType == Long.class) {
-            cell.setCellValue(value + "");
+            Long trueValue = (Long) value;
+            cell.setCellValue(trueValue.doubleValue());
         }
         else if(valueType == Double.class) {
             cell.setCellValue((Double) value);
         }
         else if(valueType == Float.class) {
-            cell.setCellValue(value + "");
+            Float trueValue = (Float) value;
+            cell.setCellValue(trueValue.doubleValue());
         }
         else if(valueType == Boolean.class) {
             cell.setCellValue((Boolean) value);
@@ -51,7 +54,7 @@ public class SimpleBeanCellWriter implements BeanCellWriter{
         }
         else if(valueType == BigDecimal.class) {
             BigDecimal trueValue = (BigDecimal) value;
-            cell.setCellValue(trueValue.toString());
+            cell.setCellValue(trueValue.doubleValue());
         }
         else if(valueType == Character.class) {
             Character trueValue = (Character) value;

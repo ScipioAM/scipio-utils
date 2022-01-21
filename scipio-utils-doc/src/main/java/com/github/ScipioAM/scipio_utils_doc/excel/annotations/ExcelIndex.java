@@ -11,8 +11,8 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 注解版的{@link com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex}
- *      <p>注：优先级低于显式传参的{@link com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex}</p>
+ * 注解版的{@link ExcelIndex}
+ *      <p>注：优先级低于显式传参的{@link ExcelIndex}</p>
  * @author Alan Scipio
  * @since 1.0.2
  * @date 2021/9/27
@@ -32,7 +32,7 @@ public @interface ExcelIndex {
     int rowStartIndex() default 0;
 
     /** 要扫描的行数 */
-    int rowLength() default 0;
+    int rowLength() default -1;
 
     /** 扫描行数时的步长 */
     int rowStep() default 1;

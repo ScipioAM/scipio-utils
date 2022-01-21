@@ -8,12 +8,14 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.callback.*;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.util.ExcelUtil;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -69,7 +71,12 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             needCreate = true;
         }
         super.isOldVersion = ExcelUtil.isOldVersion(file);
-        super.workbook = needCreate ? WorkbookFactory.create(!isOldVersion) : WorkbookFactory.create(file);
+        if(isOldVersion) {
+            super.workbook = needCreate ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(file));
+        }
+        else {
+            super.workbook = needCreate ? new XSSFWorkbook() : new XSSFWorkbook(new FileInputStream(file));
+        }
         super.excelFile = file;
         return this;
     }

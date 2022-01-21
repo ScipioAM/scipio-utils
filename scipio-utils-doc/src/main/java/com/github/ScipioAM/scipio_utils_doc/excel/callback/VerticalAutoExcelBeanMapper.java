@@ -18,7 +18,7 @@ import java.util.Map;
 public class VerticalAutoExcelBeanMapper<T> extends VerticalExcelBeanMapper<T> {
 
     /** 映射信息的缓存map，key是rowIndex，value是映射信息 */
-    private Map<Integer,ExcelMappingInfo> mappingInfoMap;
+    private Map<Integer, ExcelMappingInfo> mappingInfoMap;
 
     public VerticalAutoExcelBeanMapper(Class<T> beanClass) {
         super.beanClass = beanClass;
