@@ -1,33 +1,53 @@
 package com.github.ScipioAM.scipio_utils_doc.util;
 
+import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelImage;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFPatriarch;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
+import org.apache.poi.xssf.usermodel.XSSFDrawing;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Excel静态工具类
+ *
  * @author Alan Scipio
- * @since 1.0.2-p3
  * @date 2021/9/8
+ * @since 1.0.2-p3
  */
 public class ExcelUtil {
 
-    /** 旧版最大行数 */
+    /**
+     * 旧版最大行数
+     */
     public static final int ROW_MAX_OLD = 65536;
-    /** 旧版最大列数 */
+    /**
+     * 旧版最大列数
+     */
     public static final int COLUMN_MAX_OLD = 256;
-    /** 新版最大行数 */
+    /**
+     * 新版最大行数
+     */
     public static final int ROW_MAX_NEW = 1048576;
-    /** 新版最大列数 */
+    /**
+     * 新版最大列数
+     */
     public static final int COLUMN_MAX_NEW = 16384;
 
     /**
      * 判断是否为旧版Excel(97-07版)
+     *
      * @param fileName 要检查的文件名
      * @return true代表是旧版
      */
     public static boolean isOldVersion(String fileName) {
-        if(!fileName.contains(".")) {
+        if (!fileName.contains(".")) {
             throw new IllegalArgumentException("fileName not contains a extension, : " + fileName);
         }
         String[] arr = fileName.split("\\.");
@@ -37,6 +57,7 @@ public class ExcelUtil {
 
     /**
      * 判断是否为旧版Excel(97-07版)
+     *
      * @param file 要检查的文件
      * @return true代表是旧版
      */
@@ -47,10 +68,11 @@ public class ExcelUtil {
 
     /**
      * copy带式样的行
-     * @param sheet 工作表
+     *
+     * @param sheet         工作表
      * @param styleRowIndex 式样行的行号（从0开始）
-     * @param newRowIndex 要新建行的行号（从0开始），如果与式样行行号一样，则直接返回式样行
-     * @param startColumn 起始列号（从0开始）
+     * @param newRowIndex   要新建行的行号（从0开始），如果与式样行行号一样，则直接返回式样行
+     * @param startColumn   起始列号（从0开始）
      * @return 被copy并新创建的行
      */
     public static Row copyRowWithStyle(Sheet sheet, int styleRowIndex, int newRowIndex, int startColumn) {
@@ -88,19 +110,19 @@ public class ExcelUtil {
 
     /**
      * 检查行扫描范围是否合法
-     * @param isOldVersion 是否为旧版excel
+     *
+     * @param isOldVersion  是否为旧版excel
      * @param rowStartIndex 开始扫描的index
-     * @param rowLength 扫描长度
+     * @param rowLength     扫描长度
      * @throws IllegalArgumentException 范围非法则抛出此异常
      */
     public static void checkRowMax(boolean isOldVersion, int rowStartIndex, int rowLength) throws IllegalArgumentException {
-        if(isOldVersion) {
-            if((rowStartIndex + rowLength) > ROW_MAX_OLD) {
+        if (isOldVersion) {
+            if ((rowStartIndex + rowLength) > ROW_MAX_OLD) {
                 throw new IllegalArgumentException("row scan range(rowLength + rowStartIndex) can not greater then " + ROW_MAX_OLD);
             }
-        }
-        else {
-            if((rowStartIndex + rowLength) > ROW_MAX_NEW) {
+        } else {
+            if ((rowStartIndex + rowLength) > ROW_MAX_NEW) {
                 throw new IllegalArgumentException("row scan range(rowLength + rowStartIndex) can not greater then " + ROW_MAX_NEW);
             }
         }
@@ -108,19 +130,19 @@ public class ExcelUtil {
 
     /**
      * 检查行扫描范围是否合法
-     * @param isOldVersion 是否为旧版excel
+     *
+     * @param isOldVersion     是否为旧版excel
      * @param columnStartIndex 开始扫描的index
-     * @param columnLength 扫描长度
+     * @param columnLength     扫描长度
      * @throws IllegalArgumentException 范围非法则抛出此异常
      */
     public static void checkColumnMax(boolean isOldVersion, int columnStartIndex, int columnLength) throws IllegalArgumentException {
-        if(isOldVersion) {
-            if((columnStartIndex + columnLength) > COLUMN_MAX_OLD) {
+        if (isOldVersion) {
+            if ((columnStartIndex + columnLength) > COLUMN_MAX_OLD) {
                 throw new IllegalArgumentException("column scan range(columnLength + columnStartIndex) can not greater then " + COLUMN_MAX_OLD);
             }
-        }
-        else {
-            if((columnStartIndex + columnLength) > COLUMN_MAX_NEW) {
+        } else {
+            if ((columnStartIndex + columnLength) > COLUMN_MAX_NEW) {
                 throw new IllegalArgumentException("column scan range(columnLength + columnStartIndex) can not greater then " + COLUMN_MAX_NEW);
             }
         }
@@ -128,7 +150,8 @@ public class ExcelUtil {
 
     /**
      * 简单获取单元格的值
-     * @param cell 单元格对象
+     *
+     * @param cell             单元格对象
      * @param getFormulaResult 对于公式单元格，是获取公式计算的值，还是公式本身。
      *                         (为true代表获取公式计算的值)
      * @return 单元格的值
@@ -145,7 +168,7 @@ public class ExcelUtil {
                 break;
             case NUMERIC: // 数字(包括分数)、日期类型的单元格
                 //日期
-                if(DateUtil.isCellDateFormatted(cell)) {
+                if (DateUtil.isCellDateFormatted(cell)) {
                     value = cell.getLocalDateTimeCellValue();
                 }
                 //数字
@@ -155,10 +178,10 @@ public class ExcelUtil {
                 break;
             case FORMULA: // 公式类型的单元格
                 //获取公式计算的值
-                if(getFormulaResult) {
+                if (getFormulaResult) {
                     try {
                         value = cell.getNumericCellValue();
-                    }catch (IllegalStateException e) {
+                    } catch (IllegalStateException e) {
                         value = cell.getStringCellValue();
                     }
                 }
@@ -182,9 +205,10 @@ public class ExcelUtil {
 
     /**
      * 设置单元格四周的边框
-     * @param cellStyle 样式对象，可以通过{@link Workbook#createCellStyle()}或{@link Cell#getCellStyle()}获得
+     *
+     * @param cellStyle   样式对象，可以通过{@link Workbook#createCellStyle()}或{@link Cell#getCellStyle()}获得
      * @param borderStyle 边框样式（实线、虚线、加粗等）
-     * @param color 边框颜色
+     * @param color       边框颜色
      */
     public static void setBorderAround(CellStyle cellStyle, BorderStyle borderStyle, IndexedColors color) {
         //设置边框
@@ -203,12 +227,13 @@ public class ExcelUtil {
      * 设置单元格四周的边框，固定黑色单实线边框（最常规的那种样式）
      */
     public static void setBorderAround(CellStyle cellStyle) {
-        setBorderAround(cellStyle,BorderStyle.THIN,IndexedColors.BLACK);
+        setBorderAround(cellStyle, BorderStyle.THIN, IndexedColors.BLACK);
     }
 
     /**
      * 完全移除某行
-     * @param sheet 工作表对象
+     *
+     * @param sheet    工作表对象
      * @param rowIndex 要移除的行
      */
     public static void removeRow(Sheet sheet, int rowIndex) {
@@ -221,39 +246,108 @@ public class ExcelUtil {
             //清空数据和式样
             sheet.removeRow(sheet.getRow(rowIndex));
             //移除这行(下面行向上移1位)
-            if(rowIndex < lastRowIndex) {
-                sheet.shiftRows(rowIndex + 1,lastRowIndex,-1);
+            if (rowIndex < lastRowIndex) {
+                sheet.shiftRows(rowIndex + 1, lastRowIndex, -1);
             }
         }
     }
 
     /**
      * 插入并复制式样行
-     * @param sheet 工作表对象
-     * @param rowIndex 当前行号（在此行开始复制插入）（0-based）
-     * @param styleRowIndex 式样行的行号（0-based）
-     * @param columnStartIndex 复制的起始列号（0-based）
+     *
+     * @param sheet            工作表对象
+     * @param rowIndex         当前行号（在此行开始复制插入）（0-based）
+     * @param styleRowIndex    式样行的行号（0-based）
+     * @param columnStartIndex 起始列号（0-based）
      * @return 新复制的行
      */
     public static Row insertAndCopyRow(Sheet sheet, int rowIndex, int styleRowIndex, int columnStartIndex) {
         //行下移
-        sheet.shiftRows(rowIndex,sheet.getLastRowNum(),1,true,false);
+        sheet.shiftRows(rowIndex, sheet.getLastRowNum(), 1, true, false);
         //行复制
-        return ExcelUtil.copyRowWithStyle(sheet,styleRowIndex,rowIndex,columnStartIndex);
+        return ExcelUtil.copyRowWithStyle(sheet, styleRowIndex, rowIndex, columnStartIndex);
     }
 
     /**
-     * 插入并复制式样行（从第0列开始复制式样）
-     * @param sheet 工作表对象
-     * @param rowIndex 当前行号（在此行开始复制插入）（0-based）
+     * 插入并复制式样行 - 从第0列开始复制
+     *
+     * @param sheet         工作表对象
+     * @param rowIndex      当前行号（在此行开始复制插入）（0-based）
      * @param styleRowIndex 式样行的行号（0-based）
      * @return 新复制的行
      */
     public static Row insertAndCopyRow(Sheet sheet, int rowIndex, int styleRowIndex) {
         //行下移
-        sheet.shiftRows(rowIndex,sheet.getLastRowNum(),1,true,false);
+        sheet.shiftRows(rowIndex, sheet.getLastRowNum(), 1, true, false);
         //行复制
-        return ExcelUtil.copyRowWithStyle(sheet,styleRowIndex,rowIndex,0);
+        return ExcelUtil.copyRowWithStyle(sheet, styleRowIndex, rowIndex, 0);
+    }
+
+    /**
+     * Excel添加图片
+     *
+     * @param arg 相关参数
+     */
+    public static void addImage(ExcelImage arg) throws IOException {
+        Sheet sheet = arg.getSheet();
+        boolean oldVersion = (sheet instanceof HSSFSheet);
+        //创建位置坐标
+        ClientAnchor anchor = (oldVersion ? new HSSFClientAnchor() : new XSSFClientAnchor());
+        anchor.setDx1(arg.getDx1());
+        anchor.setDy1(arg.getDy1());
+        anchor.setDx2(arg.getDx2());
+        anchor.setDy2(arg.getDy2());
+        anchor.setCol1(arg.getCol1());
+        anchor.setRow1(arg.getRow1());
+        anchor.setCol2(arg.getCol2());
+        anchor.setRow2(arg.getRow2());
+        //读取图片文件
+        String fileName = arg.getImageFile().getName();
+        String[] nameArr = fileName.split("\\.");
+        if (nameArr.length == 1) {
+            throw new IOException("can not get suffix from file name: [" + fileName + "]");
+        }
+        String fileSuffix = nameArr[nameArr.length - 1];
+        ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
+        BufferedImage bufferedImage = ImageIO.read(arg.getImageFile());
+        ImageIO.write(bufferedImage, fileSuffix, imageBytes);
+        //确定图片类型
+        int picType;
+        switch (fileSuffix) {
+            case "emf":
+                picType = Workbook.PICTURE_TYPE_EMF;
+                break;
+            case "wmf":
+                picType = Workbook.PICTURE_TYPE_WMF;
+                break;
+            case "pict":
+                picType = Workbook.PICTURE_TYPE_PICT;
+                break;
+            case "jpg":
+            case "jpeg":
+                picType = Workbook.PICTURE_TYPE_JPEG;
+                break;
+            case "png":
+                picType = Workbook.PICTURE_TYPE_PNG;
+                break;
+            case "dib":
+                picType = Workbook.PICTURE_TYPE_DIB;
+                break;
+            default:
+                throw new IOException("unsupported picture type: [" + fileSuffix + "]");
+        }
+        //加入到工作簿中，获得图片序号
+        int pictureIndex = arg.getWorkbook().addPicture(imageBytes.toByteArray(), picType);
+        //插入图片
+        if (oldVersion) {
+            //97-03版
+            HSSFPatriarch patriarch = (HSSFPatriarch) sheet.createDrawingPatriarch();
+            patriarch.createPicture(anchor, pictureIndex);
+        } else {
+            //07及以上的新版
+            XSSFDrawing drawing = (XSSFDrawing) sheet.createDrawingPatriarch();
+            drawing.createPicture(anchor, pictureIndex);
+        }
     }
 
 }
