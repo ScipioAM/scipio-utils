@@ -145,7 +145,10 @@ public class ExcelIndex {
             throw new IllegalArgumentException("columnStartIndex can not less then 0");
         }
 
-        if(!useLastNumberOfCells && !usePhysicalNumberOfCells && isReader && needCheckColLength) {
+        if((useLastNumberOfCells != null && !useLastNumberOfCells)
+                && (usePhysicalNumberOfCells != null && !usePhysicalNumberOfCells)
+                && isReader
+                && needCheckColLength) {
             if(columnLength == null) {
                 throw new NullPointerException("columnLength can not be null");
             }
