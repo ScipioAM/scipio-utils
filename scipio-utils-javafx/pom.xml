@@ -22,6 +22,12 @@
             <artifactId>scipio-utils-crypto</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- jpa -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 </project>
