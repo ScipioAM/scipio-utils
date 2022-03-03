@@ -7,6 +7,7 @@ import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanCellWriter;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanCellWriter;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.lang.reflect.Field;
@@ -74,6 +75,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
         int fieldCount = 0;//要映射的字段总数
         int nullCount = 0;//空值字段总数
         for(ExcelMappingInfo info : mappingInfo) {
+            fieldCount++;
             Integer cellIndex = info.getCellIndex();
             String fieldName = info.getFieldName();
             Integer mappingRowIndex = info.getRowIndex();
@@ -84,8 +86,11 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
             Cell cell;
             try {
                 cell = row.getCell(cellIndex);
-                if(cell == null) {
+                if(cell == null || cell.getCellType() == CellType.BLANK || cell.getCellType() == CellType._NONE) {
                     nullCount++;
+                    if(emptyColumnLimit > 0 && nullCount >= emptyColumnLimit) {
+                        return null;
+                    }
                     continue;
                 }
 
@@ -94,10 +99,12 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
                     break;
                 }
 
-                fieldCount++;
                 boolean isCellNull = ExcelMappingUtil.setValueIntoBean(cell,beanClass,bean,fieldName,typeConvert,getFormulaResult,cellIgnoreHandler);
                 if(isCellNull) {
                     nullCount++;
+                    if(emptyColumnLimit > 0 && nullCount >= emptyColumnLimit) {
+                        return null;
+                    }
                 }
             } catch (Exception e) {
                 if(e instanceof ExcelException) {
@@ -112,7 +119,7 @@ public class AutoExcelBeanMapper<T> extends BaseExcelBeanMapper<T>{
             }
         }// end of for
         //如果所有映射字段都是空值，则不构成bean实例
-        if(nullCount == fieldCount) {
+        if(nullCount >= fieldCount) {
             bean = null;
         }
         else {

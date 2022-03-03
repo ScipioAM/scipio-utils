@@ -36,6 +36,9 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
     /** 对每个JavaBean处理时的监听回调 */
     protected BeanListener<T> beanListener;
 
+    /** 连续多少次空单元格后，认为该行读取结束了（0则永远不会这样强行结束） */
+    protected int emptyColumnLimit;
+
     /**
      * 检查泛型类型并设置{@link BeanListener}
      * @param targetClass 预期类型
@@ -106,4 +109,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
         this.cellHandler = cellHandler;
     }
 
+    public void setEmptyColumnLimit(int emptyColumnLimit) {
+        this.emptyColumnLimit = emptyColumnLimit;
+    }
 }

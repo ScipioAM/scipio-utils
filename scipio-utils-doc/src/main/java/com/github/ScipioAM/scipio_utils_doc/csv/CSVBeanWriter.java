@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.csv;
 
 import com.github.ScipioAM.scipio_utils_common.AssertUtil;
+import com.github.ScipioAM.scipio_utils_doc.csv.bean.CSVCell;
 import com.github.ScipioAM.scipio_utils_doc.csv.bean.CSVMeta;
 
 import java.io.*;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * CSV写入
  * @author Alan Scipio
- * @since 1.0.9 2021/12/30
+ * @since 2021/12/30
  */
 public class CSVBeanWriter {
 
@@ -60,8 +61,6 @@ public class CSVBeanWriter {
                 writer.write(contentLine);
             }
             writer.flush();
-        } catch (IOException e) {
-            throw e;
         }
     }
 
@@ -125,12 +124,12 @@ public class CSVBeanWriter {
 
     //==================================================================================================================================
 
-    public String getDELIMITER() {
+    public String getDelimiter() {
         return DELIMITER;
     }
 
-    public void setDELIMITER(String DELIMITER) {
-        this.DELIMITER = DELIMITER;
+    public void setDelimiter(String delimiter) {
+        this.DELIMITER = delimiter;
     }
 
     public String getCharset() {

@@ -10,8 +10,9 @@ import java.util.Date;
 
 /**
  * CSV写入时的元信息
+ *
  * @author Alan Scipio
- * @since 1.0.9 2021/12/30
+ * @since 2021/12/30
  */
 public class CSVMeta {
 
@@ -23,7 +24,8 @@ public class CSVMeta {
 
     private Field field;
 
-    public CSVMeta() {}
+    public CSVMeta() {
+    }
 
     public CSVMeta(int sort, String title, Field field) {
         this.sort = sort;
@@ -35,7 +37,7 @@ public class CSVMeta {
      * 获取字段的值
      */
     public String getFieldValue(Object beanInstance) throws IllegalAccessException {
-        if(field == null) {
+        if (field == null) {
             return null;
         }
         field.setAccessible(true);
@@ -45,27 +47,23 @@ public class CSVMeta {
 
     /**
      * 值转换
-     * @param value 原始值
+     *
+     * @param value      原始值
      * @param valueClass 原始值的类型
      * @return 转换后的字符串值
      */
     private String convert2Str(Object value, Class<?> valueClass) {
-        if(value == null) {
+        if (value == null) {
             return "";
-        }
-        else if(valueClass == String.class) {
+        } else if (valueClass == String.class) {
             return (String) value;
-        }
-        else if(valueClass == LocalDate.class) {
+        } else if (valueClass == LocalDate.class) {
             return DateUtil.date2Str((LocalDate) value);
-        }
-        else if(valueClass == LocalDateTime.class) {
+        } else if (valueClass == LocalDateTime.class) {
             return DateTimeUtil.time2Str((LocalDateTime) value);
-        }
-        else if(valueClass == Date.class) {
+        } else if (valueClass == Date.class) {
             return DateUtil.date2String((Date) value);
-        }
-        else {
+        } else {
             return value.toString();
         }
     }

@@ -1,4 +1,4 @@
-package com.github.ScipioAM.scipio_utils_doc.util;
+package com.github.ScipioAM.scipio_utils_doc.excel;
 
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelImage;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;

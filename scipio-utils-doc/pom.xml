@@ -31,6 +31,12 @@
             <artifactId>pdfbox</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>${open-csv.version}</version>
+            <optional>true</optional>
+        </dependency>
         <!-- itext-核心模块 -->
         <dependency>
             <groupId>com.itextpdf</groupId>

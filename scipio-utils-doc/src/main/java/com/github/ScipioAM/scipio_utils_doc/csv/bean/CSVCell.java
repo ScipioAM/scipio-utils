@@ -1,11 +1,12 @@
-package com.github.ScipioAM.scipio_utils_doc.csv;
+package com.github.ScipioAM.scipio_utils_doc.csv.bean;
 
 import java.lang.annotation.*;
 
 /**
  * CSV一列
+ *
  * @author Alan Scipio
- * @since 1.0.9 2021/12/30
+ * @since 2021/12/30
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

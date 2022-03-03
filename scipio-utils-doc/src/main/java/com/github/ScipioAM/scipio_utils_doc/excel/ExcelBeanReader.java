@@ -40,6 +40,12 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      */
     private int emptyRowLimit = 3;
 
+    /**
+     * 连续多少次空单元格后，认为该行读取结束了（0则永远不会这样强行结束）
+     * （仅限常规的水平读取）
+     */
+    private int emptyColumnLimit = 0;
+
     /** 单元格忽略处理器 */
     private CellIgnoreHandler cellIgnoreHandler;
 
@@ -240,6 +246,7 @@ public class ExcelBeanReader extends ExcelBeanOperator{
         beanAutoMapper.setGetFormulaResult(getFormulaResult);
         beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
         beanAutoMapper.setCellHandler(cellHandler);
+        beanAutoMapper.setEmptyColumnLimit(emptyColumnLimit);
         if(super.isForceSetBeanListener) {
             beanAutoMapper.forceSetBeanListener(beanClass,beanListener);
         }
@@ -289,6 +296,15 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     public ExcelBeanReader setEmptyRowLimit(int emptyRowLimit) {
         this.emptyRowLimit = emptyRowLimit;
+        return this;
+    }
+
+    public int getEmptyColumnLimit() {
+        return emptyColumnLimit;
+    }
+
+    public ExcelBeanReader setEmptyColumnLimit(int emptyColumnLimit) {
+        this.emptyColumnLimit = emptyColumnLimit;
         return this;
     }
 
