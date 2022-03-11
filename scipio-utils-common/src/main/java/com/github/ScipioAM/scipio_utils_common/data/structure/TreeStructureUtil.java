@@ -11,7 +11,7 @@ import java.util.Map;
  * @author Alan Scipio
  * @since 2021/4/23
  */
-public class TreeStructureHelper {
+public class TreeStructureUtil {
 
     /**
      * 【根节点方式】创建树型结构
