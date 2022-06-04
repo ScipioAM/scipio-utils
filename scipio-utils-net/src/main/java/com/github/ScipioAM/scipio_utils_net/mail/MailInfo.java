@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * 邮件信息
+ *
  * @author Alan Scipio
  * @since 1.0.1-p1
  * @date 2021/8/19

@@ -1,13 +1,17 @@
 package com.github.ScipioAM.scipio_utils_net.http.listener;
 
+import org.openjsse.net.ssl.OpenJSSE;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 
 /**
  * @author Alan Scipio
+ *
  * @since 1.0.1-p1
  * @date 2021/8/23
  */
@@ -30,7 +34,9 @@ public interface SSLContextInitializer {
      * 默认SSLContext创建者
      */
     SSLContextInitializer DEFAULT = (trustManagers) -> {
-        SSLContext sslContext = SSLContext.getInstance("SSLv3");
+        // 支持TLSv1.3协议的依赖注册到提供者中
+        Security.addProvider(new OpenJSSE());
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         sslContext.init(null, trustManagers, new SecureRandom());
         return sslContext;
     };

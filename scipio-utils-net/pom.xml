@@ -41,6 +41,10 @@
             <artifactId>javax.mail</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.openjsse</groupId>
+            <artifactId>openjsse</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

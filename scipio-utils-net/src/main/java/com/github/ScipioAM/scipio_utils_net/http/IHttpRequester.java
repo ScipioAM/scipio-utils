@@ -11,6 +11,7 @@ import java.util.Map;
 
 /**
  * HTTP请求工具
+ *
  * @author alan scipio
  * @since 2021/6/9
  */
@@ -18,43 +19,47 @@ public interface IHttpRequester {
 
     /**
      * GET请求
+     *
      * @param urlPath url路径
      * @return 响应数据
      */
     ResponseResult get(String urlPath, ResponseDataMode responseDataMode) throws Exception;
 
     default ResponseResult get(String urlPath) throws Exception {
-        return get(urlPath,ResponseDataMode.DEFAULT);
+        return get(urlPath, ResponseDataMode.DEFAULT);
     }
 
     /**
      * POST请求
+     *
      * @param urlPath url路径
      * @return 响应数据
      */
     ResponseResult post(String urlPath, ResponseDataMode dataMode) throws Exception;
 
     default ResponseResult post(String urlPath) throws Exception {
-        return post(urlPath,ResponseDataMode.DEFAULT);
+        return post(urlPath, ResponseDataMode.DEFAULT);
     }
 
     /**
      * POST请求(上传文件)
-     * @param urlPath url路径
+     *
+     * @param urlPath  url路径
      * @param dataMode 响应数据的默认(默认|不需要响应体|直接返回响应的输入流)
      * @return 响应数据
      */
     ResponseResult postFile(String urlPath, ResponseDataMode dataMode) throws Exception;
 
     default ResponseResult postFile(String urlPath) throws Exception {
-        return postFile(urlPath,ResponseDataMode.DEFAULT);
+        return postFile(urlPath, ResponseDataMode.DEFAULT);
     }
 
     /**
      * 下载文件
-     * @param urlPath url路径
+     *
+     * @param urlPath         url路径
      * @param downloadFileDir 下载文件的父路径
-     * @param fileName 下载文件的文件名
+     * @param fileName        下载文件的文件名
      * @return 响应数据
      */
     ResponseResult download(String urlPath, String downloadFileDir, String fileName) throws Exception;
@@ -63,28 +68,31 @@ public interface IHttpRequester {
 
     /**
      * 自定义请求头
+     *
      * @param headers 请求头参数
      * @return 调用链
      */
-    default IHttpRequester setRequestHeader(Map<String,String> headers) {
+    default IHttpRequester setRequestHeader(Map<String, String> headers) {
         System.err.println("method[setRequestHeader] not override, nothing happened");
         return this;
     }
 
     /**
      * 自定义请求头 - 仅一对参数
-     * @param headKey 参数key
+     *
+     * @param headKey   参数key
      * @param headValue 参数value
      * @return 调用链
      */
     default IHttpRequester setRequestHeader(String headKey, String headValue) {
-        Map<String,String> headers = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
         headers.put(headKey, headValue);
         return setRequestHeader(headers);
     }
 
     /**
      * 设置请求参数 - json数据
+     *
      * @param requestJsonData 请求的json数据
      * @return 调用链
      */
@@ -95,16 +103,18 @@ public interface IHttpRequester {
 
     /**
      * 设置请求参数 - 传统表单
+     *
      * @param formData 请求的参数本身
      * @return 调用链
      */
-    default IHttpRequester setRequestForm(Map<String,String> formData) {
+    default IHttpRequester setRequestForm(Map<String, String> formData) {
         System.err.println("method[setRequestForm] not override, nothing happened");
         return this;
     }
 
     /**
      * 设置请求参数 - xml数据
+     *
      * @param requestXmlData 请求的xml数据
      * @return 调用链
      */
@@ -120,6 +130,7 @@ public interface IHttpRequester {
 
     /**
      * 设置要提交的文件
+     *
      * @param uploadFiles 要提交的文件们
      * @return 调用链
      */
@@ -130,12 +141,13 @@ public interface IHttpRequester {
 
     /**
      * 设置要提交的文件 - 单个文件
+     *
      * @param uploadFile 要提交的文件(key固定为"file")
      * @return 调用链
      */
     default IHttpRequester setUploadFile(File uploadFile) {
-        Map<String,File> fileMap = new HashMap<>();
-        fileMap.put("file",uploadFile);
+        Map<String, File> fileMap = new HashMap<>();
+        fileMap.put("file", uploadFile);
         return setUploadFile(fileMap);
     }
 

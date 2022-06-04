@@ -16,22 +16,27 @@ import java.util.List;
 
 /**
  * excel -> JavaBean 读取器
+ *
  * @author Alan Scipio
- * @since 1.0.2-p3
  * @date 2021/9/10
+ * @since 1.0.2-p3
  */
-public class ExcelBeanReader extends ExcelBeanOperator{
+public class ExcelBeanReader extends ExcelBeanOperator {
 
-    /** 自定义excel -> JavaBean类型转换器 */
+    /**
+     * 自定义excel -> JavaBean类型转换器
+     */
     private BeanTypeConvert customTypeConvert;
 
     /**
      * 对于公式单元格，是获取公式计算的值，还是公式本身。
-     *      (为true代表获取公式计算的值)
+     * (为true代表获取公式计算的值)
      */
     private boolean getFormulaResult = true;
 
-    /** 垂直读取标志 */
+    /**
+     * 垂直读取标志
+     */
     private boolean verticalRead = false;
 
     /**
@@ -46,15 +51,23 @@ public class ExcelBeanReader extends ExcelBeanOperator{
      */
     private int emptyColumnLimit = 0;
 
-    /** 单元格忽略处理器 */
+    /**
+     * 单元格忽略处理器
+     */
     private CellIgnoreHandler cellIgnoreHandler;
 
     //流式读取专用
-    /**  */
+    /**
+     *
+     */
     private Integer currentBeanIndex;
-    /**  */
+    /**
+     *
+     */
     private AutoExcelBeanMapper<?> autoExcelBeanMapper;
-    /**  */
+    /**
+     *
+     */
     private Class<?> beanClass;
 
     @Override
@@ -79,21 +92,22 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     /**
      * 读取excel并映射为JavaBean
+     *
      * @param beanMapper 自定义转换器
-     * @param <T> JavaBean的类型
+     * @param <T>        JavaBean的类型
      * @return 映射后的JavaBean list
      */
     public <T> List<T> read(@NotNull Class<T> beanClass, @NotNull ExcelBeanMapper<T> beanMapper) throws Exception {
         try {
             //操作前准备(参数检查、确认扫描总行数等)
             //只有垂直读取时才需要检查列长度
-            OpPrepareVo prepareVo = operationPrepare(beanMapper,false,beanClass,null,verticalRead);
+            OpPrepareVo prepareVo = operationPrepare(beanMapper, false, beanClass, null, verticalRead);
             Sheet sheet = prepareVo.sheet;
             Integer rowLength = prepareVo.rowLength;
             Integer rowStartIndex = excelIndex.getRowStartIndex();
             //如果是垂直读取，则准备好垂直读取的mapper
             VerticalExcelBeanMapper<T> verticalBeanMapper = null;
-            if(verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
+            if (verticalRead && (beanMapper instanceof VerticalExcelBeanMapper)) {
                 verticalBeanMapper = (VerticalExcelBeanMapper<T>) beanMapper;
                 verticalBeanMapper.prepareMappingInfo();
             }
@@ -101,36 +115,35 @@ public class ExcelBeanReader extends ExcelBeanOperator{
             List<T> beanList = buildBeanList();
 
             //开始的监听回调
-            if(startListener != null && !startListener.firstOperation(workbook,sheet,excelIndex)) {
+            if (startListener != null && !startListener.firstOperation(workbook, sheet, excelIndex)) {
                 return beanList;
             }
 
             // 开始扫描行
             int beanIndex = 0;
             int nullRowCount = 0;
-            for(int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
+            for (int i = rowStartIndex; i < rowLength; i += excelIndex.getRowStep()) {
                 //不在白名单中的行要跳过
-                if(rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
+                if (rowWhitelist.size() > 0 && !rowWhitelist.contains(i)) {
                     continue;
                 }
                 Row row = sheet.getRow(i);
 
                 //行处理监听器
-                if(rowHandler != null && !rowHandler.handle(row,i,rowLength)) {
+                if (rowHandler != null && !rowHandler.handle(row, i, rowLength)) {
                     break;
                 }
 
                 //正常水平读取
-                if(verticalBeanMapper == null) {
-                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength,beanIndex);
-                    if(bean != null) {
+                if (verticalBeanMapper == null) {
+                    T bean = beanMapper.mappingExcel2Bean(row, i, rowLength, beanIndex);
+                    if (bean != null) {
                         beanList.add(bean);
                         beanIndex++;
-                    }
-                    else {
+                    } else {
                         nullRowCount++;
                     }
-                    if(emptyRowLimit > 0 && emptyRowLimit == nullRowCount) { //达到空行上限，强行结束读取
+                    if (emptyRowLimit > 0 && emptyRowLimit == nullRowCount) { //达到空行上限，强行结束读取
                         System.out.println("Reach the emptyRowLimit[" + emptyRowLimit + "], finish reading");
                         break;
                     }
@@ -138,18 +151,17 @@ public class ExcelBeanReader extends ExcelBeanOperator{
                 //垂直读取
                 else {
                     //确定每列总行数(加上了起始列号)
-                    Integer columnLength = determineColumnLength(excelIndex,row);
-                    verticalBeanMapper.mappingExcel2Bean(row,i,rowLength,excelIndex.getColumnStartIndex(),columnLength,beanList);
+                    Integer columnLength = determineColumnLength(excelIndex, row);
+                    verticalBeanMapper.mappingExcel2Bean(row, i, rowLength, excelIndex.getColumnStartIndex(), columnLength, beanList);
                 }
             }//end of for
             //收尾
             finish();
             return beanList;
-        }catch (Exception e) {
-            if(exceptionHandler != null) {
-                exceptionHandler.handle(workbook,excelIndex,e);
-            }
-            else {
+        } catch (Exception e) {
+            if (exceptionHandler != null) {
+                exceptionHandler.handle(workbook, excelIndex, e);
+            } else {
                 throw e;
             }
             return null;
@@ -158,55 +170,58 @@ public class ExcelBeanReader extends ExcelBeanOperator{
 
     /**
      * 读取excel并映射为JavaBean - 根据定义的映射信息list
+     *
      * @param mappingInfo 映射信息
-     * @param <T> JavaBean的类型
+     * @param <T>         JavaBean的类型
      * @return 映射后的JavaBean list
      */
     public <T> List<T> read(@NotNull List<ExcelMappingInfo> mappingInfo, @NotNull Class<T> beanClass) throws Exception {
-        if(mappingInfo == null || mappingInfo.size() <= 0) {
+        if (mappingInfo == null || mappingInfo.size() <= 0) {
             throw new IllegalArgumentException("argument \"mappingInfo\" can not be null or empty");
         }
-        if(beanClass == null ) {
+        if (beanClass == null) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
-        BaseExcelBeanMapper<T> beanAutoMapper = verticalRead ? new VerticalAutoExcelBeanMapper<>(mappingInfo,beanClass) : new AutoExcelBeanMapper<>(mappingInfo,beanClass);
-        buildBeanAutoMapper(beanAutoMapper,beanClass);
-        return read(beanClass,beanAutoMapper);
+        BaseExcelBeanMapper<T> beanAutoMapper = verticalRead ? new VerticalAutoExcelBeanMapper<>(mappingInfo, beanClass) : new AutoExcelBeanMapper<>(mappingInfo, beanClass);
+        buildBeanAutoMapper(beanAutoMapper, beanClass);
+        return read(beanClass, beanAutoMapper);
     }
 
     /**
      * 读取excel并映射为JavaBean - 根据注解映射
+     *
      * @param <T> JavaBean的类型，要映射的字段上需要添加{@link ExcelMapping}注解
      * @return 映射后的JavaBean list
      */
     public <T> List<T> read(@NotNull Class<T> beanClass) throws Exception {
-        if(beanClass == null ) {
+        if (beanClass == null) {
             throw new NullPointerException("argument \"beanClass\" is null");
         }
         BaseExcelBeanMapper<T> beanAutoMapper = verticalRead ? new VerticalAutoExcelBeanMapper<>(beanClass) : new AutoExcelBeanMapper<>(beanClass);
-        buildBeanAutoMapper(beanAutoMapper,beanClass);
-        return read(beanClass,beanAutoMapper);
+        buildBeanAutoMapper(beanAutoMapper, beanClass);
+        return read(beanClass, beanAutoMapper);
     }
 
     //==================================================================================================================
 
     /**
      * 流式读取bean
-     *  <p>注意：读取完后要记得调用{@link #close()}或{@link #saveAndClose()}关闭</p>
+     * <p>注意：读取完后要记得调用{@link #close()}或{@link #saveAndClose()}关闭</p>
+     *
      * @param <T> JavaBean的类型
      * @return 当前读取到的bean
      */
     @SuppressWarnings("unchecked")
     public <T> T readNext() {
         Row row = readNextRow();
-        if(autoExcelBeanMapper == null) { //第一次读取，初始化mapper
+        if (autoExcelBeanMapper == null) { //第一次读取，初始化mapper
             isNeedReset = false;
             currentBeanIndex = 0;
             autoExcelBeanMapper = new AutoExcelBeanMapper<>(beanClass);
-            buildBeanAutoMapper(autoExcelBeanMapper,beanClass);
+            buildBeanAutoMapper(autoExcelBeanMapper, beanClass);
         }
         T bean = (T) autoExcelBeanMapper.mappingExcel2Bean(row, currentRowIndex, lastRowIndex, (currentBeanIndex++));
-        if(bean == null) {
+        if (bean == null) {
             resetForStreamRead(true);
         }
         return bean;
@@ -215,13 +230,14 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     @Override
     protected void prepareForStreamRead() {
         //准备ExcelIndex
-        prepareExcelIndex(beanClass,null);
+        prepareExcelIndex(beanClass, null);
         super.prepareForStreamRead();
 
     }
+
     @Override
     protected void resetForStreamRead(boolean isNeedReset) {
-        if(isNeedReset) {
+        if (isNeedReset) {
             firstCheck = true;
             createSheetIfNotExists = true;
             currentSheet = null;
@@ -240,24 +256,24 @@ public class ExcelBeanReader extends ExcelBeanOperator{
     //==================================================================================================================
 
     private void buildBeanAutoMapper(BaseExcelBeanMapper<?> beanAutoMapper, Class<?> beanClass) {
-        if(customTypeConvert != null) {
+        if (customTypeConvert != null) {
             beanAutoMapper.setTypeConvert(customTypeConvert);
         }
         beanAutoMapper.setGetFormulaResult(getFormulaResult);
         beanAutoMapper.setCellIgnoreHandler(cellIgnoreHandler);
         beanAutoMapper.setCellHandler(cellHandler);
         beanAutoMapper.setEmptyColumnLimit(emptyColumnLimit);
-        if(super.isForceSetBeanListener) {
-            beanAutoMapper.forceSetBeanListener(beanClass,beanListener);
-        }
-        else {
-            beanAutoMapper.checkAndSetBeanListener(beanClass,beanListener);
+        if (super.isForceSetBeanListener) {
+            beanAutoMapper.forceSetBeanListener(beanClass, beanListener);
+        } else {
+            beanAutoMapper.checkAndSetBeanListener(beanClass, beanListener);
         }
     }
 
     /**
      * 构建空的beanList
-     *      <p>子类重写此方法以定义自己的List类型</p>
+     * <p>子类重写此方法以定义自己的List类型</p>
+     *
      * @param <T> bean类型
      * @return 空的beanList实例
      */

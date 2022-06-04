@@ -38,7 +38,7 @@ public abstract class ExcelBeanOperator extends ExcelOperator {
      */
     protected void prepareExcelIndex(Class<?> beanClass, List<?> beanList) {
         if(excelIndex == null) {
-            excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex();
+            excelIndex = new com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelIndex ();
         }
         //获取注解(但已设定的excelIndex优先级高于注解)
         ExcelIndex annotation = beanClass.getDeclaredAnnotation(ExcelIndex.class);

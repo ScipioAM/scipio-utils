@@ -5,6 +5,7 @@ import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 
@@ -348,6 +349,46 @@ public class ExcelUtil {
             XSSFDrawing drawing = (XSSFDrawing) sheet.createDrawingPatriarch();
             drawing.createPicture(anchor, pictureIndex);
         }
+    }
+
+    /**
+     * 获取或创建单元格对象
+     *
+     * @param row     行对象
+     * @param cellNum 列号(0-based)
+     */
+    public static Cell getOrCreate(Row row, int cellNum) {
+        Cell cell = row.getCell(cellNum);
+        if (cell == null) {
+            cell = row.createCell(cellNum);
+        }
+        return cell;
+    }
+
+    /**
+     * 合并单元格
+     *
+     * @param sheet 工作表对象
+     * @return 合并区域对象
+     */
+    public static CellRangeAddress combineCells(Sheet sheet, int firstRow, int lastRow, int firstCol, int lastCol) {
+        CellRangeAddress region = new CellRangeAddress(firstRow, lastRow, firstCol, lastCol);
+        sheet.addMergedRegion(region);
+        return region;
+    }
+
+    /**
+     * 设置单元格背景色
+     *
+     * @param workbook   工作簿对象（用于创建式单元格样对象）
+     * @param cell       单元格对象
+     * @param colorIndex 颜色index值，可以用预设的{@link IndexedColors}
+     */
+    public static void setCellColor(Workbook workbook, Cell cell, short colorIndex) {
+        CellStyleBuilder.builder(workbook, cell)
+                .keepOriginalStyle()
+                .foregroundColor(colorIndex)
+                .build();
     }
 
 }

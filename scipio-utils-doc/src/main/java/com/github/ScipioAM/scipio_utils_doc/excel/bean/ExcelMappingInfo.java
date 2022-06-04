@@ -5,10 +5,9 @@ import com.github.ScipioAM.scipio_utils_common.validation.annotation.Nullable;
 
 /**
  * Excel -> JavaBean 映射关系(暂未用到，后续可能考虑使用)
- *
  * @author Alan Scipio
- * @date 2021/9/10
  * @since 1.0.2-p3
+ * @date 2021/9/10
  */
 public class ExcelMappingInfo {
 
@@ -32,8 +31,7 @@ public class ExcelMappingInfo {
     @NotNull
     private String fieldName;
 
-    public ExcelMappingInfo() {
-    }
+    public ExcelMappingInfo() {}
 
     public ExcelMappingInfo(int cellIndex, String fieldName) {
         this.cellIndex = cellIndex;
@@ -50,23 +48,26 @@ public class ExcelMappingInfo {
         return cellIndex;
     }
 
-    public void setCellIndex(Integer cellIndex) {
+    public ExcelMappingInfo setCellIndex(Integer cellIndex) {
         this.cellIndex = cellIndex;
+        return this;
     }
 
     public Integer getRowIndex() {
         return rowIndex;
     }
 
-    public void setRowIndex(Integer rowIndex) {
+    public ExcelMappingInfo setRowIndex(Integer rowIndex) {
         this.rowIndex = rowIndex;
+        return this;
     }
 
     public String getFieldName() {
         return fieldName;
     }
 
-    public void setFieldName(String fieldName) {
+    public ExcelMappingInfo setFieldName(String fieldName) {
         this.fieldName = fieldName;
+        return this;
     }
 }

@@ -139,4 +139,28 @@ public class StringUtil {
         return sb.toString();
     }
 
+    /**
+     * 英文首字母转为大写
+     */
+    public String firstToUpper(String s) {
+        char[] sArr = s.toCharArray();
+        int ascii0 = sArr[0];
+        if(ascii0 >= 97 && ascii0 <= 122) {
+            sArr[0] -= 32;
+        }
+        return String.valueOf(sArr);
+    }
+
+    /**
+     * 英文首字母转为小写
+     */
+    public String firstToLower(String s) {
+        char[] sArr = s.toCharArray();
+        int ascii0 = sArr[0];
+        if(ascii0 >= 65 && ascii0 <= 90) {
+            sArr[0] += 32;
+        }
+        return String.valueOf(sArr);
+    }
+
 }

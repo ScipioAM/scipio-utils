@@ -66,6 +66,7 @@
         <hibernate-validator.version>7.0.2.Final</hibernate-validator.version>
         <jakarta.el.version>4.0.0</jakarta.el.version>
         <javax.persistence.version>2.2</javax.persistence.version>
+        <openjsse.version>1.1.10</openjsse.version>
     </properties>
 
     <dependencyManagement>
@@ -240,6 +241,13 @@
                 <groupId>com.opencsv</groupId>
                 <artifactId>opencsv</artifactId>
                 <version>${open-csv.version}</version>
+            </dependency>
+
+            <!-- 给Java8支持TLSv1.3协议的https请求 -->
+            <dependency>
+                <groupId>org.openjsse</groupId>
+                <artifactId>openjsse</artifactId>
+                <version>${openjsse.version}</version>
             </dependency>
 
         </dependencies>

@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_doc.csv;
 
 import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
+import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
@@ -43,7 +44,7 @@ public class OpenCsvBeanReader<T> {
     public List<T> readByPosition(File file, Charset charset, int skipLines) throws FileNotFoundException {
         //载入文件
         InputStreamReader reader = new InputStreamReader(new FileInputStream(file), charset);
-        com.opencsv.CSVReader csvReader = new CSVReaderBuilder(reader)
+        CSVReader csvReader = new CSVReaderBuilder(reader)
                 .withSkipLines(skipLines) //跳过的行数
                 .build();
         //按位置映射的策略

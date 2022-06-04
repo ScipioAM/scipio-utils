@@ -5,17 +5,19 @@ import org.apache.poi.ss.usermodel.Cell;
 
 /**
  * JavaBean写入Excel单元格
+ *
  * @author Alan Scipio
- * @since 1.0.2-p3
  * @date 2021/9/23
+ * @since 1.0.2-p3
  */
 @FunctionalInterface
 public interface BeanCellWriter {
 
     /**
      * 将值写入单元格
-     * @param cell 单元格对象
-     * @param value 要写入的值
+     *
+     * @param cell      单元格对象
+     * @param value     要写入的值
      * @param valueType 要写入值的类型
      * @throws ExcelException 未知的写入值类型
      */

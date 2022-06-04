@@ -1,8 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.csv;
 
 import com.github.ScipioAM.scipio_utils_common.AssertUtil;
-import com.github.ScipioAM.scipio_utils_doc.csv.bean.CSVCell;
-import com.github.ScipioAM.scipio_utils_doc.csv.bean.CSVMeta;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -34,7 +32,7 @@ public class CSVBeanWriter {
      */
     public <T> void write(Class<T> beanClass, List<T> beanList, OutputStream out) throws IOException, IllegalAccessException {
         AssertUtil.notNull(beanClass,"beanClass can not be null");
-        AssertUtil.collectionNotEmpty(beanList,"beanList can not be null or empty");
+        AssertUtil.notNull(beanList,"beanList can not be null or empty");
         //确定元信息
         List<CSVMeta> metaList = new ArrayList<>();
         Field[] fields = beanClass.getDeclaredFields();
@@ -61,6 +59,9 @@ public class CSVBeanWriter {
                 writer.write(contentLine);
             }
             writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -124,19 +125,21 @@ public class CSVBeanWriter {
 
     //==================================================================================================================================
 
-    public String getDelimiter() {
+    public String getDELIMITER() {
         return DELIMITER;
     }
 
-    public void setDelimiter(String delimiter) {
-        this.DELIMITER = delimiter;
+    public CSVBeanWriter setDELIMITER(String DELIMITER) {
+        this.DELIMITER = DELIMITER;
+        return this;
     }
 
     public String getCharset() {
         return charset;
     }
 
-    public void setCharset(String charset) {
+    public CSVBeanWriter setCharset(String charset) {
         this.charset = charset;
+        return this;
     }
 }

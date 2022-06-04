@@ -1,7 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
 import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
-import com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
@@ -15,7 +14,7 @@ import java.util.List;
  */
 public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
 
-    /** 自定义映射信息(非null时优先级高于{@link ExcelMapping}) */
+    /** 自定义映射信息(非null时优先级高于{@link com.github.ScipioAM.scipio_utils_doc.excel.annotations.ExcelMapping}) */
     protected List<ExcelMappingInfo> mappingInfo;
 
     /** Java Bean的类型 */
@@ -41,7 +40,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
 
     /**
      * 检查泛型类型并设置{@link BeanListener}
-     * @param targetClass 预期类型
+     * @param targetClass  预期类型
      * @param beanListener 监听器对象
      * @throws IllegalArgumentException 监听器的泛型类型与预期类型不一致
      */
@@ -61,7 +60,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
 
     /**
      * 强制设置{@link BeanListener}
-     * @param targetClass 预期类型
+     * @param targetClass  预期类型
      * @param beanListener 监听器对象
      */
     @SuppressWarnings("unchecked")

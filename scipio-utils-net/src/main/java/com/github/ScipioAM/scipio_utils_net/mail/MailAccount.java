@@ -2,6 +2,7 @@ package com.github.ScipioAM.scipio_utils_net.mail;
 
 /**
  * 邮箱账号信息
+ *
  * @author Alan Scipio
  * @since 1.0.1-p1
  */
@@ -47,7 +48,8 @@ public class MailAccount {
      */
     private boolean isDebug = false;
 
-    public MailAccount() { }
+    public MailAccount() {
+    }
 
     public MailAccount(String smtpHost, Integer smtpPort) {
         this.smtpHost = smtpHost;

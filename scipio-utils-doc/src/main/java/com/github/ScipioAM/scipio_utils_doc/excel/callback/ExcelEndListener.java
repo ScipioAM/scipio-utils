@@ -5,9 +5,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  * Excel操作执行结束时的回调
+ *
  * @author Alan Scipio
- * @since 1.0.2-p3
  * @date 2021/9/10
+ * @since 1.0.2-p3
  */
 public interface ExcelEndListener {
 
@@ -20,10 +21,10 @@ public interface ExcelEndListener {
      */
     ExcelEndListener SIMPLE_CLOSE = (workbook, excelIndex) -> {
         try {
-            if(workbook != null) {
+            if (workbook != null) {
                 workbook.close();
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     };

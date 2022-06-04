@@ -20,10 +20,7 @@ import java.security.spec.X509EncodedKeySpec;
  * Author: Alan Min
  * Create Date: 2020/9/27
  */
-public class AsymmetricCrypto extends AbstractCrypto{
-
-    private final int MAX_ENCRYPT_BLOCK = 117;//加密字节块的最大长度
-    private final int MAX_DECRYPT_BLOCK = 128;//解密字节块的最大长度
+public class AsymmetricCrypto extends AbstractCrypto {
 
     private PrivateKey privateKey;//私钥
     private PublicKey publicKey;//公钥
@@ -32,38 +29,39 @@ public class AsymmetricCrypto extends AbstractCrypto{
 
     /**
      * 字符串 公钥加密或私钥解密
+     *
      * @param algorithm 非对称的算法
-     * @param content 待处理的字符串
-     * @param charset 待处理字符串的字符集
+     * @param content   待处理的字符串
+     * @param charset   待处理字符串的字符集
      * @return 处理过的字符串
      */
-    public String strCrypt(boolean isEncrypt, ACAlgorithm algorithm, String content, Charset charset) throws Exception
-    {
-        if(isEncrypt) {
+    public String strCrypt(boolean isEncrypt, ACAlgorithm algorithm, String content, Charset charset) throws Exception {
+        if (isEncrypt) {
             byte[] byte_content = content.getBytes(charset.getName());
-            byte[] byte_encrypt = bytesCrypt(true,algorithm,byte_content);
+            byte[] byte_encrypt = bytesCrypt(true, algorithm, byte_content);
             return Base64Util.encodeToStr(byte_encrypt);//返回Base64编码的加密结果
-        }
-        else {
+        } else {
             byte[] byte_decode = Base64Util.decodeToBytes(content);//将加密并编码后的内容解码成字节数组
-            byte[] byte_content = bytesCrypt(false,algorithm,byte_decode);
+            byte[] byte_content = bytesCrypt(false, algorithm, byte_decode);
             return new String(byte_content, charset.getName());
         }
     }
 
     /**
      * 字节 公钥加密或私钥解密
-     * @param isEncrypt 是否为加密
-     * @param algorithm 非对称的算法
+     *
+     * @param isEncrypt    是否为加密
+     * @param algorithm    非对称的算法
      * @param contentBytes 要处理的字节数据
      * @return 处理过的字节数据
      */
-    public byte[] bytesCrypt(boolean isEncrypt, ACAlgorithm algorithm, byte[] contentBytes) throws Exception
-    {
+    public byte[] bytesCrypt(boolean isEncrypt, ACAlgorithm algorithm, byte[] contentBytes) throws Exception {
         int BLOCK_SIZE;
+        int MAX_ENCRYPT_BLOCK = 117;//加密字节块的最大长度
+        int MAX_DECRYPT_BLOCK = 128;//解密字节块的最大长度
         Cipher cipher = Cipher.getInstance(algorithm.getName());
         //加密
-        if(isEncrypt) {
+        if (isEncrypt) {
             checkPublicKey();
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             BLOCK_SIZE = MAX_ENCRYPT_BLOCK;
@@ -96,7 +94,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
                 offSet = i * BLOCK_SIZE;
 
                 processedCount += processSize;
-                if(processingListener!=null) {
+                if (processingListener != null) {
                     processingListener.onProcess(processedCount);
                 }
             }
@@ -106,26 +104,26 @@ public class AsymmetricCrypto extends AbstractCrypto{
 
     /**
      * 流 公钥加密或私钥解密
+     *
      * @param isEncrypt 是否为加密
      * @param algorithm 非对称的算法
      */
-    public void streamCrypt(boolean isEncrypt, ACAlgorithm algorithm, InputStream in, OutputStream out) throws Exception
-    {
+    public void streamCrypt(boolean isEncrypt, ACAlgorithm algorithm, InputStream in, OutputStream out) throws Exception {
         int count;
         //读文件
         byte[] readBytes;
         byte[] readBuffer = new byte[bufferSize];
-        try(ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            while( (count=in.read(readBuffer))>-1 ) {
-                bos.write(readBuffer,0,count);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            while ((count = in.read(readBuffer)) > -1) {
+                bos.write(readBuffer, 0, count);
                 bos.flush();
             }
             readBytes = bos.toByteArray();
-        }finally {
+        } finally {
             in.close();
         }
         //处理
-        byte[] processedBytes = bytesCrypt(isEncrypt,algorithm,readBytes);
+        byte[] processedBytes = bytesCrypt(isEncrypt, algorithm, readBytes);
         //输出
         readBuffer = new byte[bufferSize];
         try (ByteArrayInputStream is = new ByteArrayInputStream(processedBytes)) {
@@ -133,7 +131,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
                 out.write(readBuffer, 0, count);
                 out.flush();
             }
-        }finally {
+        } finally {
             out.close();
         }
     }
@@ -153,12 +151,13 @@ public class AsymmetricCrypto extends AbstractCrypto{
         }
         SecureRandom secureRandom = getSecureRandom(userSeed);
         //初始化密钥生成器
-        switch (algorithm)
-        {
+        switch (algorithm) {
             case RSA:
-                keygen.initialize(1024, secureRandom);break;
+                keygen.initialize(1024, secureRandom);
+                break;
             case DSA:
-                keygen.initialize(512, secureRandom);break;
+                keygen.initialize(512, secureRandom);
+                break;
         }
         //生成密钥对
         KeyPair keyPair = keygen.generateKeyPair();
@@ -169,8 +168,9 @@ public class AsymmetricCrypto extends AbstractCrypto{
 
     /**
      * 从字符串还原私钥
+     *
      * @param algorithm 私钥字符串原本的算法
-     * @param keyStr 私钥字符串
+     * @param keyStr    私钥字符串
      * @throws InvalidKeySpecException 密钥字符串非法
      */
     public void setPrivateKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
@@ -179,15 +179,16 @@ public class AsymmetricCrypto extends AbstractCrypto{
             KeyFactory keyFactory = KeyFactory.getInstance(algorithm.getName());
             PKCS8EncodedKeySpec pkSpec = new PKCS8EncodedKeySpec(key_decoded);
             privateKey = keyFactory.generatePrivate(pkSpec);
-        }catch (NoSuchAlgorithmException e){
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
     }
 
     /**
      * 从字符串还原公钥
+     *
      * @param algorithm 公钥字符串原本的算法
-     * @param keyStr 公钥字符串
+     * @param keyStr    公钥字符串
      * @throws InvalidKeySpecException 密钥字符串非法
      */
     public void setPublicKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
@@ -196,7 +197,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
             KeyFactory keyFactory = KeyFactory.getInstance(algorithm.getName());
             X509EncodedKeySpec pkSpec = new X509EncodedKeySpec(key_decoded);
             publicKey = keyFactory.generatePublic(pkSpec);
-        }catch (NoSuchAlgorithmException e){
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
     }
@@ -205,7 +206,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
      * 检查公钥
      */
     private void checkPublicKey() {
-        if(this.publicKey==null) {
+        if (this.publicKey == null) {
             throw new IllegalArgumentException("public key is null");
         }
     }
@@ -214,7 +215,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
      * 检查私钥
      */
     private void checkPrivateKey() {
-        if(this.privateKey==null) {
+        if (this.privateKey == null) {
             throw new IllegalArgumentException("private key is null");
         }
     }
@@ -228,7 +229,7 @@ public class AsymmetricCrypto extends AbstractCrypto{
     }
 
     private void checkBufferSize(int MAX_SIZE) {
-        if(bufferSize>MAX_SIZE)
+        if (bufferSize > MAX_SIZE)
             bufferSize = MAX_SIZE;
     }
 
