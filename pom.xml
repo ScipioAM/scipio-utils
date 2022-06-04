@@ -61,7 +61,7 @@
         <mail.version>1.6.2</mail.version>
         <poi.version>5.2.2</poi.version>
         <pdfbox.version>3.0.0-RC1</pdfbox.version>
-        <itext.version>7.2.2</itext.version>
+        <itext.version>7.2.1</itext.version>
         <open-csv.version>5.6</open-csv.version>
         <hibernate-validator.version>7.0.2.Final</hibernate-validator.version>
         <jakarta.el.version>4.0.0</jakarta.el.version>
