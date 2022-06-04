@@ -6,7 +6,7 @@ package com.github.ScipioAM.scipio_utils_crypto.mode;
  * Author: Alan Min
  * Create Date: 2020/9/22
  */
-public enum  MDAlgorithm {
+public enum  MDAlgorithm implements CryptoAlgorithm {
 
     MD5("MD5"),
     SHA_1("SHA-1"),
@@ -18,6 +18,7 @@ public enum  MDAlgorithm {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

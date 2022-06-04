@@ -6,7 +6,7 @@ package com.github.ScipioAM.scipio_utils_crypto.mode;
  * Author: Alan Min
  * Create Date:2020/9/27
  */
-public enum ACAlgorithm {
+public enum ACAlgorithm implements CryptoAlgorithm {
 
     RSA("RSA"),
     DSA("DSA");
@@ -17,6 +17,7 @@ public enum ACAlgorithm {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

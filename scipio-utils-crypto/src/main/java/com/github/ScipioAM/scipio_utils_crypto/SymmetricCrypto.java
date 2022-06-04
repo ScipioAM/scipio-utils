@@ -1,6 +1,8 @@
 package com.github.ScipioAM.scipio_utils_crypto;
 
+import com.github.ScipioAM.scipio_utils_crypto.listener.SCKeyGenerator;
 import com.github.ScipioAM.scipio_utils_crypto.mode.Charset;
+import com.github.ScipioAM.scipio_utils_crypto.mode.CryptoAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.SCAlgorithm;
 import com.github.ScipioAM.scipio_utils_io.Base64Util;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -11,7 +13,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 
@@ -24,6 +25,8 @@ import java.security.spec.AlgorithmParameterSpec;
 public class SymmetricCrypto extends AbstractCrypto {
 
     private SecretKeySpec secretKey;//最终生成的密钥对象
+
+    private SCKeyGenerator keyGenerator = SCKeyGenerator.DEFAULT;
 
     //---------------------------------------------------------------------------------
 
@@ -38,7 +41,7 @@ public class SymmetricCrypto extends AbstractCrypto {
      * @param algorithmParameterSpec 算法要用到的参数
      * @return 密文或明文
      */
-    public String strCrypt(SCAlgorithm algorithm, String userSeed,
+    public String strCrypt(CryptoAlgorithm algorithm, String userSeed,
                            String content, Charset charset, boolean isEncrypt,
                            AlgorithmParameterSpec algorithmParameterSpec) throws Exception {
         String result;
@@ -66,7 +69,7 @@ public class SymmetricCrypto extends AbstractCrypto {
      * @param bytes     要处理的字节数据
      * @return 处理过的字节数据
      */
-    public byte[] bytesCrypt(boolean isEncrypt, SCAlgorithm algorithm, String userSeed, byte[] bytes,
+    public byte[] bytesCrypt(boolean isEncrypt, CryptoAlgorithm algorithm, String userSeed, byte[] bytes,
                              AlgorithmParameterSpec algorithmParameterSpec)
             throws Exception {
         int mode = (isEncrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE);
@@ -166,9 +169,9 @@ public class SymmetricCrypto extends AbstractCrypto {
      * @param userSeed  用户密钥，如果该项为空则生成随机密钥
      * @param algorithm 算法（用户密钥为空时，可为空）
      */
-    public void setSecretKey(String userSeed, SCAlgorithm algorithm) throws NoSuchAlgorithmException {
+    public void setSecretKey(String userSeed, CryptoAlgorithm algorithm) throws NoSuchAlgorithmException {
         //获取原始密钥
-        SecretKey original_key = generateOriginalKey(algorithm, userSeed);
+        SecretKey original_key = keyGenerator.generateKey(algorithm, userSeed);
         if (original_key != null) {
             //生成最终密钥
             secretKey = new SecretKeySpec(original_key.getEncoded(), algorithm.getName());
@@ -181,7 +184,7 @@ public class SymmetricCrypto extends AbstractCrypto {
      * @param encodedKeyBytes 用户密钥（该项为空则对保存的密钥对象进行空值检查）
      * @param algorithm       算法（用户密钥为空时，可为空）
      */
-    public void setSecretKey(byte[] encodedKeyBytes, SCAlgorithm algorithm) {
+    public void setSecretKey(byte[] encodedKeyBytes, CryptoAlgorithm algorithm) {
         secretKey = new SecretKeySpec(encodedKeyBytes, algorithm.getName());
     }
 
@@ -191,41 +194,13 @@ public class SymmetricCrypto extends AbstractCrypto {
      * @param userSeed  用户密钥，如果该项为空则生成随机密钥
      * @param algorithm 算法（用户密钥为空时，可为空）
      */
-    public void checkSavedKey(String userSeed, SCAlgorithm algorithm) throws NoSuchAlgorithmException {
+    public void checkSavedKey(String userSeed, CryptoAlgorithm algorithm) throws NoSuchAlgorithmException {
         if (secretKey == null) {
             setSecretKey(userSeed, algorithm);
         } else if (userSeed != null && !"".equals(userSeed)) {
             //覆盖新的密钥
             setSecretKey(userSeed, algorithm);
         }
-    }
-
-    /**
-     * 生成原始密钥
-     */
-    private SecretKey generateOriginalKey(SCAlgorithm algorithm, String userSeed) throws NoSuchAlgorithmException {
-        KeyGenerator keygen;//构造密钥生成器
-        try {
-            keygen = KeyGenerator.getInstance(algorithm.getName());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
-        }
-        SecureRandom secureRandom = getSecureRandom(userSeed);
-        //初始化密钥生成器
-        switch (algorithm) {
-            case AES:
-                keygen.init(128, secureRandom);
-                break;
-            case DESEDE:
-                keygen.init(168, secureRandom);
-                break;
-            case DES:
-                keygen.init(56, secureRandom);
-                break;
-        }
-        //生成密钥
-        return keygen.generateKey();
     }
 
     //---------------------------------------------------------------------------------
@@ -244,4 +219,11 @@ public class SymmetricCrypto extends AbstractCrypto {
         return secretKey;
     }
 
+    public SCKeyGenerator getKeyGenerator() {
+        return keyGenerator;
+    }
+
+    public void setKeyGenerator(SCKeyGenerator keyGenerator) {
+        this.keyGenerator = keyGenerator;
+    }
 }

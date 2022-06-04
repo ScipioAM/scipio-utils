@@ -1,6 +1,8 @@
 package com.github.ScipioAM.scipio_utils_crypto;
 
+import com.github.ScipioAM.scipio_utils_crypto.listener.ACKeyGenerator;
 import com.github.ScipioAM.scipio_utils_crypto.listener.OnProcessingListener;
+import com.github.ScipioAM.scipio_utils_crypto.listener.SCKeyGenerator;
 import com.github.ScipioAM.scipio_utils_crypto.mode.*;
 import com.github.ScipioAM.scipio_utils_io.Base64Util;
 import com.github.ScipioAM.scipio_utils_io.FileUtil;
@@ -107,8 +109,9 @@ public class CryptoUtil {
      * @param algorithm 私钥字符串原本的算法
      * @param keyStr    私钥字符串
      */
-    public void setPrivateKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
+    public CryptoUtil setPrivateKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
         acObject.setPrivateKey(algorithm, keyStr);
+        return this;
     }
 
     /**
@@ -117,8 +120,9 @@ public class CryptoUtil {
      * @param algorithm 公钥字符串原本的算法
      * @param keyStr    公钥字符串
      */
-    public void setPublicKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
+    public CryptoUtil setPublicKey(ACAlgorithm algorithm, String keyStr) throws InvalidKeySpecException {
         acObject.setPublicKey(algorithm, keyStr);
+        return this;
     }
 
     /**
@@ -167,8 +171,9 @@ public class CryptoUtil {
         return this;
     }
 
-    public void setCharset(Charset charset) {
+    public CryptoUtil setCharset(Charset charset) {
         this.charset = charset;
+        return this;
     }
 
     /**
@@ -649,10 +654,11 @@ public class CryptoUtil {
      * @param filePath  文件全路径
      * @param algorithm 该密钥属于什么对称加密的算法
      */
-    public void getSymmetricKeyFromFile(String filePath, SCAlgorithm algorithm) throws IOException {
+    public CryptoUtil getSymmetricKeyFromFile(String filePath, SCAlgorithm algorithm) throws IOException {
         String content_encode = FileUtil.readStrFromFile(filePath, charset.getName());
         byte[] content_bytes = Base64Util.decodeToBytes(content_encode);
         setSymmetricKey(content_bytes, algorithm);
+        return this;
     }
 
     /**
@@ -692,9 +698,10 @@ public class CryptoUtil {
      * @throws IOException             读取文件出错
      * @throws InvalidKeySpecException 密钥字符串非法
      */
-    public void getPrivateKeyFromFile(String filePath, ACAlgorithm algorithm) throws IOException, InvalidKeySpecException {
+    public CryptoUtil getPrivateKeyFromFile(String filePath, ACAlgorithm algorithm) throws IOException, InvalidKeySpecException {
         String content_encode = FileUtil.readStrFromFile(filePath, charset.getName());
         setPrivateKey(algorithm, content_encode);
+        return this;
     }
 
     /**
@@ -705,9 +712,10 @@ public class CryptoUtil {
      * @throws IOException             读取文件出错
      * @throws InvalidKeySpecException 密钥字符串非法
      */
-    public void getPublicKeyFromFile(String filePath, ACAlgorithm algorithm) throws IOException, InvalidKeySpecException {
+    public CryptoUtil getPublicKeyFromFile(String filePath, ACAlgorithm algorithm) throws IOException, InvalidKeySpecException {
         String content_encode = FileUtil.readStrFromFile(filePath, charset.getName());
         setPublicKey(algorithm, content_encode);
+        return this;
     }
 
     /**
@@ -726,6 +734,28 @@ public class CryptoUtil {
      */
     public SaltLevel getDefaultSaleLevel() {
         return mdObject.getDefaultSaltLevel();
+    }
+
+    /**
+     * 设置对称密钥的生成实现（否则有个默认实现）
+     */
+    public CryptoUtil setSymmetricKeyGenerator(SCKeyGenerator generator) {
+        if(generator == null) {
+            throw new IllegalArgumentException("SCKeyGenerator can not be null");
+        }
+        scObject.setKeyGenerator(generator);
+        return this;
+    }
+
+    /**
+     * 设置非对称密钥对的生成实现（否则有个默认实现）
+     */
+    public CryptoUtil setAsymmetricKeyGenerator(ACKeyGenerator generator) {
+        if(generator == null) {
+            throw new IllegalArgumentException("ACKeyGenerator can not be null");
+        }
+        acObject.setKeyGenerator(generator);
+        return this;
     }
 
 }

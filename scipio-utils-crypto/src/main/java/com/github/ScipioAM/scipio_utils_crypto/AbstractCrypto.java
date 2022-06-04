@@ -49,7 +49,7 @@ public abstract class AbstractCrypto {
      *
      * @param userSeed 用户指定的密钥种子
      */
-    protected SecureRandom getSecureRandom(String userSeed) throws NoSuchAlgorithmException {
+    public static SecureRandom getSecureRandom(String userSeed) throws NoSuchAlgorithmException {
         SecureRandom secureRandom;
         if (userSeed == null || "".equals(userSeed)) {
             secureRandom = new SecureRandom();

@@ -1,7 +1,9 @@
 package com.github.ScipioAM.scipio_utils_crypto;
 
+import com.github.ScipioAM.scipio_utils_crypto.listener.ACKeyGenerator;
 import com.github.ScipioAM.scipio_utils_crypto.mode.ACAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.Charset;
+import com.github.ScipioAM.scipio_utils_crypto.mode.CryptoAlgorithm;
 import com.github.ScipioAM.scipio_utils_io.Base64Util;
 
 import javax.crypto.Cipher;
@@ -25,6 +27,8 @@ public class AsymmetricCrypto extends AbstractCrypto {
     private PrivateKey privateKey;//私钥
     private PublicKey publicKey;//公钥
 
+    private ACKeyGenerator keyGenerator = ACKeyGenerator.DEFAULT;
+
     //---------------------------------------------------------------------------------
 
     /**
@@ -35,7 +39,7 @@ public class AsymmetricCrypto extends AbstractCrypto {
      * @param charset   待处理字符串的字符集
      * @return 处理过的字符串
      */
-    public String strCrypt(boolean isEncrypt, ACAlgorithm algorithm, String content, Charset charset) throws Exception {
+    public String strCrypt(boolean isEncrypt, CryptoAlgorithm algorithm, String content, Charset charset) throws Exception {
         if (isEncrypt) {
             byte[] byte_content = content.getBytes(charset.getName());
             byte[] byte_encrypt = bytesCrypt(true, algorithm, byte_content);
@@ -55,7 +59,7 @@ public class AsymmetricCrypto extends AbstractCrypto {
      * @param contentBytes 要处理的字节数据
      * @return 处理过的字节数据
      */
-    public byte[] bytesCrypt(boolean isEncrypt, ACAlgorithm algorithm, byte[] contentBytes) throws Exception {
+    public byte[] bytesCrypt(boolean isEncrypt, CryptoAlgorithm algorithm, byte[] contentBytes) throws Exception {
         int BLOCK_SIZE;
         int MAX_ENCRYPT_BLOCK = 117;//加密字节块的最大长度
         int MAX_DECRYPT_BLOCK = 128;//解密字节块的最大长度
@@ -108,7 +112,7 @@ public class AsymmetricCrypto extends AbstractCrypto {
      * @param isEncrypt 是否为加密
      * @param algorithm 非对称的算法
      */
-    public void streamCrypt(boolean isEncrypt, ACAlgorithm algorithm, InputStream in, OutputStream out) throws Exception {
+    public void streamCrypt(boolean isEncrypt, CryptoAlgorithm algorithm, InputStream in, OutputStream out) throws Exception {
         int count;
         //读文件
         byte[] readBytes;
@@ -141,26 +145,9 @@ public class AsymmetricCrypto extends AbstractCrypto {
     /**
      * 生成私钥和公钥
      */
-    public void generateKeyPair(ACAlgorithm algorithm, String userSeed) throws NoSuchAlgorithmException {
-        KeyPairGenerator keygen;//构造密钥生成器
-        try {
-            keygen = KeyPairGenerator.getInstance(algorithm.getName());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return;
-        }
-        SecureRandom secureRandom = getSecureRandom(userSeed);
-        //初始化密钥生成器
-        switch (algorithm) {
-            case RSA:
-                keygen.initialize(1024, secureRandom);
-                break;
-            case DSA:
-                keygen.initialize(512, secureRandom);
-                break;
-        }
+    public void generateKeyPair(CryptoAlgorithm algorithm, String userSeed) throws NoSuchAlgorithmException {
         //生成密钥对
-        KeyPair keyPair = keygen.generateKeyPair();
+        KeyPair keyPair = keyGenerator.generateKey(algorithm, userSeed);
         //生成私钥和公钥
         privateKey = keyPair.getPrivate();
         publicKey = keyPair.getPublic();
@@ -231,6 +218,14 @@ public class AsymmetricCrypto extends AbstractCrypto {
     private void checkBufferSize(int MAX_SIZE) {
         if (bufferSize > MAX_SIZE)
             bufferSize = MAX_SIZE;
+    }
+
+    public ACKeyGenerator getKeyGenerator() {
+        return keyGenerator;
+    }
+
+    public void setKeyGenerator(ACKeyGenerator keyGenerator) {
+        this.keyGenerator = keyGenerator;
     }
 
 }

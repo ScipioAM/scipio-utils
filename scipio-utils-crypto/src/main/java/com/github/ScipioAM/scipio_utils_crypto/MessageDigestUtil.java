@@ -1,6 +1,7 @@
 package com.github.ScipioAM.scipio_utils_crypto;
 
 import com.github.ScipioAM.scipio_utils_crypto.mode.ConvertType;
+import com.github.ScipioAM.scipio_utils_crypto.mode.CryptoAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.MDAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.SaltLevel;
 
@@ -26,7 +27,7 @@ public class MessageDigestUtil extends AbstractCrypto {
      * @param convertType 字节数组转16进制字符串的转换方式（位运算方式或StringBuilder格式化方式）
      * @param saltLevel   加盐的层数
      */
-    public String encode(MDAlgorithm algorithm, String content, ConvertType convertType, SaltLevel saltLevel) {
+    public String encode(CryptoAlgorithm algorithm, String content, ConvertType convertType, SaltLevel saltLevel) {
         String result, saltContent;
         switch (saltLevel) {
             case LEVEL_1:
@@ -50,7 +51,7 @@ public class MessageDigestUtil extends AbstractCrypto {
      *
      * @throws IOException 找不到文件，读取文件流出错，关闭文件流出错
      */
-    public String getFileChecksum(File file, MDAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
+    public String getFileChecksum(File file, CryptoAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance(algorithm.getName());
         byte[] buffer = new byte[1024];
         int numRead;
@@ -75,7 +76,7 @@ public class MessageDigestUtil extends AbstractCrypto {
      * @return 返回true代表一致
      * @throws IOException 找不到文件，读取文件流出错，关闭文件流出错
      */
-    public boolean compareFileChecksum(File file0, File file1, MDAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
+    public boolean compareFileChecksum(File file0, File file1, CryptoAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
         String file0Md5 = getFileChecksum(file0, algorithm);
         String file1Md5 = getFileChecksum(file1, algorithm);
         if (file0Md5 != null) {
@@ -98,7 +99,7 @@ public class MessageDigestUtil extends AbstractCrypto {
      * @return 返回true代表一致
      * @throws IOException 找不到文件，读取文件流出错，关闭文件流出错
      */
-    public boolean compareFileChecksum(File file, String anotherChecksum, MDAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
+    public boolean compareFileChecksum(File file, String anotherChecksum, CryptoAlgorithm algorithm) throws IOException, NoSuchAlgorithmException {
         String fileChecksum = getFileChecksum(file, algorithm);
         if (fileChecksum != null) {
             return (fileChecksum.equals(anotherChecksum));
@@ -121,7 +122,7 @@ public class MessageDigestUtil extends AbstractCrypto {
      * @param content     需要加密的内容
      * @param convertType 转换方式（位运算方式或StringBuilder格式化方式）
      */
-    private String baseEncode(MDAlgorithm algorithm, String content, ConvertType convertType) {
+    private String baseEncode(CryptoAlgorithm algorithm, String content, ConvertType convertType) {
         String result = null;
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm.getName());

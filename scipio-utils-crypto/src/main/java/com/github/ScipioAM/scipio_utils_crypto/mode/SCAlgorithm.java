@@ -6,7 +6,7 @@ package com.github.ScipioAM.scipio_utils_crypto.mode;
  * Author: Alan Min
  * Create Date:2020/9/22
  */
-public enum SCAlgorithm {
+public enum SCAlgorithm implements CryptoAlgorithm {
 
     AES("AES"),
     AES_CBC_PKCS7PADDING("AES/CBC/PKCS7Padding"),
@@ -19,6 +19,7 @@ public enum SCAlgorithm {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
