@@ -12,6 +12,9 @@ import com.github.ScipioAM.scipio_utils_crypto.mode.SaltLevel;
  */
 public class MD5Util {
 
+    private MD5Util() {
+    }
+
     private static final CryptoUtil cryptoUtil = new CryptoUtil();
 
     /**

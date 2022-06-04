@@ -4,6 +4,7 @@ import com.github.ScipioAM.scipio_utils_crypto.mode.ConvertType;
 import com.github.ScipioAM.scipio_utils_crypto.mode.CryptoAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.MDAlgorithm;
 import com.github.ScipioAM.scipio_utils_crypto.mode.SaltLevel;
+import com.github.ScipioAM.scipio_utils_crypto.utils.HexUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,7 +61,7 @@ public class MessageDigestUtil extends AbstractCrypto {
                 md.update(buffer, 0, numRead);
             }
         }
-        return byte2HexByBitwise(md.digest());
+        return HexUtil.byte2HexByBitwise(md.digest());
     }
 
     /**
@@ -130,9 +131,9 @@ public class MessageDigestUtil extends AbstractCrypto {
             byte[] byte_encoded = md.digest();//完成哈希计算，得到加密后的字节数组
 
             if (convertType == ConvertType.BYTE2HEX_BITWISE) {
-                result = byte2HexByBitwise(byte_encoded);
+                result = HexUtil.byte2HexByBitwise(byte_encoded);
             } else {
-                result = byte2HexByFormat(byte_encoded);
+                result = HexUtil.byte2HexByFormat(byte_encoded);
             }
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();

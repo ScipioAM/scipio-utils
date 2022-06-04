@@ -10,6 +10,9 @@ import com.github.ScipioAM.scipio_utils_crypto.CryptoUtil;
  */
 public class AESUtil {
 
+    private AESUtil() {
+    }
+
     private static final CryptoUtil cryptoUtil = new CryptoUtil();
 
     public static String encrypt(String plaintext, String key) throws Exception {
