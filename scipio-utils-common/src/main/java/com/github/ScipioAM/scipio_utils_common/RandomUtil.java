@@ -166,6 +166,26 @@ public class RandomUtil {
         return getString(length, false, true, true, special);
     }
 
+    /**
+     * 随机字符串（根据自定义基础字符池）
+     *
+     * @param length        随机字符串的长度
+     * @param baseCharsPool 自定义基础字符池
+     */
+    public static String getStringByCustom(int length, String baseCharsPool) {
+        if (baseCharsPool == null || "".equals(baseCharsPool)) {
+            throw new IllegalArgumentException("method argument 'baseString' can not be empty");
+        }
+        char[] arr = baseCharsPool.toCharArray();
+        StringBuilder result = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(arr.length);
+            result.append(arr[index]);
+        }
+        return result.toString();
+    }
+
     //============================================ ↓↓↓↓↓↓ long ↓↓↓↓↓↓ ============================================
 
     /**
