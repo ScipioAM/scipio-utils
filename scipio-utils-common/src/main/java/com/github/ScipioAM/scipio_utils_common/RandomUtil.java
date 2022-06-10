@@ -1,9 +1,6 @@
 package com.github.ScipioAM.scipio_utils_common;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 随机工具类
@@ -169,19 +166,32 @@ public class RandomUtil {
     /**
      * 随机字符串（根据自定义基础字符池）
      *
-     * @param length        随机字符串的长度
-     * @param baseCharsPool 自定义基础字符池
+     * @param length 随机字符串的长度
+     * @param pool   自定义基础字符池
      */
-    public static String getStringByCustom(int length, String baseCharsPool) {
-        if (baseCharsPool == null || "".equals(baseCharsPool)) {
-            throw new IllegalArgumentException("method argument 'baseString' can not be empty");
+    public static String getStringByCustom(int length, Collection<String> pool) {
+        if (pool == null || pool.size() == 0) {
+            throw new IllegalArgumentException("method argument 'Collection<String> pool' can not be empty");
         }
-        char[] arr = baseCharsPool.toCharArray();
+        //确定池子的类型
+        String[] arr = null;
+        List<String> poolList = null;
+        if(pool instanceof List) {
+            poolList = (List<String>) pool;
+        } else {
+            arr = new String[pool.size()];
+            pool.toArray(arr);
+        }
+        //开始构建
         StringBuilder result = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < length; i++) {
-            int index = random.nextInt(arr.length);
-            result.append(arr[index]);
+            int index = random.nextInt(pool.size());
+            if (poolList != null) {
+                result.append(poolList.get(index));
+            } else {
+                result.append(arr[index]);
+            }
         }
         return result.toString();
     }
