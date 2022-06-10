@@ -166,17 +166,17 @@ public class RandomUtil {
     /**
      * 随机字符串（根据自定义基础字符池）
      *
-     * @param length 随机字符串的长度
-     * @param pool   自定义基础字符池
+     * @param getNumFromPool 为了组成这一个字符池，从池子里拿的次数
+     * @param pool           自定义基础字符池
      */
-    public static String getStringByCustom(int length, Collection<String> pool) {
+    public static String getStringByCustom(int getNumFromPool, Collection<String> pool) {
         if (pool == null || pool.size() == 0) {
             throw new IllegalArgumentException("method argument 'Collection<String> pool' can not be empty");
         }
         //确定池子的类型
         String[] arr = null;
         List<String> poolList = null;
-        if(pool instanceof List) {
+        if (pool instanceof List) {
             poolList = (List<String>) pool;
         } else {
             arr = new String[pool.size()];
@@ -185,7 +185,7 @@ public class RandomUtil {
         //开始构建
         StringBuilder result = new StringBuilder();
         Random random = new Random();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < getNumFromPool; i++) {
             int index = random.nextInt(pool.size());
             if (poolList != null) {
                 result.append(poolList.get(index));
@@ -194,6 +194,34 @@ public class RandomUtil {
             }
         }
         return result.toString();
+    }
+
+    public static String getStringByCustom(Collection<String> pool) {
+        return getStringByCustom(1, pool);
+    }
+
+    /**
+     * 随机字符串（根据自定义基础字符池）
+     *
+     * @param length 随机字符串的长度
+     * @param pool   自定义基础字符池
+     */
+    public static String getStringByCustom(int length, char[] pool) {
+        if (pool == null || pool.length == 0) {
+            throw new IllegalArgumentException("method argument 'Collection<String> pool' can not be empty");
+        }
+        //开始构建
+        StringBuilder result = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(pool.length);
+            result.append(pool[index]);
+        }
+        return result.toString();
+    }
+
+    public static String getStringByCustom(int length, String pool) {
+        return getStringByCustom(length, pool.toCharArray());
     }
 
     //============================================ ↓↓↓↓↓↓ long ↓↓↓↓↓↓ ============================================
