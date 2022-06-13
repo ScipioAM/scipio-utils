@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class FieldUtil {
 
-    private FieldUtil() {
+    protected FieldUtil() {
     }
 
     public static class FieldExt<T extends Annotation> {

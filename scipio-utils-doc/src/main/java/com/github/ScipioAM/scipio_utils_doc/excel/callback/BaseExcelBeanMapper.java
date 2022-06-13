@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.excel.callback;
 
-import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
+import com.github.ScipioAM.scipio_utils_common.reflect.ReflectUtil;
 import com.github.ScipioAM.scipio_utils_doc.excel.bean.ExcelMappingInfo;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.BeanTypeConvert;
 import com.github.ScipioAM.scipio_utils_doc.excel.convert.SimpleBeanTypeConvert;
@@ -47,7 +47,7 @@ public abstract class BaseExcelBeanMapper<T> implements ExcelBeanMapper<T> {
     @SuppressWarnings("unchecked")
     public void checkAndSetBeanListener(Class<?> targetClass, BeanListener<?> beanListener) throws IllegalArgumentException {
         if(beanListener != null) { //beanListener为null则略过
-            Class<?> listenerGenericType = TypeHelper.resolveRawArgument(BeanListener.class,beanListener);
+            Class<?> listenerGenericType = ReflectUtil.resolveRawArgument(BeanListener.class,beanListener);
             if(targetClass == listenerGenericType) { //检查BeanListener类型与预期类型是否一致
                 setBeanListener((BeanListener<T>) beanListener);
             }

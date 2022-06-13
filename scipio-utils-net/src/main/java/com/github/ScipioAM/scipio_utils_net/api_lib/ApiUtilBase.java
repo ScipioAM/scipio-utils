@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_net.api_lib;
 
-import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
+import com.github.ScipioAM.scipio_utils_common.reflect.ReflectUtil;
 import com.github.ScipioAM.scipio_utils_io.parser.GsonUtil;
 import com.github.ScipioAM.scipio_utils_net.http.HttpUtil;
 import com.github.ScipioAM.scipio_utils_net.http.IHttpRequester;
@@ -142,7 +142,7 @@ public abstract class ApiUtilBase<R extends ApiResponse, S extends ApiUtilBase<R
      */
     @SuppressWarnings("unchecked")
     protected Class<R> getResponseType() {
-        return (Class<R>) TypeHelper.getGenericClass(this,0);
+        return (Class<R>) ReflectUtil.getGenericClass(this,0);
     }
 
     /**

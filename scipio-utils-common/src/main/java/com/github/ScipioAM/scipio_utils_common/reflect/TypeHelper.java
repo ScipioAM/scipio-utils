@@ -2,14 +2,12 @@ package com.github.ScipioAM.scipio_utils_common.reflect;
 
 import net.jodah.typetools.TypeResolver;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
 /**
  * Class类型相关工具类
  * @author Alan Min
  * @since 2021/7/10
  */
+@Deprecated
 public class TypeHelper {
 
     /**
@@ -20,11 +18,7 @@ public class TypeHelper {
      * @return 泛型的具体类型
      */
     public static Class<?> getGenericInterface(Object obj, int interfaceIndex, int typeIndex) {
-        Type[] types = obj.getClass().getGenericInterfaces();
-        ParameterizedType parameterizedType = (ParameterizedType) types[interfaceIndex];
-        Type type = parameterizedType.getActualTypeArguments()[typeIndex];
-        return checkAndGetType(type, typeIndex);
-
+        return ReflectUtil.getGenericInterface(obj, interfaceIndex, typeIndex);
     }
 
     /**
@@ -44,8 +38,7 @@ public class TypeHelper {
      * @return 泛型的具体类型
      */
     public static Class<?> getGenericClass(Object obj, int index) {
-        Type type = obj.getClass().getGenericSuperclass();
-        return checkAndGetType(type,index);
+        return ReflectUtil.getGenericClass(obj, index);
     }
 
     /**
@@ -65,38 +58,15 @@ public class TypeHelper {
      * @return 泛型实际的类型
      */
     public static Class<?>[] resolveRawArguments(Class<?> genericClass, Object object) {
-        return TypeResolver.resolveRawArguments(genericClass, object.getClass());
+        return ReflectUtil.resolveRawArguments(genericClass, object);
     }
 
     public static Class<?> resolveRawArgument(Class<?> genericClass, Object object, int typeIndex) {
-        return resolveRawArguments(genericClass,object)[typeIndex];
+        return ReflectUtil.resolveRawArgument(genericClass, object, typeIndex);
     }
 
     public static Class<?> resolveRawArgument(Class<?> genericClass, Object object) {
-        return resolveRawArguments(genericClass,object)[0];
-    }
-
-    //==================================================================================================================
-
-    /**
-     * 检查并获取具体类型
-     * @param type 类型对象
-     * @param index 类型索引
-     * @return 具体类型
-     */
-    private static Class<?> checkAndGetType(Type type, int index) {
-        if (type instanceof Class<?>) {
-            return (Class<?>) type;
-        }
-        else if (type instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType) type;
-            Type t = pt.getActualTypeArguments()[index];
-            return checkAndGetType(t, index);
-        }
-        else {
-            String className = type == null ? "null" : type.getClass().getName();
-            throw new RuntimeException("Expected a Class: java.lang.reflect.ParameterizedType," + " but <" + type + "> is of type " + className);
-        }
+        return ReflectUtil.resolveRawArgument(genericClass, object);
     }
 
 }

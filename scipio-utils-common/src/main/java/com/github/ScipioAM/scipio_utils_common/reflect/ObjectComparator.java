@@ -15,6 +15,7 @@ public class ObjectComparator {
 
     /**
      * 比较class的字段
+     *
      * @return 比较结果
      */
     public CompareResult compareFields(Class<?> clazz1, Class<?> clazz2) {
@@ -31,10 +32,10 @@ public class ObjectComparator {
                 fields2Map.put(field2.getName(), field2);
             }
             //比对字段1所有，和字段2里能对应的
-            for(Field field1 : fields1) {
+            for (Field field1 : fields1) {
                 StringBuilder compareInfo = new StringBuilder();
                 Field field2 = fields2Map.get(field1.getName());
-                if(field2 == null) {
+                if (field2 == null) {
                     //字段1没有对应字段2的
                     compareInfo.append("(EXTRA FIELD)   ");
                     compareInfo.append("Field1 [").append(field1.getName()).append("] type1[").append(field1.getType()).append("]");
@@ -59,7 +60,7 @@ public class ObjectComparator {
                 }
             }
             //比对字段2里没有对应的
-            for(Map.Entry<String, Field> entry : fields2Map.entrySet()) {
+            for (Map.Entry<String, Field> entry : fields2Map.entrySet()) {
                 Field field2 = entry.getValue();
                 String compareInfo = "(EXTRA FIELD)   " +
                         "Field2 [" + field2.getName() + "] type2[" + field2.getType() + "]";
@@ -74,6 +75,7 @@ public class ObjectComparator {
 
     /**
      * 比较外部两个class文件的字段
+     *
      * @return 比较结果
      */
     public CompareResult compareFieldsFromClassFile(File classFile1, File classFile2) {
@@ -83,6 +85,7 @@ public class ObjectComparator {
 
     /**
      * 比较外部两个java源码文件的字段
+     *
      * @return 比较结果
      */
     public CompareResult compareFieldsFromJavaFile(File javaFile1, File javaFile2) {

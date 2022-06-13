@@ -1,6 +1,6 @@
 package com.github.ScipioAM.scipio_utils_doc.csv;
 
-import com.github.ScipioAM.scipio_utils_common.reflect.TypeHelper;
+import com.github.ScipioAM.scipio_utils_common.reflect.ReflectUtil;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
@@ -30,7 +30,7 @@ public class OpenCsvBeanReader<T> {
 
     @SuppressWarnings("unchecked")
     public OpenCsvBeanReader() {
-        beanClass = (Class<T>) TypeHelper.getGenericClass(this);
+        beanClass = (Class<T>) ReflectUtil.getGenericClass(this);
     }
 
     /**
