@@ -6,10 +6,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 类里字段相关的反射工具方法
@@ -181,6 +178,54 @@ public class FieldUtil {
     public static Class<?> getParameterizedType(Field field) {
         Class<?>[] classes = getParameterizedTypes(field);
         return classes[0];
+    }
+
+    /**
+     * 深度寻找字段（不断往父类上去找）
+     *
+     * @param clazz     目标类
+     * @param fieldName 字段名
+     * @return 字段对象
+     * @throws NoSuchFieldException 最终还是找不到
+     */
+    public static Field getFieldDeep(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        if (clazz == Object.class) {
+            throw new NoSuchFieldException(fieldName);
+        }
+        try {
+            return clazz.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e0) {
+            Class<?> superClass = clazz.getSuperclass();
+            return getFieldDeep(superClass, fieldName);
+        }
+    }
+
+    /**
+     * 获取所有字段（包括父类的）
+     *
+     * @param clazz    起始类（包含）
+     * @param endClass 终止类（不包含）
+     * @return 所有字段
+     */
+    public static Field[] getAllFieldsDeep(Class<?> clazz, Class<?> endClass) {
+        List<Field> fieldList = new ArrayList<>();
+        while (clazz != endClass) {
+            Field[] fields = clazz.getDeclaredFields();
+            fieldList.addAll(Arrays.asList(fields));
+            clazz = clazz.getSuperclass();
+        }
+        Field[] f = new Field[fieldList.size()];
+        return fieldList.toArray(f);
+    }
+
+    /**
+     * 获取所有字段（包括父类的，一直查到Object类为止，不包括Object的字段）
+     *
+     * @param clazz 起始类
+     * @return 所有字段
+     */
+    public static Field[] getAllFieldsDeep(Class<?> clazz) {
+        return getAllFieldsDeep(clazz, Object.class);
     }
 
 }
