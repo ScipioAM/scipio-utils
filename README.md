@@ -1,5 +1,5 @@
 # ScipioUtils
-
+[![](https://img.shields.io/github/v/release/ScipioAM/scipio-utils)](https://github.com/ScipioAM/scipio-utils/releases)
 #### 介绍
 java工具集合
 
