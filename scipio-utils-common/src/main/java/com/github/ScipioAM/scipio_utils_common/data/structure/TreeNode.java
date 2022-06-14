@@ -22,7 +22,7 @@ public interface TreeNode {
     /**
      * 子节点集合
      */
-    <T extends TreeNode> List<T> getChildren();
+    List<TreeNode> getChildren();
 
     /**
      * 添加子节点
