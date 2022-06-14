@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * 树型结构的节点定义
+ *
  * @author Alan Scipio
  * @since 2021/4/23
  */
@@ -22,16 +23,18 @@ public interface TreeNode {
     /**
      * 子节点集合
      */
-    List<TreeNode> getChildren();
+    List<? extends TreeNode> getChildren();
 
     /**
      * 添加子节点
+     *
      * @param childNode 子节点
      */
     void addChildNode(TreeNode childNode);
 
     /**
      * 获取节点的数据
+     *
      * @param <T> 节点数据的类型
      * @return 节点的数据
      */

@@ -21,7 +21,8 @@ public class TreeStructureUtil {
      * @param nodeList 原始数据
      * @return 带有完整树型结构的根节点
      */
-    public static TreeNode buildTreeForRoot(TreeNode root, List<TreeNode> nodeList) {
+    @SuppressWarnings("unchecked")
+    public static <T extends TreeNode> T buildTreeForRoot(TreeNode root, List<? extends TreeNode> nodeList) {
         //创建缓存
         Map<Object, TreeNode> cacheMap = new HashMap<>();
         //创建根节点
@@ -29,7 +30,7 @@ public class TreeStructureUtil {
         //遍历原始数据list，构建树型结构
         nodeList.forEach(currentNode -> checkCache(cacheMap, currentNode));
         cacheMap.clear();//清除缓存
-        return root;
+        return (T) root;
     }
 
     /**
@@ -74,7 +75,7 @@ public class TreeStructureUtil {
      * @param listener 读取每一个节点时的监听器
      * @return 扁平的所有节点list <strong>（深度优先）</strong>
      */
-    public static List<TreeNode> readRootTree(TreeNode root, TreeReadListener listener) {
+    public static List<? extends TreeNode> readRootTree(TreeNode root, TreeReadListener listener) {
         return readTreeByDeep(root.getChildren(), new ArrayList<>(), listener);
     }
 
@@ -85,7 +86,7 @@ public class TreeStructureUtil {
      * @param listener 读取每一个节点时的监听器
      * @return 扁平的所有节点list <strong>（深度优先）</strong>
      */
-    public static List<TreeNode> readForest(List<TreeNode> forest, TreeReadListener listener) {
+    public static List<? extends TreeNode> readForest(List<? extends TreeNode> forest, TreeReadListener listener) {
         return readTreeByDeep(forest, new ArrayList<>(), listener);
     }
 
@@ -96,7 +97,7 @@ public class TreeStructureUtil {
      * @param resultList 结果集，不能为null
      * @return 结果集
      */
-    private static List<TreeNode> readTreeByDeep(List<TreeNode> forest, List<TreeNode> resultList, TreeReadListener listener) {
+    private static List<? extends TreeNode> readTreeByDeep(List<? extends TreeNode> forest, List<TreeNode> resultList, TreeReadListener listener) {
         if (forest != null) {
             for (TreeNode node : forest) {
                 resultList.add(node);
