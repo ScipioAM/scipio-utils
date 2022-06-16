@@ -47,8 +47,9 @@ public class CSVBeanWriter {
         metaList.sort(Comparator.comparingInt(CSVMeta::getSort));
 
         try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, charset))) {
-            //写入bom（为了让Excel能正常显示utf-8编码下的中文）
-            writer.write(new String(new byte[] { (byte) 0xEF, (byte) 0xBB,(byte) 0xBF }));
+            //写入bom（为了让Excel能正常显示utf-8编码下的中文），必须直接写byte才不会出问题
+            out.write(new byte[] { (byte) 0xEF, (byte) 0xBB,(byte) 0xBF });
+//            writer.write(new String(new byte[] { (byte) 0xEF, (byte) 0xBB,(byte) 0xBF }));
             //写入标题
             String titleLine = buildLine(metaList,null,true);
             writer.write(titleLine);
