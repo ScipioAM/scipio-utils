@@ -170,6 +170,7 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
             if(out != null) {
                 out.close();
             }
+            workbook.close();
         }
     }//end of write()
 
