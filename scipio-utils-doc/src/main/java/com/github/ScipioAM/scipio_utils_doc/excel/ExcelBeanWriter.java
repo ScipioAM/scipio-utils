@@ -14,9 +14,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 /**
@@ -71,10 +71,10 @@ public class ExcelBeanWriter extends ExcelBeanOperator{
         }
         super.isOldVersion = ExcelUtil.isOldVersion(file);
         if(isOldVersion) {
-            super.workbook = needCreate ? new HSSFWorkbook() : new HSSFWorkbook(new FileInputStream(file));
+            super.workbook = needCreate ? new HSSFWorkbook() : new HSSFWorkbook(Files.newInputStream(file.toPath()));
         }
         else {
-            super.workbook = needCreate ? new XSSFWorkbook() : new XSSFWorkbook(new FileInputStream(file));
+            super.workbook = needCreate ? new XSSFWorkbook() : new XSSFWorkbook(Files.newInputStream(file.toPath()));
         }
         super.excelFile = file;
         return this;
