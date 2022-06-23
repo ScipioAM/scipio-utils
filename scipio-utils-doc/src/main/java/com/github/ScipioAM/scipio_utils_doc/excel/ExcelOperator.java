@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Objects;
 
 /**
@@ -91,10 +92,10 @@ public class ExcelOperator implements Closeable {
         }
         isOldVersion = ExcelUtil.isOldVersion(file);
         if(isOldVersion) {
-            this.workbook = new HSSFWorkbook(new FileInputStream(file));
+            this.workbook = new HSSFWorkbook(Files.newInputStream(file.toPath()));
         }
         else {
-            this.workbook = new XSSFWorkbook(new FileInputStream(file));
+            this.workbook = new XSSFWorkbook(Files.newInputStream(file.toPath()));
         }
 //        this.workbook = StringUtil.isNull(password) ? WorkbookFactory.create(file) : WorkbookFactory.create(file,password);
         this.excelFile = file;
@@ -127,6 +128,8 @@ public class ExcelOperator implements Closeable {
     public void saveAndClose() throws IOException {
         try (FileOutputStream out = new FileOutputStream(excelFile)) {
             workbook.write(out);
+        } finally {
+            workbook.close();
         }
     }
 
